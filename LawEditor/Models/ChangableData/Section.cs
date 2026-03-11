@@ -5,7 +5,7 @@ namespace LawEditor.Models.ChangableData
 {
     public class Section : LawElement
     {
-        public List<Chapter> Chapters { get; } = new();
+        public List<Article> Articles { get; } = new();
 
         public Section(string title) : base(title) { }
     }

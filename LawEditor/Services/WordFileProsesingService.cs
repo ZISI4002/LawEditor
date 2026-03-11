@@ -4,6 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using System.Text.RegularExpressions;
+using LawEditor.Models.ChangableData;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
+
+
 
 namespace LawEditor.Services
 {
@@ -11,17 +18,21 @@ namespace LawEditor.Services
     {
         public Laws ReadWordFile(string filePath)
         {
-            // Здесь будет логика чтения Word файла и создания объекта Law
-            // Например, можно использовать библиотеку Open XML SDK для чтения .docx файлов
-            // или Microsoft.Office.Interop.Word для работы с Word через COM
-            // Пример псевдокода:
-            // var law = new Law();
-            // using (var wordDocument = WordprocessingDocument.Open(filePath, false))
-            // {
-            //     // Чтение содержимого документа и заполнение объекта law
-            // }
-            // return law;
-            throw new NotImplementedException("Метод ReadWordFile еще не реализован.");
+
+            Laws law = new Laws();
+            Chapter chapter = null;
+            Section section = null;
+            Article article = null;
+            Clause clause = null;
+            SubClause subClause = null;
+
+
+
+            using var doc = WordprocessingDocument.Open(filePath, false);
+            var body = doc.MainDocumentPart.Document.Body;
+
+            return law;
+
         }
     }
 }

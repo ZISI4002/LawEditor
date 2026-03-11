@@ -13,6 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\Logo_of_the_National_Assembly_of_Azerbaijan.svg.ico" />
   </ItemGroup>
 
