@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using LawEditor.ViewModels;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,6 +20,7 @@ namespace LawEditor.Views
         public MainWindow()
         {
             InitializeComponent();
+            this.DataContext = new MainWindowViewModel(this);
         }
         private void BtnAddWord_Click(object sender, RoutedEventArgs e)
         {
@@ -26,12 +28,14 @@ namespace LawEditor.Views
             BtnAdd.Visibility = Visibility.Visible;
             BtnUpdate.Visibility = Visibility.Visible;
             BtnDelete.Visibility = Visibility.Visible;
+            FileNameLabelLeft.Visibility = Visibility.Visible;
             BtnAddWord.Visibility = Visibility.Collapsed;
         }
 
         private void BtnGenerate_Click(object sender, RoutedEventArgs e)
         {
             DisplayRight.Visibility = Visibility.Visible;
+            FileNameLabelRight.Visibility = Visibility.Visible;
         }
         
     }

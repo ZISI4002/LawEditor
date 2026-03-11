@@ -16,11 +16,4 @@
     <Resource Include="Assets\Logo_of_the_National_Assembly_of_Azerbaijan.svg.ico" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DataAcces\" />
-    <Folder Include="Domain\Abstract\" />
-    <Folder Include="Domain\Repositories\" />
-    <Folder Include="Новая папка\" />
-  </ItemGroup>
-
 </Project>
