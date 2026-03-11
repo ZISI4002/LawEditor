@@ -21,14 +21,14 @@ namespace LawEditor.ViewModels
         public string FileNameLeft
         {
             get => _fileNameLeft;
-            set { _fileNameLeft = value; OnPropertyChanged(nameof(FileNameLeft)); }
+            set => Set(ref _fileNameLeft, value);
         }
 
         private string _fileNameRight;
         public string FileNameRight
         {
             get => _fileNameRight;
-            set { _fileNameRight = value; OnPropertyChanged(nameof(FileNameRight)); }
+            set => Set(ref _fileNameRight, value);
         }
     }
 }
