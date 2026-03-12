@@ -6,7 +6,14 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace LawEditor.Models.ChangableSourse {
-    public class ConstitutionalAmendment  : LawElement {
-        public ConstitutionalAmendment(string title) : base(title) { }
+    public class ConstitutionalAmendment{
+        private static int counter = 1;
+        public int Id { get; }
+        public string Title { get; protected set; } //protected на случай изменения заголовка в будущем
+        public ConstitutionalAmendment(string title)
+        { //автосчетчик
+            Id = counter++;
+            Title = title;
+        }
     }
 }

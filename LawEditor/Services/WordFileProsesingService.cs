@@ -101,7 +101,7 @@ namespace LawEditor.Services
 
                 if (mode == Mode.Chapters) {
                     // BÖLMƏ
-                    if (line.Contains("BÖLMƏ")) {
+                    if (line.Contains("BÖLMƏ") ){
                         expectChapterTitle = true;
                         currentSection = null;
                         continue;
@@ -188,6 +188,10 @@ namespace LawEditor.Services
             if (law.Header == null)
                 law.Header = headerBuilder.ToString().Trim();
             
+
+
+
+
             return law;
         }
 

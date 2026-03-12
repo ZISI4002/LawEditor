@@ -1,4 +1,6 @@
-﻿using LawEditor.ViewModels;
+﻿using LawEditor.Models.RootClasses;
+using LawEditor.Services;
+using LawEditor.ViewModels;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,11 +22,26 @@ namespace LawEditor.Views
         public MainWindow()
         {
             InitializeComponent();
-            this.DataContext = new MainWindowViewModel(this);
+            var vm = new MainWindowViewModel(this);
+            DataContext = vm;
+            vm.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(vm.Laws) && vm.Laws != null)
+                    DisplayLaws(vm.Laws);
+            };
+        }
+
+        private readonly LawDisplayService _displayService = new LawDisplayService();
+
+        private void DisplayLaws(Laws laws)
+        {
+            RichTextLeft.Document = _displayService.BuildDocument(laws);
+            DisplayLeft.Visibility = Visibility.Visible;
+            FileNameLabelLeft.Visibility = Visibility.Visible;
         }
         private void BtnAddWord_Click(object sender, RoutedEventArgs e)
         {
-            DisplayLeft.Visibility = Visibility.Visible;
+           
             BtnAdd.Visibility = Visibility.Visible;
             BtnUpdate.Visibility = Visibility.Visible;
             BtnDelete.Visibility = Visibility.Visible;

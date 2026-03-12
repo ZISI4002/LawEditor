@@ -24,9 +24,13 @@ namespace LawEditor.Commands.MainWindowCommands
 
         public void Execute(object? parameter)
         {
+            _viewModel.IsDisplayLeftVisible= true;
+           
+
+
             // Open a file dialog to select a Word document
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Word Files (*.docx)|*.docx| (*.doc)|*.doc";
+            openFileDialog.Filter = "Word Files (*.docx)|*.docx| (*.doc)|*.doc" ;
             if (openFileDialog.ShowDialog() == true)
             {
                 string filename = openFileDialog.FileName;
@@ -45,6 +49,8 @@ namespace LawEditor.Commands.MainWindowCommands
                 //  Logic to read the Word file and process it 
                 WordFileProsesingService wordService = new WordFileProsesingService();
                 var laws = wordService.ReadWordFile(fullPath);
+                _viewModel.Laws = laws;
+
 
             }
         }

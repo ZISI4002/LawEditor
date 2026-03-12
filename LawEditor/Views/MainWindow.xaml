@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:LawEditor" xmlns:viewmodels="clr-namespace:LawEditor.ViewModels" d:DataContext="{d:DesignInstance Type=viewmodels:MainWindowViewModel}"
+        xmlns:local="clr-namespace:LawEditor" xmlns:viewmodels="clr-namespace:LawEditor.ViewModels" 
         mc:Ignorable="d"
         Title="LawEditor"
         Height="800" Width="1550"
@@ -14,7 +14,8 @@
         Icon="/Assets/Logo_of_the_National_Assembly_of_Azerbaijan.svg.ico">
 
     <Window.Resources>
-
+       
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style x:Key="DisplayLabelStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="22"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -179,18 +180,21 @@
 
         <!-- Левый дисплей -->
         <Border x:Name="DisplayLeft"
-                Canvas.Left="50" Canvas.Top="50"
-                Width="600" Height="600"
-                Background="#E0FFFF"
-                BorderBrush="#0000CD"
-                BorderThickness="2"
-                CornerRadius="10"
-                Visibility="Collapsed">
-            <TextBlock x:Name="DisplayLabelLeft"
-                       Style="{StaticResource DisplayLabelStyle}"
-                       Text="Здесь будет текст"/>
+        Canvas.Left="50" Canvas.Top="50"
+        Width="600" Height="600"
+        Background="#E0FFFF"
+        BorderBrush="#0000CD"
+        BorderThickness="2"
+        CornerRadius="10"
+        Visibility="Collapsed">
+            <RichTextBox x:Name="RichTextLeft"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 IsReadOnly="True"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Disabled"
+                 Padding="12"/>
         </Border>
-
         <!-- Кнопки Add / Update / Delete под левым дисплеем -->
         <Button x:Name="BtnAdd"
                 Canvas.Left="50" Canvas.Top="665"
