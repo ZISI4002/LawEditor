@@ -9,10 +9,13 @@ using System.Threading.Tasks;
 namespace LawEditor.Models.ChangableSourse {
     public class SourceDocumentsList{
         private static int counter = 1;
-        public int Id { get; }
-        public string Title { get; protected set; } //protected на случай изменения заголовка в будущем
-        public SourceDocumentsList(string title)
-        { //автосчетчик
+
+        public int Id { get; set; }
+        public string Title { get; set; }
+
+        public SourceDocumentsList() { }  // нужно
+
+        public SourceDocumentsList(string title) {
             Id = counter++;
             Title = title;
         }

@@ -3,19 +3,22 @@ using System.Collections.Generic;
 
 namespace LawEditor.Models.ChangableData
 {
-    public class Chapter
+    public class Chapter //Bolme
     {
 
         private static int counter = 1;
-        public int Id { get; }
-        public string Title { get; protected set; } //protected на случай изменения заголовка в будущем
-        public Chapter(string title)
-        { //автосчетчик
+
+        public int Id { get; set; }
+        public string Title { get; set; }
+
+        public List<Section> Sections { get; set; } = new();
+
+        public Chapter() { }   // ← НУЖНО
+
+        public Chapter(string title) {
             Id = counter++;
             Title = title;
         }
-
-        public List<Section> Sections { get; } = new();
 
     }
 }

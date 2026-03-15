@@ -2,15 +2,16 @@
 
 namespace LawEditor.Models.ChangableData
 {
-    public class Clause
+    public class Clause //Bend
     {
-        public int Number { get; }
+        public int Number { get; set; }
         public string Text { get; set; }
 
-        public List<SubClause> SubClauses { get; } = new();
+        public List<SubClause> SubClauses { get; set; } = new();
 
-        public Clause(int number, string text)
-        {
+        public Clause() { }  // ← НУЖНО
+
+        public Clause(int number, string text) {
             Number = number;
             Text = text;
         }

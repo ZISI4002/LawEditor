@@ -7,12 +7,16 @@ using System.Threading.Tasks;
 
 namespace LawEditor.Models.ChangableSourse {
     public class TransitionalProvisions {
-        public string Date { get; } = "12 noyabr 1995-ci il\n№00.";
         private static int counter = 1;
-        public int Id { get; }
-        public string Title { get; protected set; } //protected на случай изменения заголовка в будущем
-        public TransitionalProvisions(string title)
-        { //автосчетчик
+
+        public int Id { get; set; }
+        public string Title { get; set; }
+
+        public string Date { get; set; } = "12 noyabr 1995-ci il\n№00.";
+
+        public TransitionalProvisions() { }   // нужно для XmlSerializer
+
+        public TransitionalProvisions(string title) {
             Id = counter++;
             Title = title;
         }

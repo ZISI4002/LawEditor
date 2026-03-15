@@ -3,15 +3,16 @@ using System.Collections.Generic;
 
 namespace LawEditor.Models.ChangableData
 {
-    public class Article
+    public class Article //Madde
     {
-        public float Id { get; }
+        public float Id { get; set; }
         public string Title { get; set; }
 
-        public List<Clause> Clauses { get; } = new();
+        public List<Clause> Clauses { get; set; } = new();
 
-        public Article(float id, string title)
-        {
+        public Article() { }  // ← НУЖНО
+
+        public Article(float id, string title) {
             Id = id;
             Title = title;
         }

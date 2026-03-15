@@ -8,10 +8,13 @@ using System.Threading.Tasks;
 namespace LawEditor.Models.ChangableSourse {
     public class ConstitutionalAmendment{
         private static int counter = 1;
-        public int Id { get; }
-        public string Title { get; protected set; } //protected на случай изменения заголовка в будущем
-        public ConstitutionalAmendment(string title)
-        { //автосчетчик
+
+        public int Id { get; set; }
+        public string Title { get; set; }
+
+        public ConstitutionalAmendment() { }  // нужно
+
+        public ConstitutionalAmendment(string title) {
             Id = counter++;
             Title = title;
         }
