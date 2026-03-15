@@ -12,7 +12,7 @@ namespace LawEditor.Models.ChangableData
 
         public List<Article> Articles { get; set; } = new();
 
-        public Section() { }  // ← НУЖНО
+        public Section() { }  // НУЖНО
 
         public Section(string title) {
             Id = counter++;

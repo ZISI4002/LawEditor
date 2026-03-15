@@ -57,7 +57,7 @@ namespace LawEditor.Services
 
                 foreach (var section in chapter.Sections)
                 {
-                    string sectionRoman = sectionIndex < RomanNumerals.Length ? RomanNumerals[sectionIndex] : (sectionIndex + 1).ToString();
+                    string sectionRoman = RomanNumerals[section.Id-1].ToString();
 
                     // FƏSİL label
                     doc.Blocks.Add(new Paragraph(new Run($"{sectionRoman} fəsil"))
