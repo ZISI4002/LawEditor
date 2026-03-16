@@ -28,7 +28,17 @@ namespace LawEditor.Views
             {
                 if (e.PropertyName == nameof(vm.Laws) && vm.Laws != null)
                     DisplayLaws(vm.Laws);
+               
             };
+
+
+            vm.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(vm.XML) && vm.XML != null)
+                    DisplayXML(vm.XML);
+            };
+
+            
         }
 
         private readonly LawDisplayService _displayService = new LawDisplayService();
@@ -36,24 +46,15 @@ namespace LawEditor.Views
         private void DisplayLaws(Laws laws)
         {
             RichTextLeft.Document = _displayService.BuildDocument(laws);
-            DisplayLeft.Visibility = Visibility.Visible;
-            FileNameLabelLeft.Visibility = Visibility.Visible;
         }
-        private void BtnAddWord_Click(object sender, RoutedEventArgs e)
+        private void DisplayXML(Laws laws)
         {
-           
-            BtnAdd.Visibility = Visibility.Visible;
-            BtnUpdate.Visibility = Visibility.Visible;
-            BtnDelete.Visibility = Visibility.Visible;
-            FileNameLabelLeft.Visibility = Visibility.Visible;
-            BtnAddWord.Visibility = Visibility.Collapsed;
-        }
-
-        private void BtnGenerate_Click(object sender, RoutedEventArgs e)
-        {
-            DisplayRight.Visibility = Visibility.Visible;
+            RichTextRight.Document = _displayService.BuildDocument(laws);
+            FileNameLabelRight.Visibility = Visibility.Visible;
             FileNameLabelRight.Visibility = Visibility.Visible;
         }
-        
+       
+
+       
     }
 }

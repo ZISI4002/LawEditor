@@ -147,7 +147,7 @@
            TextAlignment="Center"
            Padding="8,4"
            Text="{Binding FileNameLeft}"
-           Visibility="Collapsed"/>
+            Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"/>
         <!-- TextBlock над правым дисплеем -->
         <TextBlock x:Name="FileNameLabelRight"
            Canvas.Left="900" Canvas.Top="8"
@@ -159,7 +159,8 @@
            TextAlignment="Center"
            Padding="8,4"
            Text="{Binding FileNameRight}"  
-           Visibility="Collapsed"/>
+           Visibility="Collapsed"
+                   />
         <!-- Левый квадрат с кнопкой Add Word -->
         <Border Canvas.Left="50" Canvas.Top="50"
                 Width="600" Height="600"
@@ -173,8 +174,9 @@
                         Width="130" Height="50"
                         Content="Add Word"
                         Command="{Binding AddWordCommand}"
+                         Visibility="{Binding IsAddWordVisible, Converter={StaticResource BoolToVis}}"
                         Style="{StaticResource AddWordButtonStyle}"
-                        Click="BtnAddWord_Click"/>
+                       />
             </Canvas>
         </Border>
 
@@ -186,7 +188,7 @@
         BorderBrush="#0000CD"
         BorderThickness="2"
         CornerRadius="10"
-        Visibility="Collapsed">
+        Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}">
             <RichTextBox x:Name="RichTextLeft"
                  Background="Transparent"
                  BorderThickness="0"
@@ -201,7 +203,7 @@
                 Content="＋ Add"
                 Background="#217346"
                 BorderBrush="#145A32"
-                Visibility="Collapsed"
+                Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"
                 Style="{StaticResource CrudButtonStyle}"
                 Command="{Binding AddCommand}"/>
 
@@ -210,7 +212,7 @@
                 Content="✎ Update"
                 Background="#2D5FA6"
                 BorderBrush="#1A3F73"
-                Visibility="Collapsed"
+                 Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"
                 Style="{StaticResource CrudButtonStyle}"
                 Command="{Binding UpdateCommand}"/>
 
@@ -219,10 +221,17 @@
                 Content="✕ Delete"
                 Background="#A62D2D"
                 BorderBrush="#731A1A"
-                Visibility="Collapsed"
+                 Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"
                 Style="{StaticResource CrudButtonStyle}"
                 Command="{Binding DeleteCommand}"/>
-
+        <Button x:Name="BtnRemove"
+        Canvas.Left="440" Canvas.Top="665"
+        Content="🗑 Remove"
+        Background="#6B2D6B"
+        BorderBrush="#4A1A4A"
+         Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"
+        Style="{StaticResource CrudButtonStyle}"
+        Command="{Binding RemoveCommand}"/>
         <!-- Правый квадрат (пустой) -->
         <Border Canvas.Left="900" Canvas.Top="50"
                 Width="600" Height="600"
@@ -239,10 +248,15 @@
                 BorderBrush="#0000CD"
                 BorderThickness="2"
                 CornerRadius="10"
-                Visibility="Collapsed">
-            <TextBlock x:Name="DisplayLabelRight"
-                       Style="{StaticResource DisplayLabelStyle}"
-                       Text="Здесь будет текст"/>
+                Visibility="{Binding IsDisplayRightVisible, Converter={StaticResource BoolToVis}}">
+
+            <RichTextBox x:Name="RichTextRight"
+      Background="Transparent"
+      BorderThickness="0"
+      IsReadOnly="True"
+      VerticalScrollBarVisibility="Auto"
+      HorizontalScrollBarVisibility="Disabled"
+      Padding="12"/>
         </Border>
 
         <!-- Кнопка Generate на своём месте -->
@@ -250,8 +264,9 @@
                 Canvas.Left="710" Canvas.Top="680"
                 Width="130" Height="50"
                 Content="Generate"
+                Command="{Binding GenerateCommand}"
                 Style="{StaticResource GenerateButtonStyle}"
-                Click="BtnGenerate_Click"/>
+               />
 
     </Canvas>
 </Window>

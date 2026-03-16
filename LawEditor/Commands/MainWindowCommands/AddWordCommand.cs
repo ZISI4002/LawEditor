@@ -15,6 +15,7 @@ namespace LawEditor.Commands.MainWindowCommands
         public event EventHandler? CanExecuteChanged;
         private readonly MainWindowViewModel _viewModel;
         public static string _fileName;
+       
         public AddWordCommand(MainWindowViewModel viewModel)
         {
             _viewModel = viewModel;
@@ -24,20 +25,22 @@ namespace LawEditor.Commands.MainWindowCommands
 
         public void Execute(object? parameter)
         {
-            _viewModel.IsDisplayLeftVisible= true;
            
-
-
+           
             // Open a file dialog to select a Word document
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Word Files (*.docx)|*.docx| (*.doc)|*.doc" ;
             if (openFileDialog.ShowDialog() == true)
             {
+                _viewModel.IsDisplayLeftVisible= true;
+                _viewModel.IsAddWordVisible = false;
                 string filename = openFileDialog.FileName;
                 string fullPath = System.IO.Path.GetFullPath(filename);
                 _fileName = System.IO.Path.GetFileName(filename);
+                _viewModel.FilePath = fullPath;     
                 // Set the file name in the view model
                 _viewModel.FileNameLeft = _fileName;
+
                 if (_fileName.EndsWith(".docx"))
                     {
                     _viewModel.FileNameRight = _fileName.Replace(".docx", ".xml");
@@ -50,7 +53,7 @@ namespace LawEditor.Commands.MainWindowCommands
                 WordFileProsesingService wordService = new WordFileProsesingService();
                 var laws = wordService.ReadWordFile(fullPath);
                 _viewModel.Laws = laws;
-
+                _viewModel.FileIsAdded = true;
 
             }
         }

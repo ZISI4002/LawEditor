@@ -57,6 +57,10 @@ namespace LawEditor.Services
 
                 foreach (var section in chapter.Sections)
                 {
+                    if (section.Id < 1 || section.Id > RomanNumerals.Length)
+                    {
+                        section.Id =  1; 
+                    }
                     string sectionRoman = RomanNumerals[section.Id-1].ToString();
 
                     // FƏSİL label

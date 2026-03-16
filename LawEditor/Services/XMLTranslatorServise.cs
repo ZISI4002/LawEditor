@@ -9,11 +9,11 @@ using System.Xml.Serialization;
 
 namespace LawEditor.Services {
     public class XMLTranslatorServise {
-        public void Translate(Laws law, string filePath) {
+        public void Translate(Laws law, string folderPath, string fileName)
+        {
+            string filePath = Path.Combine(folderPath, fileName);
             var serializer = new XmlSerializer(typeof(Laws));
-
             using var stream = new FileStream(filePath, FileMode.Create);
-
             serializer.Serialize(stream, law);
         }
     }
