@@ -30,6 +30,11 @@ namespace LawEditor.Services
             int chapterIndex = 0;
             foreach (var chapter in laws.Chapters)
             {
+             if (chapter.Id < 1 || chapter.Id > laws.Chapters.Count)
+                {
+                    chapter.Id = 1;
+                }
+
                 string chapterOrdinal = chapterIndex < Ordinals.Length ? Ordinals[chapterIndex] : (chapterIndex + 1).ToString();
 
                 // BÖLMƏ label
@@ -57,7 +62,7 @@ namespace LawEditor.Services
 
                 foreach (var section in chapter.Sections)
                 {
-                    if (section.Id < 1 || section.Id > RomanNumerals.Length)
+                    if (section.Id < 1 || section.Id > chapter.Sections.Count)
                     {
                         section.Id =  1; 
                     }
