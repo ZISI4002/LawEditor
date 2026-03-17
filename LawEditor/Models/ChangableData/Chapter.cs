@@ -9,11 +9,11 @@ namespace LawEditor.Models.ChangableData
         private static int counter = 1;
 
         public int Id { get; set; }
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         public List<Section> Sections { get; set; } = new();
 
-        public Chapter() { }   // ← НУЖНО
+        public Chapter() { }  
 
         public Chapter(string title) {
             Id = counter++;

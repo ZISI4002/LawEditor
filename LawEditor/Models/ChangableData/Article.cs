@@ -6,7 +6,7 @@ namespace LawEditor.Models.ChangableData
     public class Article //Madde
     {
         public float Id { get; set; }
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         public List<Clause> Clauses { get; set; } = new();
 

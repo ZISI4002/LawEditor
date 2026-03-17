@@ -10,7 +10,7 @@ namespace LawEditor.Models.ChangableSourse {
         private static int counter = 1;
 
         public int Id { get; set; }
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         public string Date { get; set; } = "12 noyabr 1995-ci il\n№00.";
 

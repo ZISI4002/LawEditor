@@ -11,7 +11,7 @@ using System.Windows.Documents;
 namespace LawEditor.Models.RootClasses
 {
     public class Laws {
-        public string Header { get; set; } //тута над модицикатором подумаю
+        public string? Header { get; set; }
         public List<Chapter> Chapters { get; } = new();
         public List<TransitionalProvisions> transitionalProvisions { get; set; } = new();
         public List<ConstitutionalAmendment> constitutionalAmendments { get; set; } = new();

@@ -8,7 +8,7 @@ namespace LawEditor.Models.ChangableData
         private static int counter = 1;
 
         public int Id { get; set; }
-        public string Title { get; set; }
+        public string? Title { get; set; }
 
         public List<Article> Articles { get; set; } = new();
 
@@ -19,5 +19,18 @@ namespace LawEditor.Models.ChangableData
             Title = title;
         }
 
+        public Article AddArticle(float id, string title) {
+            var article = new Article(id, title);
+
+            // Добавляем
+            Articles.Add(article);
+
+            // Сортируем
+            Articles = Articles
+                .OrderBy(a => a.Id)
+                .ToList();
+
+            return article;
+        }
     }
 }
