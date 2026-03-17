@@ -1,5 +1,4 @@
-﻿using LawEditor.Commands.DisplayCommand;
-using LawEditor.Commands.MainWindowCommands;
+﻿using LawEditor.Commands.MainWindowCommands;
 using LawEditor.Models.RootClasses;
 using LawEditor.ViewModels;
 using System.Windows;
@@ -12,11 +11,13 @@ public class MainWindowViewModel : BaseViewModel
         this.AddWordCommand = new AddWordCommand(this);
         this.GenerateCommand = new GenerateCommand(this);
         this.RemoveCommand = new RemoveCommand(this);
+        this.UpdateCommand=new UpdateCommand(this);
     }
 
     public ICommand AddWordCommand { get; set; }
     public ICommand GenerateCommand { get; set; }
     public ICommand RemoveCommand { get; set; }
+    public ICommand UpdateCommand { get; set; }
     // --- Файлы ---
     public string FilePath { get; set; }
     private bool _fileisadded = false;

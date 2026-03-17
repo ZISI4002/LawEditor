@@ -1,4 +1,5 @@
-﻿using LawEditor.Services;
+﻿using LawEditor.Models.RootClasses;
+using LawEditor.Services;
 using LawEditor.ViewModels;
 using Microsoft.Win32;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace LawEditor.Commands.MainWindowCommands
@@ -19,8 +21,9 @@ namespace LawEditor.Commands.MainWindowCommands
         public AddWordCommand(MainWindowViewModel viewModel)
         {
             _viewModel = viewModel;
+            
         }
-
+       
         public bool CanExecute(object? parameter) => true;
 
         public void Execute(object? parameter)
@@ -53,6 +56,7 @@ namespace LawEditor.Commands.MainWindowCommands
                 WordFileProsesingService wordService = new WordFileProsesingService();
                 var laws = wordService.ReadWordFile(fullPath);
                 _viewModel.Laws = laws;
+               
                 _viewModel.FileIsAdded = true;
 
             }

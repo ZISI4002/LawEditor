@@ -197,18 +197,10 @@
                  HorizontalScrollBarVisibility="Disabled"
                  Padding="12"/>
         </Border>
-        <!-- Кнопки Add / Update / Delete под левым дисплеем -->
-        <Button x:Name="BtnAdd"
-                Canvas.Left="50" Canvas.Top="665"
-                Content="＋ Add"
-                Background="#217346"
-                BorderBrush="#145A32"
-                Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"
-                Style="{StaticResource CrudButtonStyle}"
-                Command="{Binding AddCommand}"/>
+        
 
         <Button x:Name="BtnUpdate"
-                Canvas.Left="180" Canvas.Top="665"
+                Canvas.Right="280" Canvas.Top="665"
                 Content="✎ Update"
                 Background="#2D5FA6"
                 BorderBrush="#1A3F73"
@@ -216,16 +208,9 @@
                 Style="{StaticResource CrudButtonStyle}"
                 Command="{Binding UpdateCommand}"/>
 
-        <Button x:Name="BtnDelete"
-                Canvas.Left="310" Canvas.Top="665"
-                Content="✕ Delete"
-                Background="#A62D2D"
-                BorderBrush="#731A1A"
-                 Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"
-                Style="{StaticResource CrudButtonStyle}"
-                Command="{Binding DeleteCommand}"/>
+        
         <Button x:Name="BtnRemove"
-        Canvas.Left="440" Canvas.Top="665"
+        Canvas.Left="280" Canvas.Top="665"
         Content="🗑 Remove"
         Background="#6B2D6B"
         BorderBrush="#4A1A4A"

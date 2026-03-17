@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace LawEditor.Commands.DisplayCommand
+namespace LawEditor.Commands.MainWindowCommands
 {
     public class RemoveCommand : ICommand
     {

@@ -29,12 +29,15 @@ namespace LawEditor.Commands.MainWindowCommands
            
             if(_viewModel.FileIsAdded == true|| _viewModel.Laws != null)
             {
-                _viewModel.XML = _viewModel.Laws; // используем уже загруженный Laws для теста
+                
                 _viewModel.IsDisplayRightVisible = true;
              XMLTranslatorServise xmlTranslator = new XMLTranslatorServise();
-            string folderPath = System.IO.Path.GetDirectoryName(_viewModel.FilePath);
+                LawXmlImportService lawXmlImportService = new LawXmlImportService();
+                string folderPath = System.IO.Path.GetDirectoryName(_viewModel.FilePath);
             string fileName = _viewModel.FileNameRight;
             xmlTranslator.Translate(_viewModel.Laws, folderPath, fileName);
+              var lawXml=  lawXmlImportService.ImportFromXml(folderPath,fileName);
+                _viewModel.XML= lawXml;
             }
             else {
                 _viewModel.IsDisplayRightVisible = false;
