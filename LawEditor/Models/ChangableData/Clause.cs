@@ -16,6 +16,11 @@ namespace LawEditor.Models.ChangableData
             Text = text;
         }
 
+        public Clause(string text)
+        {
+            Text = text;
+        }
+
         public SubClause AddSubClause(string text)
         {
             int number = SubClauses.Count + 1;

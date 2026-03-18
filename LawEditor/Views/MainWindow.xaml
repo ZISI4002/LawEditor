@@ -7,14 +7,14 @@
         mc:Ignorable="d"
         Title="LawEditor"
         Height="800" Width="1550"
-        MinWidth="400" MinHeight="300"
+        MinWidth="900" MinHeight="500"
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
         Background="#1E1E1E"
         Icon="/Assets/Logo_of_the_National_Assembly_of_Azerbaijan.svg.ico">
 
     <Window.Resources>
-       
+
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <Style x:Key="DisplayLabelStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="22"/>
@@ -134,124 +134,116 @@
 
     </Window.Resources>
 
-    <Canvas Background="#1E1E1E">
+    <Grid Background="#1E1E1E">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50"/>
+            <ColumnDefinition Width="*" MinWidth="300"/>
+            <ColumnDefinition Width="50"/>
+            <ColumnDefinition Width="Auto" MinWidth="100"/>
+            <ColumnDefinition Width="50"/>
+            <ColumnDefinition Width="*" MinWidth="300"/>
+            <ColumnDefinition Width="50"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- TextBlock над левым дисплеем -->
+        <!-- Левый заголовок -->
         <TextBlock x:Name="FileNameLabelLeft"
-           Canvas.Left="50" Canvas.Top="8"
-           Width="600"
-           FontSize="18"
-           FontWeight="Bold"
-           Foreground="#F0F0F0"
-           Background="#4A4A4A"
-           TextAlignment="Center"
-           Padding="8,4"
-           Text="{Binding FileNameLeft}"
-            Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"/>
-        <!-- TextBlock над правым дисплеем -->
+                   Grid.Row="0" Grid.Column="1"
+                   Margin="0,8,0,0"
+                   FontSize="18" FontWeight="Bold"
+                   Foreground="#F0F0F0" Background="#4A4A4A"
+                   TextAlignment="Center" Padding="8,4"
+                   Text="{Binding FileNameLeft}"
+                   Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"/>
+
+        <!-- Правый заголовок -->
         <TextBlock x:Name="FileNameLabelRight"
-           Canvas.Left="900" Canvas.Top="8"
-           Width="600"
-           FontSize="18"
-           FontWeight="Bold"
-           Foreground="#F0F0F0"
-           Background="#4A4A4A"
-           TextAlignment="Center"
-           Padding="8,4"
-           Text="{Binding FileNameRight}"  
-           Visibility="Collapsed"
-                   />
-        <!-- Левый квадрат с кнопкой Add Word -->
-        <Border Canvas.Left="50" Canvas.Top="50"
-                Width="600" Height="600"
-                Background="#2D2D2D"
-                BorderBrush="#3C3C3C"
-                BorderThickness="2"
-                CornerRadius="10">
-            <Canvas>
-                <Button x:Name="BtnAddWord"
-                        Canvas.Left="235" Canvas.Top="270"
-                        Width="130" Height="50"
-                        Content="Add Word"
-                        Command="{Binding AddWordCommand}"
-                         Visibility="{Binding IsAddWordVisible, Converter={StaticResource BoolToVis}}"
-                        Style="{StaticResource AddWordButtonStyle}"
-                       />
-            </Canvas>
-        </Border>
+                   Grid.Row="0" Grid.Column="5"
+                   Margin="0,8,0,0"
+                   FontSize="18" FontWeight="Bold"
+                   Foreground="#F0F0F0" Background="#4A4A4A"
+                   TextAlignment="Center" Padding="8,4"
+                   Text="{Binding FileNameRight}"
+                   Visibility="{Binding IsDisplayRightVisible, Converter={StaticResource BoolToVis}}"/>
 
-        <!-- Левый дисплей -->
-        <Border x:Name="DisplayLeft"
-        Canvas.Left="50" Canvas.Top="50"
-        Width="600" Height="600"
-        Background="#E0FFFF"
-        BorderBrush="#0000CD"
-        BorderThickness="2"
-        CornerRadius="10"
-        Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}">
-            <RichTextBox x:Name="RichTextLeft"
-                 Background="Transparent"
-                 BorderThickness="0"
-                 IsReadOnly="True"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Disabled"
-                 Padding="12"/>
-        </Border>
-        
+        <!-- Левая панель -->
+        <Grid Grid.Row="1" Grid.Column="1" Margin="0,10,0,10">
+            <Border Background="#2D2D2D" BorderBrush="#3C3C3C"
+                    BorderThickness="2" CornerRadius="10"/>
 
-        <Button x:Name="BtnUpdate"
-                Canvas.Right="280" Canvas.Top="665"
-                Content="✎ Update"
-                Background="#2D5FA6"
-                BorderBrush="#1A3F73"
-                 Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"
-                Style="{StaticResource CrudButtonStyle}"
-                Command="{Binding UpdateCommand}"/>
+            <Button x:Name="BtnAddWord"
+                    Content="Add Word" Width="130" Height="50"
+                    Command="{Binding AddWordCommand}"
+                    Visibility="{Binding IsAddWordVisible, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource AddWordButtonStyle}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-        
-        <Button x:Name="BtnRemove"
-        Canvas.Left="280" Canvas.Top="665"
-        Content="🗑 Remove"
-        Background="#6B2D6B"
-        BorderBrush="#4A1A4A"
-         Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"
-        Style="{StaticResource CrudButtonStyle}"
-        Command="{Binding RemoveCommand}"/>
-        <!-- Правый квадрат (пустой) -->
-        <Border Canvas.Left="900" Canvas.Top="50"
-                Width="600" Height="600"
-                Background="#2D2D2D"
-                BorderBrush="#3C3C3C"
-                BorderThickness="2"
-                CornerRadius="10"/>
+            <Border x:Name="DisplayLeft"
+                    Background="#E0FFFF" BorderBrush="#0000CD"
+                    BorderThickness="2" CornerRadius="10"
+                    Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}">
+                <RichTextBox x:Name="RichTextLeft"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             IsReadOnly="True"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Disabled"
+                             Padding="12"/>
+            </Border>
+        </Grid>
 
-        <!-- Правый дисплей -->
-        <Border x:Name="DisplayRight"
-                Canvas.Left="900" Canvas.Top="50"
-                Width="600" Height="600"
-                Background="#E0FFFF"
-                BorderBrush="#0000CD"
-                BorderThickness="2"
-                CornerRadius="10"
-                Visibility="{Binding IsDisplayRightVisible, Converter={StaticResource BoolToVis}}">
+        <!-- Правая панель -->
+        <Grid Grid.Row="1" Grid.Column="5" Margin="0,10,0,10">
+            <Border Background="#2D2D2D" BorderBrush="#3C3C3C"
+                    BorderThickness="2" CornerRadius="10"/>
 
-            <RichTextBox x:Name="RichTextRight"
-      Background="Transparent"
-      BorderThickness="0"
-      IsReadOnly="True"
-      VerticalScrollBarVisibility="Auto"
-      HorizontalScrollBarVisibility="Disabled"
-      Padding="12"/>
-        </Border>
+            <Border x:Name="DisplayRight"
+                    Background="#E0FFFF" BorderBrush="#0000CD"
+                    BorderThickness="2" CornerRadius="10"
+                    Visibility="{Binding IsDisplayRightVisible, Converter={StaticResource BoolToVis}}">
+                <RichTextBox x:Name="RichTextRight"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             IsReadOnly="True"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Disabled"
+                             Padding="12"/>
+            </Border>
+        </Grid>
 
-        <!-- Кнопка Generate на своём месте -->
-        <Button x:Name="BtnGenerate"
-                Canvas.Left="710" Canvas.Top="680"
+        <!-- Кнопки под левой панелью по углам -->
+        <Grid Grid.Row="2" Grid.Column="1"
+              Margin="0,15,0,15"
+              Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}">
+            <Button x:Name="BtnUpdate" 
+                    Content="✎ Update"
+                    Background="#2D5FA6"
+                    BorderBrush="#1A3F73"
+                    Style="{StaticResource CrudButtonStyle}"
+                    Command="{Binding UpdateCommand}"
+                    HorizontalAlignment="Left"/>
+
+            <Button x:Name="BtnRemove" 
+                    Content="🗑 Remove"
+                    Background="#6B2D6B"
+                    BorderBrush="#4A1A4A"
+                    Style="{StaticResource CrudButtonStyle}"
+                    Command="{Binding RemoveCommand}"
+                    HorizontalAlignment="Right"/>
+        </Grid>
+
+        <!-- Центральная кнопка Generate внизу -->
+        <Button x:Name="BtnGenerate" 
+                Grid.Row="2" Grid.Column="3"
                 Width="130" Height="50"
+                Margin="0,15,0,15"
                 Content="Generate"
                 Command="{Binding GenerateCommand}"
                 Style="{StaticResource GenerateButtonStyle}"
-               />
-
-    </Canvas>
+                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Grid>
 </Window>

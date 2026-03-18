@@ -31,13 +31,15 @@ namespace LawEditor.Commands.MainWindowCommands
             {
                 
                 _viewModel.IsDisplayRightVisible = true;
-             XMLTranslatorServise xmlTranslator = new XMLTranslatorServise();
-                LawXmlImportService lawXmlImportService = new LawXmlImportService();
+                XMLTranslatorServise xmlTranslator = new XMLTranslatorServise();
+                XmlFileProcessingService xmlFileProcessingService = new XmlFileProcessingService();
                 string folderPath = System.IO.Path.GetDirectoryName(_viewModel.FilePath);
-            string fileName = _viewModel.FileNameRight;
-            xmlTranslator.Translate(_viewModel.Laws, folderPath, fileName);
-              var lawXml=  lawXmlImportService.ImportFromXml(folderPath,fileName);
-                _viewModel.XML= lawXml;
+                string fileName = _viewModel.FileNameRight;
+                xmlTranslator.Translate(_viewModel.Laws, folderPath, fileName);
+                var XMLlaw=  xmlFileProcessingService.ReadXmlFile(folderPath, fileName);
+                _viewModel.XML = XMLlaw;
+
+
             }
             else {
                 _viewModel.IsDisplayRightVisible = false;
