@@ -12,25 +12,58 @@ namespace LawEditor.Models.ChangableData
 
         public List<Article> Articles { get; set; } = new();
 
-        public Section() { }  // НУЖНО
+        public Section() { } 
 
         public Section(string title) {
             Id = counter++;
             Title = title;
         }
-
+        public static void DecreaseCounter() {
+            if (counter > 1)
+                counter--;
+        }
+        //Добавляем Article(Madde)
         public Article AddArticle(float id, string title) {
             var article = new Article(id, title);
 
-            // Добавляем
             Articles.Add(article);
 
-            // Сортируем
             Articles = Articles
                 .OrderBy(a => a.Id)
                 .ToList();
 
             return article;
+        }
+        //Удаляем Article(Madde)
+        public void DeleteArticle(float id) {
+            var article = Articles.FirstOrDefault(a => a.Id == id);
+
+            if (article == null)
+                return;
+
+            Articles.Remove(article);
+
+            foreach (var a in Articles) {
+                if (a.Id > id) {
+                    a.Id -= 1;
+                }
+            }
+
+            // Сортируем (на всякий случай)
+            Articles = Articles
+                .OrderBy(a => a.Id)
+                .ToList();
+        }
+
+        // Редактируем Article(Madde)
+        public void UpdateArticle(float id, string? newTitle = null) {
+            var article = Articles.FirstOrDefault(a => a.Id == id);
+
+            if (article == null)
+                return;
+
+            if (newTitle != null)
+                article.Title = newTitle;
         }
     }
 }

@@ -24,5 +24,7 @@ namespace LawEditor.Models.ChangableData
             Clauses.Add(clause);
             return clause;
         }
+
+        
     }
 }

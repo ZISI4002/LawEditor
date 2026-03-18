@@ -32,12 +32,9 @@ namespace LawEditor.Commands.MainWindowCommands
                 
                 _viewModel.IsDisplayRightVisible = true;
              XMLTranslatorServise xmlTranslator = new XMLTranslatorServise();
-                LawXmlImportService lawXmlImportService = new LawXmlImportService();
                 string folderPath = System.IO.Path.GetDirectoryName(_viewModel.FilePath);
             string fileName = _viewModel.FileNameRight;
             xmlTranslator.Translate(_viewModel.Laws, folderPath, fileName);
-              var lawXml=  lawXmlImportService.ImportFromXml(folderPath,fileName);
-                _viewModel.XML= lawXml;
             }
             else {
                 _viewModel.IsDisplayRightVisible = false;
