@@ -14,7 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 
-namespace LawEditor.Services
+namespace LawEditor.Services.WordServises
 {
    public class WordFileProsesingService
     {
@@ -49,6 +49,13 @@ namespace LawEditor.Services
                 var line = raw.Trim();
 
                 if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                // Пропускаем строки с INCLUDEPICTURE и другим мусором
+                if (line.Contains("INCLUDEPICTURE") || 
+                    line.Contains("MERGEFORMATINET") ||
+                    line.Contains("userway.org") ||
+                    line.Contains("\\*"))
                     continue;
 
                 // --- переключатели списков ---
@@ -188,12 +195,7 @@ namespace LawEditor.Services
             if (law.Header == null)
                 law.Header = headerBuilder.ToString().Trim();
             
-
-
-
-
             return law;
         }
-
     }
 }

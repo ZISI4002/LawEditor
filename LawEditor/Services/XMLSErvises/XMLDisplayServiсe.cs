@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace LawEditor.Services
+namespace LawEditor.Services.XMLSErvises
 {
     public class XMLDisplayService
     {

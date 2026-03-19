@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace LawEditor.Services {
+namespace LawEditor.Services.XMLSErvises {
     public class XMLTranslatorServise {
         public void Translate(Laws law, string folderPath, string fileName)
         {

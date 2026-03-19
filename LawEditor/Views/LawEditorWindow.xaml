@@ -25,7 +25,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TreeView Grid.Row="0" ItemsSource="{Binding Laws.Chapters}"
+            <TreeView Grid.Row="0" ItemsSource="{Binding EditedLaws.Chapters}"
                       SelectedItemChanged="TreeView_SelectedItemChanged">
                 <TreeView.Resources>
 
@@ -87,7 +87,7 @@
             <TextBox Grid.Row="1" Text="{Binding SelectedText, UpdateSourceTrigger=PropertyChanged}"
                      AcceptsReturn="True" TextWrapping="Wrap"
                      VerticalScrollBarVisibility="Auto"
-                     IsEnabled="{Binding HasSelection}"/>
+                     IsEnabled="{Binding HasSelection}" TextChanged="TextBox_TextChanged"/>
 
             <Button Grid.Row="2" Content="Save" Width="100"
                     HorizontalAlignment="Right" Margin="0,8,0,0"

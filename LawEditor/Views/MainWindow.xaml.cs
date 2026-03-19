@@ -1,5 +1,6 @@
 ﻿using LawEditor.Models.RootClasses;
-using LawEditor.Services;
+using LawEditor.Services.WordServises;
+using LawEditor.Services.XMLSErvises;
 using LawEditor.ViewModels;
 using System.IO;
 using System.Windows;
@@ -10,7 +11,8 @@ namespace LawEditor.Views
     {
         private readonly LawDisplayService _displayService = new LawDisplayService();
         private readonly XMLDisplayService _xmlDisplay = new XMLDisplayService();
-
+        private readonly XMLTranslatorServise _xMLTranslator = new XMLTranslatorServise();
+        private readonly XmlFileProcessingService xmlFileProcessingService = new XmlFileProcessingService();
         public MainWindow()
         {
             InitializeComponent();
@@ -31,7 +33,7 @@ namespace LawEditor.Views
             };
         }
 
-        private void DisplayLaws(Laws laws)
+        public void DisplayLaws(Laws laws)
         {
             RichTextLeft.Document = _displayService.BuildDocument(laws);
         }
@@ -39,6 +41,13 @@ namespace LawEditor.Views
         private void DisplayXML(MainWindowViewModel vm)
         {
             string folderPath = Path.GetDirectoryName(vm.FilePath);
+            RichTextRight.Document = _xmlDisplay.BuildDocument(vm.XML, folderPath, vm.FileNameRight);
+        }
+        public void DisplayChangedXML(MainWindowViewModel vm)
+        {
+            string folderPath = Path.GetDirectoryName(vm.FilePath);
+            _xMLTranslator.Translate(vm.Laws, folderPath, vm.FileNameRight);
+            vm.XML = xmlFileProcessingService.ReadXmlFile(folderPath, vm.FileNameRight);
             RichTextRight.Document = _xmlDisplay.BuildDocument(vm.XML, folderPath, vm.FileNameRight);
         }
     }

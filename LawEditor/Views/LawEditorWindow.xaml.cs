@@ -32,5 +32,10 @@ namespace LawEditor.Views
             if (DataContext is LawEditorWindowViewModel vm)
                 vm.SelectedItem = e.NewValue;
         }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
+        }
     }
 }

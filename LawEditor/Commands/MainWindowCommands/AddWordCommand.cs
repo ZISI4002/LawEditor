@@ -1,5 +1,5 @@
 ﻿using LawEditor.Models.RootClasses;
-using LawEditor.Services;
+using LawEditor.Services.WordServises;
 using LawEditor.ViewModels;
 using Microsoft.Win32;
 using System;
