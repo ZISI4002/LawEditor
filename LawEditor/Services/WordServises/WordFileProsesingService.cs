@@ -17,7 +17,29 @@ using System.Threading.Tasks;
 namespace LawEditor.Services.WordServises
 {
    public class WordFileProsesingService
-    {
+   {
+        private bool IsChapterLine(string line) {
+            if (string.IsNullOrWhiteSpace(line))
+                return false;
+
+            string[] chapterPrefixes =
+                { "birinci", "ikinci", "üçüncü", "dördüncü", "beşinci",
+          "altıncı", "yeddinci", "səkkizinci", "doqquzuncu" };
+
+            // приводим к нижнему регистру и убираем лишние пробелы
+            string lower = line.ToLower().Trim();
+
+            foreach (var prefix in chapterPrefixes) {
+                // проверяем по шаблону: prefix + пробелы + bölmə
+                // ^ — начало строки
+                string pattern = @"^" + prefix + @"\s+bölmə";
+
+                if (Regex.IsMatch(lower, pattern))
+                    return true;
+            }
+
+            return false;
+        }
         enum Mode {
             Header,
             Chapters,
@@ -76,7 +98,7 @@ namespace LawEditor.Services.WordServises
 
                 // --- HEADER ---
                 if (mode == Mode.Header) {
-                    if (line.Contains("BÖLMƏ")) {
+                    if (IsChapterLine(line)) {
                         law.Header = headerBuilder.ToString().Trim();
                         mode = Mode.Chapters;
 
@@ -108,7 +130,7 @@ namespace LawEditor.Services.WordServises
 
                 if (mode == Mode.Chapters) {
                     // BÖLMƏ
-                    if (line.Contains("BÖLMƏ") ){
+                    if (IsChapterLine(line)){
                         expectChapterTitle = true;
                         currentSection = null;
                         continue;
