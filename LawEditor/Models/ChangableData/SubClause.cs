@@ -10,6 +10,7 @@
         public SubClause(int number, string text) {
             Number = number;
             Text = text;
-        }       
+        }
+        
     }
 }

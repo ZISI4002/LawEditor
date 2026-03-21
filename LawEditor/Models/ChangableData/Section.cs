@@ -24,15 +24,27 @@ namespace LawEditor.Models.ChangableData
         }
         //Добавляем Article(Madde)
         public Article AddArticle(float id, string title) {
-            var article = new Article(id, title);
+            var newArticle = new Article(id, title);
 
-            Articles.Add(article);
+            bool isSubArticle = id % 1 != 0;
 
+            // если это не субстатья, то нужно сдвинуть все статьи с id >= id на 1
+            if (!isSubArticle) {
+                foreach (var article in Articles) {
+                    if (article.Id >= id) {
+                        article.Id += 1;
+                    }
+                }
+            }
+            // добавляем
+            Articles.Add(newArticle);
+
+            // сортируем
             Articles = Articles
                 .OrderBy(a => a.Id)
                 .ToList();
 
-            return article;
+            return newArticle;
         }
         //Удаляем Article(Madde)
         public void DeleteArticle(float id) {
