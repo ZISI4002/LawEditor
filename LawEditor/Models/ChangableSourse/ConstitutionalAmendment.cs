@@ -18,9 +18,5 @@ namespace LawEditor.Models.ChangableSourse {
             Id = counter++;
             Title = title;
         }
-        public static void DecreaseCounter() {
-            if (counter > 1)
-                counter--;
-        }
     }
 }

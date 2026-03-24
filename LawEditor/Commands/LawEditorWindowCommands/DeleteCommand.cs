@@ -20,10 +20,12 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
         public bool CanExecute(object? parameter)=> true;
 
-        public void Execute(object? parameter) {
-            int Level = _viewModel.CurrentAnchor.GetLevel();
+        public void Execute(object? parameter)
+        {
+            int Level=_viewModel.CurrentAnchor.GetLevel();
             if (Level > 0) {
-                switch (Level) {
+                switch (Level)
+                {
                     case 1:
                         _viewModel.CurrentAnchor.Chapter = null;
                         break;
@@ -41,6 +43,5 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                         break;
                 }
             }
-        }
     }
 }
