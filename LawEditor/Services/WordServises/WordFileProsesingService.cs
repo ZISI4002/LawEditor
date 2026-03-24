@@ -216,6 +216,7 @@ namespace LawEditor.Services.WordServises
                     law.constitutionalAmendments.Add(new ConstitutionalAmendment(line));
                     continue;
                 }
+
             }
 
             if (law.Header == null)
