@@ -15,8 +15,9 @@ namespace LawEditor.Models.RootClasses
         public string? Header { get; set; }
         public List<Chapter> Chapters { get; } = new();
         public List<TransitionalProvisions> transitionalProvisions { get; set; } = new();
-        public List<ConstitutionalAmendment> constitutionalAmendments { get; set; } = new();
         public List<SourceDocumentsList> sourceDocumentsLists { get; set; } = new();
+        public List<ConstitutionalAmendment> constitutionalAmendments { get; set; } = new();
+
 
         //Добавить главу в указанную позицию(если позиция не указана, то в конец)
         public Chapter AddChapter(string title, int? position = null) {

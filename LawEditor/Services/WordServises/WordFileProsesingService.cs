@@ -19,12 +19,14 @@ namespace LawEditor.Services.WordServises
    public class WordFileProsesingService
    {
         private bool IsChapterLine(string line) {
+            
             if (string.IsNullOrWhiteSpace(line))
                 return false;
 
             string[] chapterPrefixes =
                 { "birinci", "ikinci", "üçüncü", "dördüncü", "beşinci",
           "altıncı", "yeddinci", "səkkizinci", "doqquzuncu" };
+            
 
             // приводим к нижнему регистру и убираем лишние пробелы
             string lower = line.ToLower().Trim();
@@ -66,6 +68,8 @@ namespace LawEditor.Services.WordServises
             using var doc = WordprocessingDocument.Open(filePath, false);
             var body = doc.MainDocumentPart.Document.Body;
 
+
+
             foreach (var para in body.Elements<Paragraph>()) {
                 var raw = para.InnerText ?? "";
                 var line = raw.Trim();
@@ -87,12 +91,12 @@ namespace LawEditor.Services.WordServises
                 }
 
                 if (line.Contains("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI", StringComparison.OrdinalIgnoreCase)) {
-                    mode = Mode.Amendments;
+                    mode = Mode.Sources;
                     continue;
                 }
 
                 if (line.Contains("KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI", StringComparison.OrdinalIgnoreCase)) {
-                    mode = Mode.Sources;
+                    mode = Mode.Amendments;
                     continue;
                 }
 
@@ -201,15 +205,15 @@ namespace LawEditor.Services.WordServises
                     continue;
                 }
 
-                // AMENDMENTS
-                if (mode == Mode.Amendments) {
-                    law.constitutionalAmendments.Add(new ConstitutionalAmendment(line));
-                    continue;
-                }
-
                 // SOURCES
                 if (mode == Mode.Sources) {
                     law.sourceDocumentsLists.Add(new SourceDocumentsList(line));
+                    continue;
+                }
+
+                // AMENDMENTS
+                if (mode == Mode.Amendments) {
+                    law.constitutionalAmendments.Add(new ConstitutionalAmendment(line));
                     continue;
                 }
             }
