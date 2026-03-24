@@ -1,28 +1,32 @@
 ﻿using LawEditor.Models.ChangableData;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace LawEditor.Models.TreeClasses
 {
-   
-        public class FullTextWrapper
+    public class FullTextWrapper
+    {
+        public static string GetFullText(object item)
         {
-            public static string GetFullText(object item)
+            return item switch
             {
-                return item switch
-                {
-                    Chapter c => GetFullChapter(c),
-                    Section s => GetFullSection(s),
-                    Article a => GetFullArticle(a),
-                    Clause cl => GetFullClause(cl),
-                    SubClause sc => sc.Text ?? "",
-                    _ => ""
-                };
-            }
+                Chapter c => GetFullChapter(c),
+                Section s => GetFullSection(s),
+                Article a => GetFullArticle(a),
+                Clause cl => GetFullClause(cl),
+                SubClause sc => sc.Text ?? "",
+                _ => ""
+            };
+        }
+
+        private static int GetIndent(string line)
+        {
+            return line.TakeWhile(c => c == ' ').Count();
+        }
+
+        // ==================== GET ====================
 
         private static string GetFullChapter(Chapter chapter)
         {
@@ -35,7 +39,7 @@ namespace LawEditor.Models.TreeClasses
                 sb.AppendLine($"  {section.Title}");
                 foreach (var article in section.Articles)
                 {
-                    sb.AppendLine($"    [{article.Id}] {article.Title}");  // ← добавили Id
+                    sb.AppendLine($"    [{article.Id}] {article.Title}");
                     foreach (var clause in article.Clauses)
                     {
                         sb.AppendLine($"      {clause.Number}. {clause.Text}");
@@ -59,7 +63,7 @@ namespace LawEditor.Models.TreeClasses
 
             foreach (var article in section.Articles)
             {
-                sb.AppendLine($"  [{article.Id}] {article.Title}");  // ← добавили Id
+                sb.AppendLine($"  [{article.Id}] {article.Title}");
                 foreach (var clause in article.Clauses)
                 {
                     sb.AppendLine($"    {clause.Number}. {clause.Text}");
@@ -77,7 +81,7 @@ namespace LawEditor.Models.TreeClasses
         private static string GetFullArticle(Article article)
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"[{article.Id}] {article.Title}");  // ← добавили Id
+            sb.AppendLine($"[{article.Id}] {article.Title}");
             sb.AppendLine();
 
             foreach (var clause in article.Clauses)
@@ -91,30 +95,35 @@ namespace LawEditor.Models.TreeClasses
 
             return sb.ToString();
         }
+
         private static string GetFullClause(Clause clause)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"{clause.Number}. {clause.Text}");
+
+            foreach (var sub in clause.SubClauses)
             {
-                var sb = new StringBuilder();
-                sb.AppendLine($"{clause.Number}. {clause.Text}");
-
-                foreach (var sub in clause.SubClauses)
-                {
-                    sb.AppendLine($"  {sub.Number}) {sub.Text}");
-                }
-
-                return sb.ToString();
+                sb.AppendLine($"  {sub.Number}) {sub.Text}");
             }
 
-            public static void SetText(object item, string value)
+            return sb.ToString();
+        }
+
+        // ==================== SET ====================
+
+        public static void SetText(object item, string value)
+        {
+            switch (item)
             {
-                switch (item)
-                {
-                    case Chapter c: ParseChapter(c, value); break;
-                    case Section s: ParseSection(s, value); break;
-                    case Article a: ParseArticle(a, value); break;
-                    case Clause cl: ParseClause(cl, value); break;
-                    case SubClause sc: sc.Text = value; break;
-                }
+                case Chapter c: ParseChapter(c, value); break;
+                case Section s: ParseSection(s, value); break;
+                case Article a: ParseArticle(a, value); break;
+                case Clause cl: ParseClause(cl, value); break;
+                case SubClause sc: sc.Text = value; break;
             }
+        }
+
+        // ==================== PARSE ====================
 
         private static void ParseChapter(Chapter chapter, string text)
         {
@@ -130,55 +139,66 @@ namespace LawEditor.Models.TreeClasses
 
             for (int i = 1; i < lines.Length; i++)
             {
-                var line = lines[i];
-                if (string.IsNullOrWhiteSpace(line)) continue;
+                var rawLine = lines[i];
+                if (string.IsNullOrWhiteSpace(rawLine)) continue;
 
-                // Секция (2 пробела)
-                if (line.StartsWith("  ") && !line.StartsWith("    "))
+                int indent = GetIndent(rawLine);
+                var line = rawLine.Trim();
+
+                if (indent >= 2 && indent < 4)
                 {
-                    currentSection = new Section { Title = line.Trim() };
+                    currentSection = new Section { Title = line };
                     chapter.Sections.Add(currentSection);
                     currentArticle = null;
                     currentClause = null;
                 }
-                // Статья (4 пробела + "[ID]")
-                else if (line.StartsWith("    ") && !line.StartsWith("      "))
+                else if (indent >= 4 && indent < 6)
                 {
-                    if (currentSection != null)
+                    var match = Regex.Match(line, @"^\[([0-9.]+)\]\s*(.*)$");
+                    if (match.Success)
                     {
-                        // Парсим "[123.45] Название статьи"
-                        var articleMatch = Regex.Match(line.Trim(), @"^\[([0-9.]+)\]\s*(.*)$");
-                        if (articleMatch.Success)
+                        if (currentSection == null)
                         {
-                            float id = float.Parse(articleMatch.Groups[1].Value);
-                            string title = articleMatch.Groups[2].Value;
-                            currentArticle = new Article { Id = id, Title = title };
-                            currentSection.Articles.Add(currentArticle);
-                            currentClause = null;
+                            currentSection = new Section { Title = "Auto Section" };
+                            chapter.Sections.Add(currentSection);
                         }
+
+                        float.TryParse(match.Groups[1].Value, out float id);
+
+                        currentArticle = new Article
+                        {
+                            Id = id,
+                            Title = match.Groups[2].Value
+                        };
+
+                        currentSection.Articles.Add(currentArticle);
+                        currentClause = null;
                     }
                 }
-                // Бенд (6 пробелов)
-                else if (line.StartsWith("      ") && !line.StartsWith("        "))
+                else if (indent >= 6 && indent < 8)
                 {
-                    var match = Regex.Match(line.Trim(), @"^(\d+)\.\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\.\s*(.*)$");
                     if (match.Success && currentArticle != null)
                     {
-                        int number = int.Parse(match.Groups[1].Value);
-                        string clauseText = match.Groups[2].Value;
-                        currentClause = new Clause { Number = number, Text = clauseText };
+                        currentClause = new Clause
+                        {
+                            Number = int.Parse(match.Groups[1].Value),
+                            Text = match.Groups[2].Value
+                        };
+
                         currentArticle.Clauses.Add(currentClause);
                     }
                 }
-                // Суббенд (8 пробелов)
-                else if (line.StartsWith("        "))
+                else if (indent >= 8)
                 {
-                    var match = Regex.Match(line.Trim(), @"^(\d+)\)\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\)\s*(.*)$");
                     if (match.Success && currentClause != null)
                     {
-                        int number = int.Parse(match.Groups[1].Value);
-                        string subText = match.Groups[2].Value;
-                        currentClause.SubClauses.Add(new SubClause { Number = number, Text = subText });
+                        currentClause.SubClauses.Add(new SubClause
+                        {
+                            Number = int.Parse(match.Groups[1].Value),
+                            Text = match.Groups[2].Value
+                        });
                     }
                 }
             }
@@ -197,43 +217,53 @@ namespace LawEditor.Models.TreeClasses
 
             for (int i = 1; i < lines.Length; i++)
             {
-                var line = lines[i];
-                if (string.IsNullOrWhiteSpace(line)) continue;
+                var rawLine = lines[i];
+                if (string.IsNullOrWhiteSpace(rawLine)) continue;
 
-                // Статья (2 пробела + "[ID]")
-                if (line.StartsWith("  ") && !line.StartsWith("    "))
+                int indent = GetIndent(rawLine);
+                var line = rawLine.Trim();
+
+                if (indent >= 2 && indent < 4)
                 {
-                    var articleMatch = Regex.Match(line.Trim(), @"^\[([0-9.]+)\]\s*(.*)$");
-                    if (articleMatch.Success)
+                    var match = Regex.Match(line, @"^\[([0-9.]+)\]\s*(.*)$");
+                    if (match.Success)
                     {
-                        float id = float.Parse(articleMatch.Groups[1].Value);
-                        string title = articleMatch.Groups[2].Value;
-                        currentArticle = new Article { Id = id, Title = title };
+                        float.TryParse(match.Groups[1].Value, out float id);
+
+                        currentArticle = new Article
+                        {
+                            Id = id,
+                            Title = match.Groups[2].Value
+                        };
+
                         section.Articles.Add(currentArticle);
                         currentClause = null;
                     }
                 }
-                // Бенд (4 пробела)
-                else if (line.StartsWith("    ") && !line.StartsWith("      "))
+                else if (indent >= 4 && indent < 6)
                 {
-                    var match = Regex.Match(line.Trim(), @"^(\d+)\.\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\.\s*(.*)$");
                     if (match.Success && currentArticle != null)
                     {
-                        int number = int.Parse(match.Groups[1].Value);
-                        string clauseText = match.Groups[2].Value;
-                        currentClause = new Clause { Number = number, Text = clauseText };
+                        currentClause = new Clause
+                        {
+                            Number = int.Parse(match.Groups[1].Value),
+                            Text = match.Groups[2].Value
+                        };
+
                         currentArticle.Clauses.Add(currentClause);
                     }
                 }
-                // Суббенд (6 пробелов)
-                else if (line.StartsWith("      "))
+                else if (indent >= 6)
                 {
-                    var match = Regex.Match(line.Trim(), @"^(\d+)\)\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\)\s*(.*)$");
                     if (match.Success && currentClause != null)
                     {
-                        int number = int.Parse(match.Groups[1].Value);
-                        string subText = match.Groups[2].Value;
-                        currentClause.SubClauses.Add(new SubClause { Number = number, Text = subText });
+                        currentClause.SubClauses.Add(new SubClause
+                        {
+                            Number = int.Parse(match.Groups[1].Value),
+                            Text = match.Groups[2].Value
+                        });
                     }
                 }
             }
@@ -244,11 +274,11 @@ namespace LawEditor.Models.TreeClasses
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
 
-            // Первая строка - "[123.45] Название"
             var titleMatch = Regex.Match(lines[0].Trim(), @"^\[([0-9.]+)\]\s*(.*)$");
             if (titleMatch.Success)
             {
-                article.Id = float.Parse(titleMatch.Groups[1].Value);
+                float.TryParse(titleMatch.Groups[1].Value, out float id);
+                article.Id = id;
                 article.Title = titleMatch.Groups[2].Value;
             }
 
@@ -257,64 +287,70 @@ namespace LawEditor.Models.TreeClasses
 
             for (int i = 1; i < lines.Length; i++)
             {
-                var line = lines[i];
-                if (string.IsNullOrWhiteSpace(line)) continue;
+                var rawLine = lines[i];
+                if (string.IsNullOrWhiteSpace(rawLine)) continue;
 
-                // Бенд (2 пробела)
-                if (line.StartsWith("  ") && !line.StartsWith("    "))
+                int indent = GetIndent(rawLine);
+                var line = rawLine.Trim();
+
+                if (indent >= 2 && indent < 4)
                 {
-                    var match = Regex.Match(line.Trim(), @"^(\d+)\.\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\.\s*(.*)$");
                     if (match.Success)
                     {
-                        int number = int.Parse(match.Groups[1].Value);
-                        string clauseText = match.Groups[2].Value;
-                        currentClause = new Clause { Number = number, Text = clauseText };
+                        currentClause = new Clause
+                        {
+                            Number = int.Parse(match.Groups[1].Value),
+                            Text = match.Groups[2].Value
+                        };
+
                         article.Clauses.Add(currentClause);
                     }
                 }
-                // Суббенд (4 пробела)
-                else if (line.StartsWith("    "))
+                else if (indent >= 4)
                 {
-                    var match = Regex.Match(line.Trim(), @"^(\d+)\)\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\)\s*(.*)$");
                     if (match.Success && currentClause != null)
                     {
-                        int number = int.Parse(match.Groups[1].Value);
-                        string subText = match.Groups[2].Value;
-                        currentClause.SubClauses.Add(new SubClause { Number = number, Text = subText });
+                        currentClause.SubClauses.Add(new SubClause
+                        {
+                            Number = int.Parse(match.Groups[1].Value),
+                            Text = match.Groups[2].Value
+                        });
                     }
                 }
             }
         }
+
         private static void ParseClause(Clause clause, string text)
+        {
+            var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            if (lines.Length == 0) return;
+
+            var match = Regex.Match(lines[0].Trim(), @"^(\d+)\.\s*(.*)$");
+            if (match.Success)
             {
-                var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-                if (lines.Length == 0) return;
+                clause.Number = int.Parse(match.Groups[1].Value);
+                clause.Text = match.Groups[2].Value;
+            }
 
-                // Первая строка - "N. текст"
-                var firstMatch = Regex.Match(lines[0].Trim(), @"^(\d+)\.\s*(.*)$");
-                if (firstMatch.Success)
+            clause.SubClauses.Clear();
+
+            for (int i = 1; i < lines.Length; i++)
+            {
+                var rawLine = lines[i];
+                if (string.IsNullOrWhiteSpace(rawLine)) continue;
+
+                var subMatch = Regex.Match(rawLine.Trim(), @"^(\d+)\)\s*(.*)$");
+                if (subMatch.Success)
                 {
-                    clause.Number = int.Parse(firstMatch.Groups[1].Value);
-                    clause.Text = firstMatch.Groups[2].Value;
-                }
-
-                clause.SubClauses.Clear();
-
-                for (int i = 1; i < lines.Length; i++)
-                {
-                    var line = lines[i];
-                    if (string.IsNullOrWhiteSpace(line)) continue;
-
-                    // Суббенд (2 пробела + "N)")
-                    var match = Regex.Match(line.Trim(), @"^(\d+)\)\s*(.*)$");
-                    if (match.Success)
+                    clause.SubClauses.Add(new SubClause
                     {
-                        int number = int.Parse(match.Groups[1].Value);
-                        string subText = match.Groups[2].Value;
-                        clause.SubClauses.Add(new SubClause { Number = number, Text = subText });
-                    }
+                        Number = int.Parse(subMatch.Groups[1].Value),
+                        Text = subMatch.Groups[2].Value
+                    });
                 }
             }
         }
     }
-
+}
