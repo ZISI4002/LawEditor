@@ -4,6 +4,7 @@ using LawEditor.ViewModels;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,37 +29,56 @@ namespace LawEditor.Commands.MainWindowCommands
 
         public void Execute(object? parameter)
         {
-           
-           
-            // Open a file dialog to select a Word document
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Word Files (*.docx)|*.docx| (*.doc)|*.doc" ;
+            openFileDialog.Filter = "Word Files (*.docx)|*.docx| (*.doc)|*.doc";
+
             if (openFileDialog.ShowDialog() == true)
             {
-                _viewModel.IsDisplayLeftVisible= true;
-                _viewModel.IsAddWordVisible = false;
                 string filename = openFileDialog.FileName;
                 string fullPath = System.IO.Path.GetFullPath(filename);
                 _fileName = System.IO.Path.GetFileName(filename);
-                _viewModel.FilePath = fullPath;     
-                // Set the file name in the view model
-                _viewModel.FileNameLeft = _fileName;
 
-                if (_fileName.EndsWith(".docx"))
-                    {
-                    _viewModel.FileNameRight = _fileName.Replace(".docx", ".xml");
-                }
-                else if (_fileName.EndsWith(".doc"))
+                try
                 {
-                    _viewModel.FileNameRight = _fileName.Replace(".doc", ".xml");
-                }
-                //  Logic to read the Word file and process it 
-                WordFileProsesingService wordService = new WordFileProsesingService();
-                var laws = wordService.ReadWordFile(fullPath);
-                _viewModel.Laws = laws;
-               
-                _viewModel.FileIsAdded = true;
+                    // Проверяем доступность файла
+                    using (FileStream stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        // Файл доступен
+                    }
 
+                    _viewModel.IsDisplayLeftVisible = true;
+                    _viewModel.IsAddWordVisible = false;
+                    _viewModel.FilePath = fullPath;
+                    _viewModel.FileNameLeft = _fileName;
+
+                    if (_fileName.EndsWith(".docx"))
+                    {
+                        _viewModel.FileNameRight = _fileName.Replace(".docx", ".xml");
+                    }
+                    else if (_fileName.EndsWith(".doc"))
+                    {
+                        _viewModel.FileNameRight = _fileName.Replace(".doc", ".xml");
+                    }
+
+                    WordFileProsesingService wordService = new WordFileProsesingService();
+                    var laws = wordService.ReadWordFile(fullPath);
+                    _viewModel.Laws = laws;
+                    _viewModel.FileIsAdded = true;
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Fayl hal-hazırda açıqdır. Zəhmət olmasa faylı bağlayıb yenidən cəhd edin.",
+                                  "Fayl açıqdır",
+                                  MessageBoxButton.OK,
+                                  MessageBoxImage.Warning);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Xəta baş verdi: {ex.Message}",
+                                  "Xəta",
+                                  MessageBoxButton.OK,
+                                  MessageBoxImage.Error);
+                }
             }
         }
     }

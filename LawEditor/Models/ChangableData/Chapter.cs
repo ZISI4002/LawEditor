@@ -74,5 +74,6 @@ namespace LawEditor.Models.ChangableData
             if (newTitle != null)
                 section.Title = newTitle;
         }
+
     }
 }

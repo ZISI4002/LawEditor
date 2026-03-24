@@ -106,26 +106,8 @@ namespace LawEditor.ViewModels
 
         public string SelectedText
         {
-            get => _selectedItem switch
-            {
-                Chapter c => c.Title,
-                Section s => s.Title,
-                Article a => a.Title,
-                Clause cl => cl.Text,
-                SubClause sc => sc.Text,
-                _ => string.Empty
-            };
-            set
-            {
-                switch (_selectedItem)
-                {
-                    case Chapter c: c.Title = value; break;
-                    case Section s: s.Title = value; break;
-                    case Article a: a.Title = value; break;
-                    case Clause cl: cl.Text = value; break;
-                    case SubClause sc: sc.Text = value; break;
-                }
-            }
+            get => FullTextWrapper.GetFullText(_selectedItem);
+            set => FullTextWrapper.SetText(_selectedItem, value);
         }
 
         public string SelectedTypeName => _selectedItem switch
