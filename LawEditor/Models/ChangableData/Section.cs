@@ -22,6 +22,9 @@ namespace LawEditor.Models.ChangableData
             if (counter > 1)
                 counter--;
         }
+        public static void ResetCounter() {
+            counter = 1;
+        }
         //Добавляем Article(Madde)
         public Article AddArticle(float id, string title) {
             var newArticle = new Article(id, title);

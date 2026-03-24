@@ -33,7 +33,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
             _viewModel.Laws.transitionalProvisions.Clear();
             _viewModel.Laws.constitutionalAmendments.Clear();
             _viewModel.Laws.sourceDocumentsLists.Clear();
-
+          
             // Копируем EditedLaws обратно в Laws
             _viewModel.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);
 

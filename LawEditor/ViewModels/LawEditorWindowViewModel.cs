@@ -27,7 +27,8 @@ namespace LawEditor.ViewModels
         public MainWindowViewModel MainWindowModel { get; set; }
 
         public Laws Laws { get; set; }
-        public Laws EditedLaws { get; set; } 
+        public Laws EditedLaws { get; set; }
+        
         public ICommand SaveCommand { get; set; }
         public ICommand DeleteCommand { get; set; }
         public ICommand AddCommand { get; set; }

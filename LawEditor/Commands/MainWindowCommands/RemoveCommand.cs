@@ -21,7 +21,16 @@ namespace LawEditor.Commands.MainWindowCommands
 
         public void Execute(object? parameter)
         {
-                _viewModel.IsDisplayLeftVisible = false;
+
+            // Очищаем оригинальный Laws
+            _viewModel.Laws.ResetCounter();
+            _viewModel.Laws.Chapters.Clear();
+            _viewModel.Laws.transitionalProvisions.Clear();
+            _viewModel.Laws.constitutionalAmendments.Clear();
+            _viewModel.Laws.sourceDocumentsLists.Clear();
+           
+            // Сбрасываем все свойства, связанные с отображением и данными
+            _viewModel.IsDisplayLeftVisible = false;
                 _viewModel.IsAddWordVisible = true;
                 _viewModel.IsDisplayRightVisible = false;
                 _viewModel.FileIsAdded = false;

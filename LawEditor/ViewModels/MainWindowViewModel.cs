@@ -1,4 +1,5 @@
 ﻿using LawEditor.Commands.MainWindowCommands;
+using LawEditor.Models.ChangableData;
 using LawEditor.Models.RootClasses;
 using LawEditor.ViewModels;
 using System.Windows;
@@ -46,6 +47,8 @@ public class MainWindowViewModel : BaseViewModel
         get => _laws;
         set => Set(ref _laws, value);
     }
+    public Chapter ChapterReset { get; set; }
+    public Section SectionReset { get; set; }
     private Laws _xML;
     public Laws XML
     {

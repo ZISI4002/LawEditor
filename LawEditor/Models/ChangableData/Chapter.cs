@@ -23,7 +23,12 @@ namespace LawEditor.Models.ChangableData
             if (counter > 1)
                 counter--;
         }
-
+        public static void ResetCounter() {
+            counter = 1;
+        }
+        public void ResetSectionCounter() {
+            Section.ResetCounter();
+        }
         public Section AddSection(string title, int? position = null) {
             // создаём через конструктор → срабатывает counter
             var newSection = new Section(title);

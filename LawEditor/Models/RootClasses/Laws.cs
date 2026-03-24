@@ -45,6 +45,12 @@ namespace LawEditor.Models.RootClasses
 
             return newChapter;
         }
+        public void ResetCounter() {
+            Chapter.ResetCounter();
+            foreach (var chapter in Chapters) {
+                chapter.ResetSectionCounter();
+            }
+        }
 
         // Удалить главу по Id
         public void DeleteChapter(int id) {
