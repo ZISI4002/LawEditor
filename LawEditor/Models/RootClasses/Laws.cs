@@ -81,5 +81,171 @@ namespace LawEditor.Models.RootClasses
             if (newTitle != null)
                 chapter.Title = newTitle;
         }
+
+
+        public TransitionalProvisions AddTransitionalProvision(string title, int? position = null) {
+            // создаём → срабатывает counter
+            var newItem = new TransitionalProvisions(title);
+
+            // если добавляем в конец
+            if (position == null || position >= transitionalProvisions.Count) {
+                transitionalProvisions.Add(newItem);
+                return newItem;
+            }
+
+            // получаем Id, куда вставляем
+            int insertId = transitionalProvisions[position.Value].Id;
+
+            // сдвигаем все элементы начиная с этой позиции
+            foreach (var item in transitionalProvisions.Where(t => t.Id >= insertId)) {
+                item.Id++;
+            }
+
+            // задаём правильный Id новому элементу
+            newItem.Id = insertId;
+
+            // вставляем в список
+            transitionalProvisions.Insert(position.Value, newItem);
+
+            return newItem;
+        }
+
+        public void DeleteTransitionalProvision(int id) {
+            var item = transitionalProvisions.FirstOrDefault(t => t.Id == id);
+
+            if (item == null)
+                return;
+
+            // Удаляем
+            transitionalProvisions.Remove(item);
+
+            // Сдвигаем все последующие назад
+            foreach (var t in transitionalProvisions.Where(t => t.Id > id)) {
+                t.Id--;
+            }
+
+            // Уменьшаем counter
+            TransitionalProvisions.DecreaseCounter();
+        }
+
+        public void UpdateTransitionalProvision(int id, string? newTitle = null, string? newDate = null) {
+            var item = transitionalProvisions.FirstOrDefault(t => t.Id == id);
+
+            if (item == null)
+                return;
+
+            if (newTitle != null)
+                item.Title = newTitle;
+
+            if (newDate != null)
+                item.Date = newDate;
+        }
+
+
+        public SourceDocumentsList AddSourceDocument(string title, int? position = null) {
+            // создаём → срабатывает counter
+            var newItem = new SourceDocumentsList(title);
+
+            // если добавляем в конец
+            if (position == null || position >= sourceDocumentsLists.Count) {
+                sourceDocumentsLists.Add(newItem);
+                return newItem;
+            }
+
+            // получаем Id, куда вставляем
+            int insertId = sourceDocumentsLists[position.Value].Id;
+
+            // сдвигаем все элементы начиная с этой позиции
+            foreach (var item in sourceDocumentsLists.Where(s => s.Id >= insertId)) {
+                item.Id++;
+            }
+
+            // задаём правильный Id новому элементу
+            newItem.Id = insertId;
+
+            // вставляем в список
+            sourceDocumentsLists.Insert(position.Value, newItem);
+
+            return newItem;
+        }
+
+        public void DeleteSourceDocument(int id) {
+            var item = sourceDocumentsLists.FirstOrDefault(s => s.Id == id);
+
+            if (item == null)
+                return;
+
+            // Удаляем
+            sourceDocumentsLists.Remove(item);
+
+            // Сдвигаем все последующие назад
+            foreach (var s in sourceDocumentsLists.Where(s => s.Id > id)) {
+                s.Id--;
+            }
+
+            // Уменьшаем counter
+            SourceDocumentsList.DecreaseCounter();
+        }
+
+        public void UpdateSourceDocument(int id, string? newTitle = null) {
+            var item = sourceDocumentsLists.FirstOrDefault(s => s.Id == id);
+
+            if (item == null)
+                return;
+
+            if (newTitle != null)
+                item.Title = newTitle;
+        }
+
+        public ConstitutionalAmendment AddConstitutionalAmendment(string title, int? position = null) {
+            // создаём новый объект через конструктор (срабатывает counter)
+            var newItem = new ConstitutionalAmendment(title);
+
+            // если позиция не указана или добавляем в конец
+            if (position == null || position >= constitutionalAmendments.Count) {
+                constitutionalAmendments.Add(newItem);
+                return newItem;
+            }
+
+            // получаем Id, куда вставляем
+            int insertId = constitutionalAmendments[position.Value].Id;
+
+            // сдвигаем все элементы начиная с этой позиции
+            foreach (var item in constitutionalAmendments.Where(c => c.Id >= insertId)) {
+                item.Id++;
+            }
+
+            // задаём правильный Id новому элементу
+            newItem.Id = insertId;
+
+            // вставляем в список
+            constitutionalAmendments.Insert(position.Value, newItem);
+
+            return newItem;
+        }
+        public void DeleteConstitutionalAmendment(int id) {
+            var item = constitutionalAmendments.FirstOrDefault(c => c.Id == id);
+            if (item == null)
+                return;
+
+            // Удаляем элемент
+            constitutionalAmendments.Remove(item);
+
+            // Сдвигаем Id всех последующих элементов назад
+            foreach (var c in constitutionalAmendments.Where(c => c.Id > id)) {
+                c.Id--;
+            }
+
+            // Уменьшаем счетчик
+            ConstitutionalAmendment.DecreaseCounter();
+        }
+        public void UpdateConstitutionalAmendment(int id, string? newTitle = null) {
+            var amendment = constitutionalAmendments.FirstOrDefault(c => c.Id == id);
+            if (amendment == null)
+                return;
+
+            if (!string.IsNullOrWhiteSpace(newTitle))
+                amendment.Title = newTitle;
+        }
     }
 }
