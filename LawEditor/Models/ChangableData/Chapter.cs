@@ -27,6 +27,7 @@ namespace LawEditor.Models.ChangableData
             counter = 1;
         }
         public void ResetSectionCounter() {
+            
             Section.ResetCounter();
         }
         public Section AddSection(string title, int? position = null) {

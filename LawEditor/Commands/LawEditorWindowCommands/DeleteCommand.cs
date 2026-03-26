@@ -18,12 +18,13 @@ namespace LawEditor.Commands.LawEditorWindowCommands
             _viewModel = viewModel;
         }
 
-        public bool CanExecute(object? parameter)=> true;
+        public bool CanExecute(object? parameter) => true;
 
         public void Execute(object? parameter)
         {
-            int Level=_viewModel.CurrentAnchor.GetLevel();
-            if (Level > 0) {
+            int Level = _viewModel.CurrentAnchor.GetLevel();
+            if (Level > 0)
+            {
                 switch (Level)
                 {
                     case 1:
@@ -41,7 +42,9 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     case 5:
                         _viewModel.CurrentAnchor.SubClause = null;
                         break;
+
                 }
             }
+        }
     }
 }
