@@ -190,7 +190,7 @@ namespace LawEditor.Services.WordServises
 
                 foreach (var amendment in laws.constitutionalAmendments)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run($"[{amendment.Id}] {amendment.Title}"))
+                    doc.Blocks.Add(new Paragraph(new Run($"{amendment.Id}. {amendment.Title}"))
                     {
                         FontSize = 13,
                         Foreground = Brushes.Black,
@@ -213,7 +213,7 @@ namespace LawEditor.Services.WordServises
 
                 foreach (var source in laws.sourceDocumentsLists)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run(source.Title))
+                    doc.Blocks.Add(new Paragraph(new Run($"{source.Id}. {source.Title}"))
                     {
                         FontSize = 13,
                         Foreground = Brushes.Black,
