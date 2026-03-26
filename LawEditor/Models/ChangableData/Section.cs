@@ -1,4 +1,5 @@
 ﻿using LawEditor.Models.RootClasses;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 
 namespace LawEditor.Models.ChangableData
@@ -10,7 +11,7 @@ namespace LawEditor.Models.ChangableData
         public int Id { get; set; }
         public string? Title { get; set; }
 
-        public List<Article> Articles { get; set; } = new();
+        public ObservableCollection<Article> Articles { get; set; } = new();
 
         public Section() { } 
 
@@ -25,13 +26,12 @@ namespace LawEditor.Models.ChangableData
         public static void ResetCounter() {
             counter = 1;
         }
-        //Добавляем Article(Madde)
+        
         public Article AddArticle(float id, string title) {
             var newArticle = new Article(id, title);
 
             bool isSubArticle = id % 1 != 0;
 
-            // если это не субстатья, то нужно сдвинуть все статьи с id >= id на 1
             if (!isSubArticle) {
                 foreach (var article in Articles) {
                     if (article.Id >= id) {
@@ -39,17 +39,18 @@ namespace LawEditor.Models.ChangableData
                     }
                 }
             }
-            // добавляем
+            
             Articles.Add(newArticle);
 
-            // сортируем
-            Articles = Articles
-                .OrderBy(a => a.Id)
-                .ToList();
+            var sortedList = Articles.OrderBy(a => a.Id).ToList();
+            Articles.Clear();
+            foreach (var article in sortedList) {
+                Articles.Add(article);
+            }
 
             return newArticle;
         }
-        //Удаляем Article(Madde)
+        
         public void DeleteArticle(float id) {
             var article = Articles.FirstOrDefault(a => a.Id == id);
 
@@ -63,14 +64,14 @@ namespace LawEditor.Models.ChangableData
                     a.Id -= 1;
                 }
             }
-
-            // Сортируем (на всякий случай)
-            Articles = Articles
-                .OrderBy(a => a.Id)
-                .ToList();
+            //сортируем (на всякий случай)
+            var sortedList = Articles.OrderBy(a => a.Id).ToList();
+            Articles.Clear();
+            foreach (var articl in sortedList) {
+                Articles.Add(articl);
+            }
         }
 
-        // Редактируем Article(Madde)
         public void UpdateArticle(float id, string? newTitle = null) {
             var article = Articles.FirstOrDefault(a => a.Id == id);
 

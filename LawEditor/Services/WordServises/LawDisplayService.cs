@@ -8,7 +8,7 @@ namespace LawEditor.Services.WordServises
 {
     public class LawDisplayService
     {
-        private static readonly string[] RomanNumerals = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV" };
+        private static readonly string[] RomanNumerals = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV" ,};
         private static readonly string[] Ordinals = { "Birinci", "İkinci", "Üçüncü", "Dördüncü", "Beşinci", "Altıncı", "Yeddinci", "Səkkizinci", "Doqquzuncu", "Onuncu" };
 
         public FlowDocument BuildDocument(Laws laws)
@@ -58,10 +58,7 @@ namespace LawEditor.Services.WordServises
 
                 foreach (var section in chapter.Sections)
                 {
-                    if (sectionIndex < 0 || sectionIndex > chapter.Sections.Count)
-                    {
-                        sectionIndex = 0;
-                    }
+                  
                     string sectionRoman = RomanNumerals[sectionIndex].ToString();
 
                     // FƏSİL label
@@ -186,7 +183,7 @@ namespace LawEditor.Services.WordServises
 
                 foreach (var source in laws.sourceDocumentsLists)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run($"{source.Title}"))
+                    doc.Blocks.Add(new Paragraph(new Run($" {source.Id} {source.Title}"))
                     {
                         FontSize = 13,
                         Foreground = Brushes.Black,
@@ -209,7 +206,7 @@ namespace LawEditor.Services.WordServises
 
                 foreach (var amendment in laws.constitutionalAmendments)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run($" {amendment.Title}"))
+                    doc.Blocks.Add(new Paragraph(new Run($"{amendment.Id} {amendment.Title}"))
                     {
                         FontSize = 13,
                         Foreground = Brushes.Black,

@@ -28,6 +28,12 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
         public void Execute(object? parameter)
         {
+
+            MessageBoxResult result = MessageBox.Show("All your changes will be saved permanently", "Are you sure?", MessageBoxButton.YesNoCancel, MessageBoxImage
+                .Warning, MessageBoxResult.No);
+
+            if (result != MessageBoxResult.Yes) return;
+
             // Очищаем оригинальный Laws
             _viewModel.Laws.Chapters.Clear();
             _viewModel.Laws.transitionalProvisions.Clear();

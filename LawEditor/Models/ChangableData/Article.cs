@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -8,7 +9,7 @@ namespace LawEditor.Models.ChangableData
         public float Id { get; set; }
         public string? Title { get; set; }
 
-        public List<Clause> Clauses { get; set; } = new();
+        public ObservableCollection<Clause> Clauses { get; set; } = new();
 
         public Article() { }  // ← НУЖНО
 

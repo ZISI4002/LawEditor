@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -7,7 +8,7 @@ namespace LawEditor.Models.ChangableData
         public int Number { get; set; }
         public string? Text { get; set; }
 
-        public List<SubClause> SubClauses { get; set; } = new();
+        public ObservableCollection<SubClause> SubClauses { get; set; } = new();
 
         public Clause() { }  // ← НУЖНО
 

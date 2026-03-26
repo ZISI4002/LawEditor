@@ -1,17 +1,17 @@
 ﻿using LawEditor.Models.RootClasses;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 
 namespace LawEditor.Models.ChangableData
 {
     public class Chapter //Bolme
     {
-
         private static int counter = 1;
 
         public int Id { get; set; }
         public string? Title { get; set; }
 
-        public List<Section> Sections { get; set; } = new();
+        public ObservableCollection<Section> Sections { get; set; } = new();
 
         public Chapter() { }  
 
@@ -27,31 +27,23 @@ namespace LawEditor.Models.ChangableData
             counter = 1;
         }
         public void ResetSectionCounter() {
-            
             Section.ResetCounter();
         }
         public Section AddSection(string title, int? position = null) {
-            // создаём через конструктор → срабатывает counter
             var newSection = new Section(title);
 
-            // если добавляем в конец
             if (position == null || position >= Sections.Count) {
                 Sections.Add(newSection);
                 return newSection;
             }
 
-            // получаем Id, куда вставляем
             int insertId = Sections[position.Value].Id;
 
-            // сдвигаем все элементы начиная с этой позиции
             foreach (var sec in Sections.Where(s => s.Id >= insertId)) {
                 sec.Id++;
             }
 
-            // задаём правильный Id новому элементу
             newSection.Id = insertId;
-
-            // вставляем в список
             Sections.Insert(position.Value, newSection);
 
             return newSection;
@@ -80,6 +72,5 @@ namespace LawEditor.Models.ChangableData
             if (newTitle != null)
                 section.Title = newTitle;
         }
-
     }
 }

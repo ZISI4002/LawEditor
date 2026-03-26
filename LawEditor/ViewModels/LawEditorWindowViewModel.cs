@@ -23,6 +23,7 @@ namespace LawEditor.ViewModels
             EditedLaws = new Laws();
             CopyLawsData(mainWindowViewModel.Laws, EditedLaws);
             this.SaveCommand = new Commands.LawEditorWindowCommands.SaveCommand(this);
+            this.DeleteCommand = new Commands.LawEditorWindowCommands.DeleteCommand(this);
         }
         public MainWindowViewModel MainWindowModel { get; set; }
 
@@ -118,7 +119,7 @@ namespace LawEditor.ViewModels
             Article => "Maddə (Article)",
             Clause => "Bənd (Clause)",
             SubClause => "Alt Bənd (SubClause)",
-            _ => "Элемент не выбран"
+            _ => ""
         };
 
         public bool HasSelection => _selectedItem != null;
