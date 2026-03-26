@@ -28,14 +28,10 @@ namespace LawEditor.Services.WordServises
 
             // CHAPTERS
             int chapterIndex = 0;
+            int sectionIndex = 0;
             foreach (var chapter in laws.Chapters)
             {
-             if (chapter.Id < 1 || chapter.Id > laws.Chapters.Count)
-                {
-                    chapter.Id = 1;
-                }
-
-                string chapterOrdinal = chapterIndex < Ordinals.Length ? Ordinals[chapterIndex] : (chapterIndex + 1).ToString();
+               string chapterOrdinal = chapterIndex < Ordinals.Length ? Ordinals[chapterIndex] : (chapterIndex + 1).ToString();
 
                 // BÖLMƏ label
                 doc.Blocks.Add(new Paragraph(new Run($"{chapterOrdinal} BÖLMƏ"))
@@ -58,15 +54,15 @@ namespace LawEditor.Services.WordServises
                 });
 
                 chapterIndex++;
-                int sectionIndex = 0;
+               
 
                 foreach (var section in chapter.Sections)
                 {
-                    if (section.Id < 1 || section.Id > chapter.Sections.Count)
+                    if (sectionIndex < 0 || sectionIndex > chapter.Sections.Count)
                     {
-                        section.Id =  1; 
+                        sectionIndex = 0;
                     }
-                    string sectionRoman = RomanNumerals[section.Id-1].ToString();
+                    string sectionRoman = RomanNumerals[sectionIndex].ToString();
 
                     // FƏSİL label
                     doc.Blocks.Add(new Paragraph(new Run($"{sectionRoman} fəsil"))
@@ -176,6 +172,29 @@ namespace LawEditor.Services.WordServises
                 });
             }
 
+             // SOURCE DOCUMENTS
+            if (laws.sourceDocumentsLists.Count > 0)
+            {
+                doc.Blocks.Add(new Paragraph(new Run("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI"))
+                {
+                    FontSize = 16,
+                    FontWeight = FontWeights.Bold,
+                    Foreground = Brushes.DarkBlue,
+                    TextAlignment = TextAlignment.Center,
+                    Margin = new Thickness(0, 20, 0, 8)
+                });
+
+                foreach (var source in laws.sourceDocumentsLists)
+                {
+                    doc.Blocks.Add(new Paragraph(new Run($"{source.Title}"))
+                    {
+                        FontSize = 13,
+                        Foreground = Brushes.Black,
+                        Margin = new Thickness(16, 2, 0, 2)
+                    });
+                }
+            }
+
             // CONSTITUTIONAL AMENDMENTS
             if (laws.constitutionalAmendments.Count > 0)
             {
@@ -190,7 +209,7 @@ namespace LawEditor.Services.WordServises
 
                 foreach (var amendment in laws.constitutionalAmendments)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run($"{amendment.Id}. {amendment.Title}"))
+                    doc.Blocks.Add(new Paragraph(new Run($" {amendment.Title}"))
                     {
                         FontSize = 13,
                         Foreground = Brushes.Black,
@@ -199,28 +218,7 @@ namespace LawEditor.Services.WordServises
                 }
             }
 
-            // SOURCE DOCUMENTS
-            if (laws.sourceDocumentsLists.Count > 0)
-            {
-                doc.Blocks.Add(new Paragraph(new Run("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI"))
-                {
-                    FontSize = 16,
-                    FontWeight = FontWeights.Bold,
-                    Foreground = Brushes.DarkBlue,
-                    TextAlignment = TextAlignment.Center,
-                    Margin = new Thickness(0, 20, 0, 8)
-                });
-
-                foreach (var source in laws.sourceDocumentsLists)
-                {
-                    doc.Blocks.Add(new Paragraph(new Run($"{source.Id}. {source.Title}"))
-                    {
-                        FontSize = 13,
-                        Foreground = Brushes.Black,
-                        Margin = new Thickness(16, 2, 0, 2)
-                    });
-                }
-            }
+            
 
             return doc;
         }
