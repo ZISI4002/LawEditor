@@ -29,11 +29,41 @@ namespace LawEditor.ViewModels
 
         public Laws Laws { get; set; }
         public Laws EditedLaws { get; set; }
-        
+        private bool _isMenuOpen;
+        public bool IsAddMenuOpen
+        {
+            get => _isMenuOpen;
+            set => Set(ref _isMenuOpen, value);
+        }
         public ICommand SaveCommand { get; set; }
         public ICommand DeleteCommand { get; set; }
         public ICommand AddCommand { get; set; }
+        public ICommand AddCorrespondingElementCommand { get; set; }
         public LawAnchor CurrentAnchor { get; set; } = new();
+
+        public string MenuItem1Text => GetMenuItems().Item1;
+        public string MenuItem2Text => GetMenuItems().Item2;
+        public string MenuItem3Text => GetMenuItems().Item3;
+        public string MenuItem4Text => GetMenuItems().Item4;
+
+        // Видимость кнопок
+        public bool MenuItem1Visible => GetMenuItems().Item1 != null;
+        public bool MenuItem2Visible => GetMenuItems().Item2 != null;
+        public bool MenuItem3Visible => GetMenuItems().Item3 != null;
+        public bool MenuItem4Visible => GetMenuItems().Item4 != null;
+
+        private (string Item1, string Item2, string Item3, string Item4) GetMenuItems()
+        {
+            return _selectedItem switch
+            {
+                Chapter => ("Добавить главу выше", "Добавить главу ниже", "Добавить раздел внутрь", null),
+                Section => ("Добавить раздел выше", "Добавить раздел ниже", "Добавить статью внутрь", null),
+                Article => ("Добавить статью выше", "Добавить статью ниже", "Добавить пункт внутрь", null),
+                Clause => ("Добавить пункт выше", "Добавить пункт ниже", "Добавить подпункт внутрь", null),
+                SubClause => ("Добавить подпункт выше", "Добавить подпункт ниже", null, null),
+                _ => ("Добавить главу", null, null, null),
+            };
+        }
 
         private object? _selectedItem;
         public object? SelectedItem
@@ -45,6 +75,14 @@ namespace LawEditor.ViewModels
                 OnPropertyChanged(nameof(SelectedText));
                 OnPropertyChanged(nameof(SelectedTypeName));
                 OnPropertyChanged(nameof(HasSelection));
+                OnPropertyChanged(nameof(MenuItem1Text));
+                OnPropertyChanged(nameof(MenuItem2Text));
+                OnPropertyChanged(nameof(MenuItem3Text));
+                OnPropertyChanged(nameof(MenuItem4Text));
+                OnPropertyChanged(nameof(MenuItem1Visible));
+                OnPropertyChanged(nameof(MenuItem2Visible));
+                OnPropertyChanged(nameof(MenuItem3Visible));
+                OnPropertyChanged(nameof(MenuItem4Visible));
                 UpdateAnchor(value);
             }
         }

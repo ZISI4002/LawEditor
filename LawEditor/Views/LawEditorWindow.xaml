@@ -63,8 +63,40 @@
 
             <!-- Кнопки Add / Delete -->
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4">
-                <Button Content="Add" Width="80" Margin="2"
-                        Command="{Binding AddCommand}"/>
+                <ToggleButton Content="Add" Width="80" Margin="2"
+                  IsChecked="{Binding IsMenuOpen, Mode=TwoWay}"/>
+
+                <Popup IsOpen="{Binding IsMenuOpen, Mode=TwoWay}"
+           Placement="Bottom"
+           StaysOpen="False">
+                    <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1" Padding="2">
+                        <StackPanel>
+                            <MenuItem Header="{Binding MenuItem1Text}"
+                          Command="{Binding MenuItemCommand}"
+                          CommandParameter="{Binding MenuItem1Text}"
+                          Visibility="{Binding MenuItem1Visible, 
+                                       Converter={StaticResource BoolToVisibility}}"/>
+
+                            <MenuItem Header="{Binding MenuItem2Text}"
+                          Command="{Binding MenuItemCommand}"
+                          CommandParameter="{Binding MenuItem2Text}"
+                          Visibility="{Binding MenuItem2Visible, 
+                                       Converter={StaticResource BoolToVisibility}}"/>
+
+                            <MenuItem Header="{Binding MenuItem3Text}"
+                          Command="{Binding MenuItemCommand}"
+                          CommandParameter="{Binding MenuItem3Text}"
+                          Visibility="{Binding MenuItem3Visible, 
+                                       Converter={StaticResource BoolToVisibility}}"/>
+
+                            <MenuItem Header="{Binding MenuItem4Text}"
+                          Command="{Binding MenuItemCommand}"
+                          CommandParameter="{Binding MenuItem4Text}"
+                          Visibility="{Binding MenuItem4Visible, 
+                                       Converter={StaticResource BoolToVisibility}}"/>
+                        </StackPanel>
+                    </Border>
+                </Popup>
                 <Button Content="Delete" Width="80" Margin="2"
                         Command="{Binding DeleteCommand}"/>
             </StackPanel>
