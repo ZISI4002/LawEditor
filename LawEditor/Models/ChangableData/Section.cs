@@ -27,11 +27,10 @@ namespace LawEditor.Models.ChangableData
             counter = 1;
         }
         
-        public Article AddArticle(float id, string title) {
+        public Article AddArticle(float id, string title, string? endnoteId = null) {
             var newArticle = new Article(id, title);
-
+            newArticle.EndnoteId = endnoteId;
             bool isSubArticle = id % 1 != 0;
-
             if (!isSubArticle) {
                 foreach (var article in Articles) {
                     if (article.Id >= id) {
@@ -39,47 +38,38 @@ namespace LawEditor.Models.ChangableData
                     }
                 }
             }
-            
             Articles.Add(newArticle);
-
             var sortedList = Articles.OrderBy(a => a.Id).ToList();
             Articles.Clear();
             foreach (var article in sortedList) {
                 Articles.Add(article);
             }
-
             return newArticle;
         }
-        
         public void DeleteArticle(float id) {
             var article = Articles.FirstOrDefault(a => a.Id == id);
-
             if (article == null)
                 return;
-
             Articles.Remove(article);
-
             foreach (var a in Articles) {
                 if (a.Id > id) {
                     a.Id -= 1;
                 }
             }
-            //сортируем (на всякий случай)
             var sortedList = Articles.OrderBy(a => a.Id).ToList();
             Articles.Clear();
             foreach (var articl in sortedList) {
                 Articles.Add(articl);
             }
         }
-
-        public void UpdateArticle(float id, string? newTitle = null) {
+        public void UpdateArticle(float id, string? newTitle = null, string? newEndnoteId = null) {
             var article = Articles.FirstOrDefault(a => a.Id == id);
-
             if (article == null)
                 return;
-
             if (newTitle != null)
                 article.Title = newTitle;
+            if (newEndnoteId != null)
+                article.EndnoteId = newEndnoteId;
         }
     }
 }
