@@ -7,20 +7,15 @@ using System.Threading.Tasks;
 
 namespace LawEditor.Models.ChangableSourse {
     public class ConstitutionalAmendment{
-        private static int counter = 1;
 
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string Title { get; set; }
 
         public ConstitutionalAmendment() { }  // нужно
 
-        public ConstitutionalAmendment(string title) {
-            Id = counter++;
+        public ConstitutionalAmendment(string id, string title) {
+            Id = id;
             Title = title;
-        }
-        public static void DecreaseCounter() {
-            if (counter > 1)
-                counter--;
         }
     }
 }

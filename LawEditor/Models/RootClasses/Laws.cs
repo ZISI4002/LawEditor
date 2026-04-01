@@ -197,49 +197,43 @@ namespace LawEditor.Models.RootClasses
                 item.Title = newTitle;
         }
 
-        public ConstitutionalAmendment AddConstitutionalAmendment(string title, int? position = null) {
-            // создаём новый объект через конструктор (срабатывает counter)
-            var newItem = new ConstitutionalAmendment(title);
+        public ConstitutionalAmendment AddConstitutionalAmendment(string id, string title, int? position = null) {
+            var newItem = new ConstitutionalAmendment(id, title);
 
-            // если позиция не указана или добавляем в конец
             if (position == null || position >= constitutionalAmendments.Count) {
                 constitutionalAmendments.Add(newItem);
                 return newItem;
             }
 
-            // получаем Id, куда вставляем
-            int insertId = constitutionalAmendments[position.Value].Id;
-
-            // сдвигаем все элементы начиная с этой позиции
-            foreach (var item in constitutionalAmendments.Where(c => c.Id >= insertId)) {
-                item.Id++;
+            // Если новый id числовой — сдвигаем все числовые id >= этого числа
+            if (int.TryParse(id, out int numericId)) {
+                foreach (var item in constitutionalAmendments) {
+                    if (int.TryParse(item.Id, out int itemNumericId) && itemNumericId >= numericId)
+                        item.Id = (itemNumericId + 1).ToString();
+                }
             }
 
-            // задаём правильный Id новому элементу
-            newItem.Id = insertId;
-
-            // вставляем в список
             constitutionalAmendments.Insert(position.Value, newItem);
-
             return newItem;
         }
-        public void DeleteConstitutionalAmendment(int id) {
+
+        public void DeleteConstitutionalAmendment(string id) {
             var item = constitutionalAmendments.FirstOrDefault(c => c.Id == id);
             if (item == null)
                 return;
 
-            // Удаляем элемент
             constitutionalAmendments.Remove(item);
 
-            // Сдвигаем Id всех последующих элементов назад
-            foreach (var c in constitutionalAmendments.Where(c => c.Id > id)) {
-                c.Id--;
+            // Если удалённый id числовой — сдвигаем все числовые id > этого числа на -1
+            if (int.TryParse(id, out int numericId)) {
+                foreach (var c in constitutionalAmendments) {
+                    if (int.TryParse(c.Id, out int itemNumericId) && itemNumericId > numericId)
+                        c.Id = (itemNumericId - 1).ToString();
+                }
             }
-
-            // Уменьшаем счетчик
-            ConstitutionalAmendment.DecreaseCounter();
         }
-        public void UpdateConstitutionalAmendment(int id, string? newTitle = null) {
+
+        public void UpdateConstitutionalAmendment(string id, string? newTitle = null) {
             var amendment = constitutionalAmendments.FirstOrDefault(c => c.Id == id);
             if (amendment == null)
                 return;
