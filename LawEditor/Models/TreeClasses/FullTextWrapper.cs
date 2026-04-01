@@ -1,5 +1,6 @@
 ﻿using LawEditor.Models.ChangableData;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -36,10 +37,10 @@ namespace LawEditor.Models.TreeClasses
 
             foreach (var section in chapter.Sections)
             {
-                sb.AppendLine($"  {section.Title}");
+                sb.AppendLine($"  [{section.Id}] {section.Title}");
                 foreach (var article in section.Articles)
                 {
-                    sb.AppendLine($"    [{article.Id}] {article.Title}");
+                    sb.AppendLine($"    [{article.Id.ToString(CultureInfo.InvariantCulture)}] {article.Title}");
                     foreach (var clause in article.Clauses)
                     {
                         sb.AppendLine($"      {clause.Number}. {clause.Text}");
@@ -58,12 +59,12 @@ namespace LawEditor.Models.TreeClasses
         private static string GetFullSection(Section section)
         {
             var sb = new StringBuilder();
-            sb.AppendLine(section.Title);
+            sb.AppendLine($"[{section.Id}] {section.Title}");
             sb.AppendLine();
 
             foreach (var article in section.Articles)
             {
-                sb.AppendLine($"  [{article.Id}] {article.Title}");
+                sb.AppendLine($"  [{article.Id.ToString(CultureInfo.InvariantCulture)}] {article.Title}");
                 foreach (var clause in article.Clauses)
                 {
                     sb.AppendLine($"    {clause.Number}. {clause.Text}");
@@ -81,7 +82,7 @@ namespace LawEditor.Models.TreeClasses
         private static string GetFullArticle(Article article)
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"[{article.Id}] {article.Title}");
+            sb.AppendLine($"[{article.Id.ToString(CultureInfo.InvariantCulture)}] {article.Title}");
             sb.AppendLine();
 
             foreach (var clause in article.Clauses)
@@ -147,7 +148,16 @@ namespace LawEditor.Models.TreeClasses
 
                 if (indent >= 2 && indent < 4)
                 {
-                    currentSection = new Section { Title = line };
+                    var match = Regex.Match(line, @"^\[([0-9]+)\]\s*(.*)$");
+                    if (match.Success)
+                    {
+                        int.TryParse(match.Groups[1].Value, out int secId);
+                        currentSection = new Section { Id = secId, Title = match.Groups[2].Value };
+                    }
+                    else
+                    {
+                        currentSection = new Section { Title = line };
+                    }
                     chapter.Sections.Add(currentSection);
                     currentArticle = null;
                     currentClause = null;
@@ -163,14 +173,10 @@ namespace LawEditor.Models.TreeClasses
                             chapter.Sections.Add(currentSection);
                         }
 
-                        float.TryParse(match.Groups[1].Value, out float id);
+                        float.TryParse(match.Groups[1].Value,
+                            NumberStyles.Float, CultureInfo.InvariantCulture, out float id);
 
-                        currentArticle = new Article
-                        {
-                            Id = id,
-                            Title = match.Groups[2].Value
-                        };
-
+                        currentArticle = new Article { Id = id, Title = match.Groups[2].Value };
                         currentSection.Articles.Add(currentArticle);
                         currentClause = null;
                     }
@@ -185,7 +191,6 @@ namespace LawEditor.Models.TreeClasses
                             Number = int.Parse(match.Groups[1].Value),
                             Text = match.Groups[2].Value
                         };
-
                         currentArticle.Clauses.Add(currentClause);
                     }
                 }
@@ -209,7 +214,18 @@ namespace LawEditor.Models.TreeClasses
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
 
-            section.Title = lines[0].Trim();
+            var titleMatch = Regex.Match(lines[0].Trim(), @"^\[([0-9]+)\]\s*(.*)$");
+            if (titleMatch.Success)
+            {
+                int.TryParse(titleMatch.Groups[1].Value, out int secId);
+                section.Id = secId;
+                section.Title = titleMatch.Groups[2].Value;
+            }
+            else
+            {
+                section.Title = lines[0].Trim();
+            }
+
             section.Articles.Clear();
 
             Article currentArticle = null;
@@ -228,14 +244,10 @@ namespace LawEditor.Models.TreeClasses
                     var match = Regex.Match(line, @"^\[([0-9.]+)\]\s*(.*)$");
                     if (match.Success)
                     {
-                        float.TryParse(match.Groups[1].Value, out float id);
+                        float.TryParse(match.Groups[1].Value,
+                            NumberStyles.Float, CultureInfo.InvariantCulture, out float id);
 
-                        currentArticle = new Article
-                        {
-                            Id = id,
-                            Title = match.Groups[2].Value
-                        };
-
+                        currentArticle = new Article { Id = id, Title = match.Groups[2].Value };
                         section.Articles.Add(currentArticle);
                         currentClause = null;
                     }
@@ -250,7 +262,6 @@ namespace LawEditor.Models.TreeClasses
                             Number = int.Parse(match.Groups[1].Value),
                             Text = match.Groups[2].Value
                         };
-
                         currentArticle.Clauses.Add(currentClause);
                     }
                 }
@@ -277,7 +288,8 @@ namespace LawEditor.Models.TreeClasses
             var titleMatch = Regex.Match(lines[0].Trim(), @"^\[([0-9.]+)\]\s*(.*)$");
             if (titleMatch.Success)
             {
-                float.TryParse(titleMatch.Groups[1].Value, out float id);
+                float.TryParse(titleMatch.Groups[1].Value,
+                    NumberStyles.Float, CultureInfo.InvariantCulture, out float id);
                 article.Id = id;
                 article.Title = titleMatch.Groups[2].Value;
             }
@@ -303,7 +315,6 @@ namespace LawEditor.Models.TreeClasses
                             Number = int.Parse(match.Groups[1].Value),
                             Text = match.Groups[2].Value
                         };
-
                         article.Clauses.Add(currentClause);
                     }
                 }
