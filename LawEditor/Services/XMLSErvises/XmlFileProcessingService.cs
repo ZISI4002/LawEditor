@@ -114,7 +114,7 @@ namespace LawEditor.Services.XMLSErvises
                 foreach (var item in amendmentsElement.Elements("ConstitutionalAmendment"))
                 {
                     var title = item.Element("Title")?.Value ?? "";
-                    law.constitutionalAmendments.Add(new ConstitutionalAmendment(title));
+                    //law.constitutionalAmendments.Add(new ConstitutionalAmendment(title));
                 }
             }
 

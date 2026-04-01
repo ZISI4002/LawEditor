@@ -200,7 +200,7 @@ namespace LawEditor.Services.WordServises {
                 law.Header = headerBuilder.ToString().Trim();
 
             // ── Читаем сноски (endnotes) — там хранятся изменения ─────────────
-            ReadAmendmentsFromEndnotes(doc, law);
+            //ReadAmendmentsFromEndnotes(doc, law);
 
             return law;
         }
@@ -232,9 +232,11 @@ namespace LawEditor.Services.WordServises {
                         sb.AppendLine(text);
                 }
 
+                /*
                 var content = sb.ToString().Trim();
                 if (!string.IsNullOrWhiteSpace(content))
                     law.constitutionalAmendments.Add(new ConstitutionalAmendment(content));
+                */
             }
         }
     }
