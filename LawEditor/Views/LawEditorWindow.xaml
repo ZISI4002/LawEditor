@@ -64,9 +64,9 @@
             <!-- Кнопки Add / Delete -->
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4">
                 <ToggleButton Content="Add" Width="80" Margin="2"
-                  IsChecked="{Binding IsMenuOpen, Mode=TwoWay}"/>
+                  IsChecked="{Binding IsAddMenuOpen, Mode=TwoWay}"/>
 
-                <Popup IsOpen="{Binding IsMenuOpen, Mode=TwoWay}"
+                <Popup IsOpen="{Binding IsAddMenuOpen, Mode=TwoWay}"
            Placement="Bottom"
            StaysOpen="False">
                     <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1" Padding="2">
@@ -89,11 +89,7 @@
                           Visibility="{Binding MenuItem3Visible, 
                                        Converter={StaticResource BoolToVisibility}}"/>
 
-                            <MenuItem Header="{Binding MenuItem4Text}"
-                          Command="{Binding MenuItemCommand}"
-                          CommandParameter="{Binding MenuItem4Text}"
-                          Visibility="{Binding MenuItem4Visible, 
-                                       Converter={StaticResource BoolToVisibility}}"/>
+                            
                         </StackPanel>
                     </Border>
                 </Popup>

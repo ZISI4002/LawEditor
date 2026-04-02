@@ -3,6 +3,7 @@ using LawEditor.Models.ChangableData;
 using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
 using LawEditor.Models.TreeClasses;
+using LawEditor.Services.LawServises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,15 +16,20 @@ namespace LawEditor.ViewModels
 {
     public class LawEditorWindowViewModel : BaseViewModel
     {
+        public readonly CopyLawsServise _copyLawsServise= new CopyLawsServise();
+        
         public LawEditorWindowViewModel(Window window,MainWindowViewModel mainWindowViewModel) : base(window)
         {
             this.MainWindowModel = mainWindowViewModel;
            Laws= mainWindowViewModel.Laws;
 
             EditedLaws = new Laws();
-            CopyLawsData(mainWindowViewModel.Laws, EditedLaws);
+            _copyLawsServise.CopyLawsData(Laws, EditedLaws);
             this.SaveCommand = new Commands.LawEditorWindowCommands.SaveCommand(this);
             this.DeleteCommand = new Commands.LawEditorWindowCommands.DeleteCommand(this);
+            this.AddCommand = new Commands.LawEditorWindowCommands.AddCommand(this);
+            this.MenuItemCommand = new Commands.LawEditorWindowCommands.MenuItemCommand(this);
+
         }
         public MainWindowViewModel MainWindowModel { get; set; }
 
@@ -38,30 +44,30 @@ namespace LawEditor.ViewModels
         public ICommand SaveCommand { get; set; }
         public ICommand DeleteCommand { get; set; }
         public ICommand AddCommand { get; set; }
-        public ICommand AddCorrespondingElementCommand { get; set; }
+        public ICommand MenuItemCommand { get; set; }
         public LawAnchor CurrentAnchor { get; set; } = new();
 
         public string MenuItem1Text => GetMenuItems().Item1;
         public string MenuItem2Text => GetMenuItems().Item2;
         public string MenuItem3Text => GetMenuItems().Item3;
-        public string MenuItem4Text => GetMenuItems().Item4;
+       
 
         // Видимость кнопок
         public bool MenuItem1Visible => GetMenuItems().Item1 != null;
         public bool MenuItem2Visible => GetMenuItems().Item2 != null;
         public bool MenuItem3Visible => GetMenuItems().Item3 != null;
-        public bool MenuItem4Visible => GetMenuItems().Item4 != null;
+        
 
-        private (string Item1, string Item2, string Item3, string Item4) GetMenuItems()
+        private (string Item1, string Item2, string Item3) GetMenuItems()
         {
             return _selectedItem switch
             {
-                Chapter => ("Добавить главу выше", "Добавить главу ниже", "Добавить раздел внутрь", null),
-                Section => ("Добавить раздел выше", "Добавить раздел ниже", "Добавить статью внутрь", null),
-                Article => ("Добавить статью выше", "Добавить статью ниже", "Добавить пункт внутрь", null),
-                Clause => ("Добавить пункт выше", "Добавить пункт ниже", "Добавить подпункт внутрь", null),
-                SubClause => ("Добавить подпункт выше", "Добавить подпункт ниже", null, null),
-                _ => ("Добавить главу", null, null, null),
+                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et"),
+                Section => ("Yuxarıda fəsil əlavə et", "Aşağıda fəsil əlavə et", "İçəridə maddə əlavə et"),
+                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "İçəridə bənd əlavə et"),
+                Clause => ("Yuxarıda bənd əlavə et", "Aşağıda bənd əlavə et", "İçəridə altbənd əlavə et"),
+                SubClause => ("Yuxarıda altbənd əlavə et", "Aşağıda altbənd əlavə et", null),
+                _ => ("Bölmə əlavə et", null, null),
             };
         }
 
@@ -78,11 +84,9 @@ namespace LawEditor.ViewModels
                 OnPropertyChanged(nameof(MenuItem1Text));
                 OnPropertyChanged(nameof(MenuItem2Text));
                 OnPropertyChanged(nameof(MenuItem3Text));
-                OnPropertyChanged(nameof(MenuItem4Text));
                 OnPropertyChanged(nameof(MenuItem1Visible));
                 OnPropertyChanged(nameof(MenuItem2Visible));
                 OnPropertyChanged(nameof(MenuItem3Visible));
-                OnPropertyChanged(nameof(MenuItem4Visible));
                 UpdateAnchor(value);
             }
         }
@@ -162,94 +166,6 @@ namespace LawEditor.ViewModels
 
         public bool HasSelection => _selectedItem != null;
 
-        public void CopyLawsData(Laws source, Laws target)
-        {
-            target.Header = source.Header;
-
-            // Копируем главы
-            foreach (var ch in source.Chapters)
-            {
-                var newChapter = new Chapter
-                {
-                    Id = ch.Id,
-                    Title = ch.Title
-                };
-
-                foreach (var sec in ch.Sections)
-                {
-                    var newSection = new Section
-                    {
-                        Id = sec.Id,
-                        Title = sec.Title
-                    };
-
-                    foreach (var art in sec.Articles)
-                    {
-                        var newArticle = new Article
-                        {
-                            Id = art.Id,
-                            Title = art.Title
-                        };
-
-                        foreach (var cl in art.Clauses)
-                        {
-                            var newClause = new Clause
-                            {
-                                Number = cl.Number,
-                                Text = cl.Text
-                            };
-
-                            foreach (var sc in cl.SubClauses)
-                            {
-                                newClause.SubClauses.Add(new SubClause
-                                {
-                                    Number = sc.Number,
-                                    Text = sc.Text
-                                });
-                            }
-
-                            newArticle.Clauses.Add(newClause);
-                        }
-
-                        newSection.Articles.Add(newArticle);
-                    }
-
-                    newChapter.Sections.Add(newSection);
-                }
-
-                target.Chapters.Add(newChapter);
-            }
-
-            // Копируем TransitionalProvisions
-            foreach (var tp in source.transitionalProvisions)
-            {
-                target.transitionalProvisions.Add(new TransitionalProvisions
-                {
-                    Id = tp.Id,
-                    Title = tp.Title,
-                    Date = tp.Date
-                });
-            }
-
-            // Копируем ConstitutionalAmendment
-            foreach (var ca in source.constitutionalAmendments)
-            {
-                target.constitutionalAmendments.Add(new ConstitutionalAmendment
-                {
-                    Id = ca.Id,
-                    Title = ca.Title
-                });
-            }
-
-            // Копируем SourceDocumentsList
-            foreach (var sd in source.sourceDocumentsLists)
-            {
-                target.sourceDocumentsLists.Add(new SourceDocumentsList
-                {
-                    Id = sd.Id,
-                    Title = sd.Title
-                });
-            }
-        }
+        
     }
 }

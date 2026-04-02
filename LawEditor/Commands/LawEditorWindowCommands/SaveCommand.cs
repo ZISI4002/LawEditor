@@ -41,12 +41,12 @@ namespace LawEditor.Commands.LawEditorWindowCommands
             _viewModel.Laws.sourceDocumentsLists.Clear();
           
             // Копируем EditedLaws обратно в Laws
-            _viewModel.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);
+            _viewModel._copyLawsServise.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);
 
             // Обновляем ссылку в MainWindowModel
             _viewModel.MainWindowModel.Laws = _viewModel.Laws;
             var wordWriter = new WordFileWritingService();
-            wordWriter.WriteWordFile(_viewModel.MainWindowModel.FilePath, _viewModel.Laws);
+            wordWriter.WriteWordFile(_viewModel.MainWindowModel.FilePath, _viewModel.MainWindowModel.Laws);
 
             if (_viewModel.MainWindowModel.Window is MainWindow mainWindow)
             {
