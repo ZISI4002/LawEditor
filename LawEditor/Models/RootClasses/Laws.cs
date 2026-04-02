@@ -82,137 +82,111 @@ namespace LawEditor.Models.RootClasses
                 chapter.Title = newTitle;
         }
 
+        //----------------------------------------------
+        public TransitionalProvisions AddTransitionalProvision(string title, string? linkText = null, string? url = null, int? position = null) {
+            var newItem = new TransitionalProvisions(title, linkText, url);
 
-        public TransitionalProvisions AddTransitionalProvision(string title, int? position = null) {
-            // создаём → срабатывает counter
-            var newItem = new TransitionalProvisions(title);
-
-            // если добавляем в конец
             if (position == null || position >= transitionalProvisions.Count) {
                 transitionalProvisions.Add(newItem);
                 return newItem;
             }
 
-            // получаем Id, куда вставляем
             int insertId = transitionalProvisions[position.Value].Id;
-
-            // сдвигаем все элементы начиная с этой позиции
             foreach (var item in transitionalProvisions.Where(t => t.Id >= insertId)) {
                 item.Id++;
             }
-
-            // задаём правильный Id новому элементу
             newItem.Id = insertId;
-
-            // вставляем в список
             transitionalProvisions.Insert(position.Value, newItem);
-
             return newItem;
         }
 
         public void DeleteTransitionalProvision(int id) {
             var item = transitionalProvisions.FirstOrDefault(t => t.Id == id);
-
             if (item == null)
                 return;
 
-            // Удаляем
             transitionalProvisions.Remove(item);
-
-            // Сдвигаем все последующие назад
             foreach (var t in transitionalProvisions.Where(t => t.Id > id)) {
                 t.Id--;
             }
-
-            // Уменьшаем counter
             TransitionalProvisions.DecreaseCounter();
         }
 
-        public void UpdateTransitionalProvision(int id, string? newTitle = null, string? newDate = null) {
+        public void UpdateTransitionalProvision(int id, string? newTitle = null, string? newDate = null, string? newLinkText = null, string? newUrl = null) {
             var item = transitionalProvisions.FirstOrDefault(t => t.Id == id);
-
             if (item == null)
                 return;
 
             if (newTitle != null)
                 item.Title = newTitle;
-
             if (newDate != null)
                 item.Date = newDate;
+            if (newLinkText != null)
+                item.LinkText = newLinkText;
+            if (newUrl != null)
+                item.Url = newUrl;
         }
 
+        //----------------------------------------------
 
-        public SourceDocumentsList AddSourceDocument(string title, int? position = null) {
-            // создаём → срабатывает counter
-            var newItem = new SourceDocumentsList(title);
+        public SourceDocumentsList AddSourceDocument(string title, string? linkText = null, string? url = null, int? position = null) {
+            var newItem = new SourceDocumentsList(title, linkText, url);
 
-            // если добавляем в конец
             if (position == null || position >= sourceDocumentsLists.Count) {
                 sourceDocumentsLists.Add(newItem);
                 return newItem;
             }
 
-            // получаем Id, куда вставляем
             int insertId = sourceDocumentsLists[position.Value].Id;
-
-            // сдвигаем все элементы начиная с этой позиции
             foreach (var item in sourceDocumentsLists.Where(s => s.Id >= insertId)) {
                 item.Id++;
             }
-
-            // задаём правильный Id новому элементу
             newItem.Id = insertId;
-
-            // вставляем в список
             sourceDocumentsLists.Insert(position.Value, newItem);
-
             return newItem;
         }
 
         public void DeleteSourceDocument(int id) {
             var item = sourceDocumentsLists.FirstOrDefault(s => s.Id == id);
-
             if (item == null)
                 return;
 
-            // Удаляем
             sourceDocumentsLists.Remove(item);
-
-            // Сдвигаем все последующие назад
             foreach (var s in sourceDocumentsLists.Where(s => s.Id > id)) {
                 s.Id--;
             }
-
-            // Уменьшаем counter
             SourceDocumentsList.DecreaseCounter();
         }
 
-        public void UpdateSourceDocument(int id, string? newTitle = null) {
+        public void UpdateSourceDocument(int id, string? newTitle = null, string? newLinkText = null, string? newUrl = null) {
             var item = sourceDocumentsLists.FirstOrDefault(s => s.Id == id);
-
             if (item == null)
                 return;
 
             if (newTitle != null)
                 item.Title = newTitle;
+            if (newLinkText != null)
+                item.LinkText = newLinkText;
+            if (newUrl != null)
+                item.Url = newUrl;
         }
 
-        public ConstitutionalAmendment AddConstitutionalAmendment(string id, string title, int? position = null) {
-            var newItem = new ConstitutionalAmendment(id, title);
+        //----------------------------------------------
+
+        public ConstitutionalAmendment AddConstitutionalAmendment(string id, string title, string? linkText = null, string? url = null, int? position = null) {
+            var newItem = new ConstitutionalAmendment(id, title, linkText, url);
 
             if (position == null || position >= constitutionalAmendments.Count) {
                 constitutionalAmendments.Add(newItem);
                 return newItem;
             }
 
-            // Если новый id числовой — сдвигаем все числовые id >= этого числа
             if (int.TryParse(id, out int numericId)) {
                 foreach (var item in constitutionalAmendments) {
                     if (int.TryParse(item.Id, out int itemNumericId) && itemNumericId >= numericId)
                         item.Id = (itemNumericId + 1).ToString();
                 }
             }
-
             constitutionalAmendments.Insert(position.Value, newItem);
             return newItem;
         }
@@ -223,8 +197,6 @@ namespace LawEditor.Models.RootClasses
                 return;
 
             constitutionalAmendments.Remove(item);
-
-            // Если удалённый id числовой — сдвигаем все числовые id > этого числа на -1
             if (int.TryParse(id, out int numericId)) {
                 foreach (var c in constitutionalAmendments) {
                     if (int.TryParse(c.Id, out int itemNumericId) && itemNumericId > numericId)
@@ -233,13 +205,17 @@ namespace LawEditor.Models.RootClasses
             }
         }
 
-        public void UpdateConstitutionalAmendment(string id, string? newTitle = null) {
+        public void UpdateConstitutionalAmendment(string id, string? newTitle = null, string? newLinkText = null, string? newUrl = null) {
             var amendment = constitutionalAmendments.FirstOrDefault(c => c.Id == id);
             if (amendment == null)
                 return;
 
             if (!string.IsNullOrWhiteSpace(newTitle))
                 amendment.Title = newTitle;
+            if (newLinkText != null)
+                amendment.LinkText = newLinkText;
+            if (newUrl != null)
+                amendment.Url = newUrl;
         }
     }
 }

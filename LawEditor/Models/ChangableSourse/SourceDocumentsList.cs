@@ -12,12 +12,16 @@ namespace LawEditor.Models.ChangableSourse {
 
         public int Id { get; set; }
         public string Title { get; set; }
+        public string? LinkText { get; set; } 
+        public string? Url { get; set; }
 
-        public SourceDocumentsList() { }  // нужно
+        public SourceDocumentsList() { }
 
-        public SourceDocumentsList(string title) {
+        public SourceDocumentsList(string title, string? linkText = null, string? url = null) {
             Id = counter++;
             Title = title;
+            LinkText = linkText;
+            Url = url;
         }
         public static void DecreaseCounter() {
             if (counter > 1)
