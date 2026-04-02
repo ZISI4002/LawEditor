@@ -25,8 +25,8 @@
         </Style>
 
         <Style x:Key="AddWordButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#0000CD"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#00008B"/>
+            <Setter Property="Foreground" Value="#C8E6FF"/>
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -34,39 +34,108 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="12"
-                                BorderThickness="3"
-                                Padding="2">
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="12"
+                        BorderThickness="2">
                             <Border.BorderBrush>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#00BFFF" Offset="0"/>
+                                    <GradientStop Color="#4FC3F7" Offset="0"/>
                                     <GradientStop Color="#FFFFFF" Offset="0.5"/>
-                                    <GradientStop Color="#00BFFF" Offset="1"/>
+                                    <GradientStop Color="#4FC3F7" Offset="1"/>
                                 </LinearGradientBrush>
                             </Border.BorderBrush>
                             <Border.Effect>
-                                <DropShadowEffect Color="#00BFFF"
-                                                  BlurRadius="10"
-                                                  ShadowDepth="0"
-                                                  Opacity="0.8"/>
+                                <DropShadowEffect Color="#4FC3F7"
+                                          BlurRadius="12"
+                                          ShadowDepth="0"
+                                          Opacity="0.6"/>
                             </Border.Effect>
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                            <Grid>
+                                <Rectangle x:Name="shimmer"
+                                   RadiusX="10" RadiusY="10"
+                                   Opacity="0.05">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="Transparent" Offset="0"/>
+                                            <GradientStop Color="#FFFFFF" Offset="0.5"/>
+                                            <GradientStop Color="Transparent" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                            </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#1A1AFF"/>
+                                <Setter TargetName="border" Property="Background" Value="#0000CD"/>
+                                <Setter TargetName="shimmer" Property="Opacity" Value="0.12"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#00008B"/>
+                                <Setter TargetName="border" Property="Background" Value="#00005A"/>
+                                <Setter TargetName="shimmer" Property="Opacity" Value="0.04"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-
+        <Style x:Key="CreateLawsButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#6B0000"/>
+            <Setter Property="Foreground" Value="#FFD700"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="12"
+                        BorderThickness="2">
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#C8960C" Offset="0"/>
+                                    <GradientStop Color="#FFD700" Offset="0.5"/>
+                                    <GradientStop Color="#C8960C" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#C8960C"
+                                          BlurRadius="12"
+                                          ShadowDepth="0"
+                                          Opacity="0.6"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Rectangle x:Name="shimmer"
+                                   RadiusX="10" RadiusY="10"
+                                   Opacity="0.05">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="Transparent" Offset="0"/>
+                                            <GradientStop Color="#FFD700" Offset="0.5"/>
+                                            <GradientStop Color="Transparent" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#8B0000"/>
+                                <Setter TargetName="shimmer" Property="Opacity" Value="0.12"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#4A0000"/>
+                                <Setter TargetName="shimmer" Property="Opacity" Value="0.04"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="GenerateButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#008000"/>
             <Setter Property="Foreground" Value="White"/>
@@ -173,26 +242,37 @@
         <!-- Левая панель -->
         <Grid Grid.Row="1" Grid.Column="1" Margin="0,10,0,10">
             <Border Background="#2D2D2D" BorderBrush="#3C3C3C"
-                    BorderThickness="2" CornerRadius="10"/>
+            BorderThickness="2" CornerRadius="10"/>
 
-            <Button x:Name="BtnAddWord"
-                    Content="Add Word" Width="130" Height="50"
-                    Command="{Binding AddWordCommand}"
-                    Visibility="{Binding IsAddWordVisible, Converter={StaticResource BoolToVis}}"
-                    Style="{StaticResource AddWordButtonStyle}"
-                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <StackPanel Orientation="Vertical"
+            HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                <Button x:Name="BtnAddWord"
+        Content="✜ Add Word" Width="130" Height="50"
+        Margin="0,0,0,12"
+        Command="{Binding AddWordCommand}"
+        Visibility="{Binding IsAddWordVisible, Converter={StaticResource BoolToVis}}"
+        Style="{StaticResource AddWordButtonStyle}"/>
+
+                <Button x:Name="BtnCreateLaws"
+        Content="⚖ Create Laws"
+        Width="130" Height="50"
+        Style="{StaticResource CreateLawsButtonStyle}"
+        Command="{Binding CreateLawsCommand}"
+        Visibility="{Binding IsCreateLawsVisible, Converter={StaticResource BoolToVis}}"/>
+            </StackPanel>
 
             <Border x:Name="DisplayLeft"
-                    Background="#E0FFFF" BorderBrush="#0000CD"
-                    BorderThickness="2" CornerRadius="10"
-                    Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}">
+            Background="#E0FFFF" BorderBrush="#0000CD"
+            BorderThickness="2" CornerRadius="10"
+            Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}">
                 <RichTextBox x:Name="RichTextLeft"
-                             Background="Transparent"
-                             BorderThickness="0"
-                             IsReadOnly="True"
-                             VerticalScrollBarVisibility="Auto"
-                             HorizontalScrollBarVisibility="Disabled"
-                             Padding="12"/>
+                     Background="Transparent"
+                     BorderThickness="0"
+                     IsReadOnly="True"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Disabled"
+                     Padding="12"/>
             </Border>
         </Grid>
 
@@ -226,7 +306,7 @@
                     Style="{StaticResource CrudButtonStyle}"
                     Command="{Binding UpdateCommand}"
                     HorizontalAlignment="Left"/>
-
+            
             <Button x:Name="BtnRemove" 
                     Content="🗑 Remove"
                     Background="#6B2D6B"
@@ -245,5 +325,8 @@
                 Command="{Binding GenerateCommand}"
                 Style="{StaticResource GenerateButtonStyle}"
                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        
+                 
+        
     </Grid>
 </Window>

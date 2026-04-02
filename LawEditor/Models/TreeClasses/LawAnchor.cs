@@ -40,6 +40,7 @@ namespace LawEditor.Models.TreeClasses
         // Проверка, что якорь заполнен корректно
         public bool IsValid()
         {
+            if (Chapter == null) return false;
             // Если есть Section, должен быть Chapter
             if (Section != null && Chapter == null) return false;
             // Если есть Article, должны быть Section и Chapter

@@ -25,12 +25,17 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
         public void Execute(object? parameter)
         {
-            MessageBoxResult result = MessageBox.Show("Deleting it will remove all other elements relying on it!", "Are you sure?", MessageBoxButton.YesNoCancel, MessageBoxImage
+           
+
+            if (!_viewModel.CurrentAnchor.IsValid()) return;
+
+
+ MessageBoxResult result = MessageBox.Show("Deleting it will remove all other elements relying on it!", "Are you sure?", MessageBoxButton.YesNoCancel, MessageBoxImage
                  .Warning, MessageBoxResult.No);
 
             if (result != MessageBoxResult.Yes) return;
 
-            if (!_viewModel.CurrentAnchor.IsValid()) return;
+
             var anchor = _viewModel.CurrentAnchor;
             
             if (anchor.Chapter != null && anchor.Section == null)

@@ -1,5 +1,6 @@
 ﻿using LawEditor.Models.RootClasses;
 using LawEditor.Services;
+using LawEditor.Services.LawServises;
 using LawEditor.Services.WordServises;
 using LawEditor.ViewModels;
 using LawEditor.Views;
@@ -41,7 +42,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
             _viewModel.Laws.sourceDocumentsLists.Clear();
           
             // Копируем EditedLaws обратно в Laws
-            _viewModel._copyLawsServise.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);
+           CopyLawsServise.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);
 
             // Обновляем ссылку в MainWindowModel
             _viewModel.MainWindowModel.Laws = _viewModel.Laws;

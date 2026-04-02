@@ -37,7 +37,7 @@ namespace LawEditor.Models.TreeClasses
 
             foreach (var section in chapter.Sections)
             {
-                sb.AppendLine($"  [{section.Id}] {section.Title}");
+                sb.AppendLine("  {"+$"{section.Id}"+"}"+$"{section.Title}");
                 foreach (var article in section.Articles)
                 {
                     sb.AppendLine($"    [{article.Id.ToString(CultureInfo.InvariantCulture)}] {article.Title}");
@@ -59,7 +59,7 @@ namespace LawEditor.Models.TreeClasses
         private static string GetFullSection(Section section)
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"[{section.Id}] {section.Title}");
+            sb.AppendLine("{" + $"{section.Id}"+"}" + $" {section.Title}" );
             sb.AppendLine();
 
             foreach (var article in section.Articles)
@@ -164,7 +164,7 @@ namespace LawEditor.Models.TreeClasses
                 }
                 else if (indent >= 4 && indent < 6)
                 {
-                    var match = Regex.Match(line, @"^\[([0-9.]+)\]\s*(.*)$");
+                    var match = Regex.Match(line, @"^\{([0-9.]+)\}\s*(.*)$");
                     if (match.Success)
                     {
                         if (currentSection == null)
@@ -214,7 +214,7 @@ namespace LawEditor.Models.TreeClasses
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
 
-            var titleMatch = Regex.Match(lines[0].Trim(), @"^\[([0-9]+)\]\s*(.*)$");
+            var titleMatch = Regex.Match(lines[0].Trim(), @"^\{([0-9]+)\}\s*(.*)$");
             if (titleMatch.Success)
             {
                 int.TryParse(titleMatch.Groups[1].Value, out int secId);

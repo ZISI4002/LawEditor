@@ -11,7 +11,7 @@ namespace LawEditor.Services.LawServises
 {
     public  class CopyLawsServise
     {
-        public void CopyLawsData(Laws source, Laws target)
+        public static void CopyLawsData(Laws source, Laws target)
         {
             target.Header = source.Header;
 

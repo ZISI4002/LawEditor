@@ -72,24 +72,30 @@
                     <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1" Padding="2">
                         <StackPanel>
                             <MenuItem Header="{Binding MenuItem1Text}"
-                          Command="{Binding MenuItemCommand}"
+                          Command="{Binding AddItemCommand}"
                           CommandParameter="{Binding MenuItem1Text}"
                           Visibility="{Binding MenuItem1Visible, 
                                        Converter={StaticResource BoolToVisibility}}"/>
 
                             <MenuItem Header="{Binding MenuItem2Text}"
-                          Command="{Binding MenuItemCommand}"
+                          Command="{Binding AddItemCommand}"
                           CommandParameter="{Binding MenuItem2Text}"
                           Visibility="{Binding MenuItem2Visible, 
                                        Converter={StaticResource BoolToVisibility}}"/>
 
                             <MenuItem Header="{Binding MenuItem3Text}"
-                          Command="{Binding MenuItemCommand}"
+                          Command="{Binding AddItemCommand}"
                           CommandParameter="{Binding MenuItem3Text}"
                           Visibility="{Binding MenuItem3Visible, 
                                        Converter={StaticResource BoolToVisibility}}"/>
-
                             
+                            <MenuItem Header="{Binding MenuItem4Text}"
+                                Command="{Binding AddItemCommand}"
+                              CommandParameter="{Binding MenuItem4Text}"
+                              Visibility="{Binding MenuItem4Visible, 
+                               Converter={StaticResource BoolToVisibility}}"/>
+
+
                         </StackPanel>
                     </Border>
                 </Popup>

@@ -16,7 +16,7 @@ namespace LawEditor.ViewModels
 {
     public class LawEditorWindowViewModel : BaseViewModel
     {
-        public readonly CopyLawsServise _copyLawsServise= new CopyLawsServise();
+        
         
         public LawEditorWindowViewModel(Window window,MainWindowViewModel mainWindowViewModel) : base(window)
         {
@@ -24,17 +24,18 @@ namespace LawEditor.ViewModels
            Laws= mainWindowViewModel.Laws;
 
             EditedLaws = new Laws();
-            _copyLawsServise.CopyLawsData(Laws, EditedLaws);
+            CopyLawsServise.CopyLawsData(Laws, EditedLaws);
             this.SaveCommand = new Commands.LawEditorWindowCommands.SaveCommand(this);
             this.DeleteCommand = new Commands.LawEditorWindowCommands.DeleteCommand(this);
-            this.AddCommand = new Commands.LawEditorWindowCommands.AddCommand(this);
-            this.MenuItemCommand = new Commands.LawEditorWindowCommands.MenuItemCommand(this);
+           
+            this.AddItemCommand = new Commands.LawEditorWindowCommands.AddItemCommand(this);
 
         }
         public MainWindowViewModel MainWindowModel { get; set; }
 
         public Laws Laws { get; set; }
         public Laws EditedLaws { get; set; }
+        public LawAnchor CurrentAnchor { get; set; } = new();
         private bool _isMenuOpen;
         public bool IsAddMenuOpen
         {
@@ -43,31 +44,33 @@ namespace LawEditor.ViewModels
         }
         public ICommand SaveCommand { get; set; }
         public ICommand DeleteCommand { get; set; }
-        public ICommand AddCommand { get; set; }
-        public ICommand MenuItemCommand { get; set; }
-        public LawAnchor CurrentAnchor { get; set; } = new();
+       
+        public ICommand AddItemCommand { get; set; }
+       
 
         public string MenuItem1Text => GetMenuItems().Item1;
         public string MenuItem2Text => GetMenuItems().Item2;
         public string MenuItem3Text => GetMenuItems().Item3;
+        public string MenuItem4Text => GetMenuItems().Item4;
        
 
         // Видимость кнопок
         public bool MenuItem1Visible => GetMenuItems().Item1 != null;
         public bool MenuItem2Visible => GetMenuItems().Item2 != null;
         public bool MenuItem3Visible => GetMenuItems().Item3 != null;
-        
+        public bool MenuItem4Visible => GetMenuItems().Item4 != null;
 
-        private (string Item1, string Item2, string Item3) GetMenuItems()
+
+        private (string Item1, string Item2, string Item3, string Item4) GetMenuItems()
         {
             return _selectedItem switch
             {
-                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et"),
-                Section => ("Yuxarıda fəsil əlavə et", "Aşağıda fəsil əlavə et", "İçəridə maddə əlavə et"),
-                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "İçəridə bənd əlavə et"),
-                Clause => ("Yuxarıda bənd əlavə et", "Aşağıda bənd əlavə et", "İçəridə altbənd əlavə et"),
-                SubClause => ("Yuxarıda altbənd əlavə et", "Aşağıda altbənd əlavə et", null),
-                _ => ("Bölmə əlavə et", null, null),
+                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et",null),
+                Section => ("Yuxarıda fəsil əlavə et", "Aşağıda fəsil əlavə et", "İçəridə maddə əlavə et", null),
+                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et","İçəridə bənd əlavə et"),
+                Clause => ("Yuxarıda bənd əlavə et", "Aşağıda bənd əlavə et", "İçəridə altbənd əlavə et", null),
+                SubClause => ("Yuxarıda altbənd əlavə et", "Aşağıda altbənd əlavə et", null, null),
+                _ => ("Bölmə əlavə et", null, null,null),
             };
         }
 
@@ -147,7 +150,10 @@ namespace LawEditor.ViewModels
                     break;
             }
         }
-
+        public void RefreshSelectedText()
+        {
+            OnPropertyChanged(nameof(SelectedText));
+        }
         public string SelectedText
         {
             get => FullTextWrapper.GetFullText(_selectedItem);

@@ -3,6 +3,7 @@ using LawEditor.Models.ChangableData;
 using LawEditor.Models.ChangableSourse;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
@@ -13,10 +14,10 @@ namespace LawEditor.Models.RootClasses
 {
     public class Laws {
         public string? Header { get; set; }
-        public List<Chapter> Chapters { get; } = new();
-        public List<TransitionalProvisions> transitionalProvisions { get; set; } = new();
-        public List<SourceDocumentsList> sourceDocumentsLists { get; set; } = new();
-        public List<ConstitutionalAmendment> constitutionalAmendments { get; set; } = new();
+        public ObservableCollection<Chapter> Chapters { get; } = new();
+        public ObservableCollection<TransitionalProvisions> transitionalProvisions { get; set; } = new();
+        public ObservableCollection<SourceDocumentsList> sourceDocumentsLists { get; set; } = new();
+        public ObservableCollection<ConstitutionalAmendment> constitutionalAmendments { get; set; } = new();
 
 
         //Добавить главу в указанную позицию(если позиция не указана, то в конец)
