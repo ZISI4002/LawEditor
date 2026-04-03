@@ -51,6 +51,16 @@ namespace LawEditor.Models.ChangableData
 
             return newArticle;
         }
+        public Article AddArticle(string title, Laws laws, string? endnoteId = null) {
+            float newId = Articles.Count > 0
+                ? (float)Math.Floor(Articles.Max(a => a.Id)) + 1
+                : 1;
+
+            var newArticle = new Article(newId, title);
+            newArticle.EndnoteId = endnoteId;
+            Articles.Add(newArticle);
+            return newArticle;
+        }
         public void DeleteArticle(float id, Laws laws) {
             var article = Articles.FirstOrDefault(a => a.Id == id);
             if (article == null)

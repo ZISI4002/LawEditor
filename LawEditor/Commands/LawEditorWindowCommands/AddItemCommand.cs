@@ -51,7 +51,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "İçəridə maddə əlavə et":
                     var lastArticle = anchor.Section?.Articles.LastOrDefault();
                     float lastArticleId = lastArticle != null ? lastArticle.Id : 0;
-                    anchor.Section.AddArticle(lastArticleId-lastArticleId%1+1, "Yeni Maddə");
+                    anchor.Section.AddArticle(lastArticleId-lastArticleId%1+1, "Yeni Maddə",_viewModel.EditedLaws);
                     
                     break;
 
