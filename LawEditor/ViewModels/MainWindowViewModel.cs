@@ -9,12 +9,13 @@ public class MainWindowViewModel : BaseViewModel
 {
     public MainWindowViewModel(Window window) : base(window)
     {
+        this.Laws = new Laws();
         this.AddWordCommand = new AddWordCommand(this);
         this.GenerateCommand = new GenerateCommand(this);
         this.RemoveCommand = new RemoveCommand(this);
         this.UpdateCommand=new UpdateCommand(this);
         this.CreateLawsCommand = new CreateLawsCommand(this);
-        this.Laws = new Laws();
+        
     }
 
     public ICommand AddWordCommand { get; set; }

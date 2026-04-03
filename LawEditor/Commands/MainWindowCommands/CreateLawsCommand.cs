@@ -25,6 +25,8 @@ namespace LawEditor.Commands.MainWindowCommands
 
         public void Execute(object? parameter)
         {
+
+
             _viewModel.Laws.AddChapter("Birinci Bölmə");
             LawEditorWindow editorWindow = new LawEditorWindow();
             LawEditorWindowViewModel editorViewModel = new LawEditorWindowViewModel(editorWindow, _viewModel);
@@ -34,3 +36,4 @@ namespace LawEditor.Commands.MainWindowCommands
         }
     }
 }
+

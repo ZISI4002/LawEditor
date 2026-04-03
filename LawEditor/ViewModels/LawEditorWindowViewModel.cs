@@ -86,9 +86,11 @@ namespace LawEditor.ViewModels
                 OnPropertyChanged(nameof(MenuItem1Text));
                 OnPropertyChanged(nameof(MenuItem2Text));
                 OnPropertyChanged(nameof(MenuItem3Text));
+                OnPropertyChanged(nameof(MenuItem4Text));
                 OnPropertyChanged(nameof(MenuItem1Visible));
                 OnPropertyChanged(nameof(MenuItem2Visible));
                 OnPropertyChanged(nameof(MenuItem3Visible));
+                OnPropertyChanged(nameof(MenuItem4Visible));
                 UpdateAnchor(value);
             }
         }

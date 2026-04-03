@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LawEditor.Models.RootClasses;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,7 +37,7 @@ namespace LawEditor.Commands.MainWindowCommands
                 _viewModel.FileIsAdded = false;
                 _viewModel.FileNameLeft = string.Empty;
                 _viewModel.FileNameRight = string.Empty;
-                _viewModel.Laws = null;
+                _viewModel.Laws = new Laws() ;
                 _viewModel.XML = null;
         }
     }
