@@ -40,7 +40,6 @@ namespace LawEditor.Services.WordServises {
         }
 
         // ── Получить текст гиперссылки из параграфа ───────────────────────────
-        // Возвращает (linkText, rId) или (null, null) если ссылки нет
         private (string? linkText, string? rId) ExtractHyperlink(Paragraph para) {
             var hyperlink = para.Elements<Hyperlink>().FirstOrDefault();
             if (hyperlink == null)
@@ -62,8 +61,6 @@ namespace LawEditor.Services.WordServises {
         }
 
         // ── Получить полный текст параграфа ───────────────────────────────────
-        // Игнорируем run с endnoteReference (это только маркер-цифра сноски)
-        // Включаем текст внутри гиперссылок
         private string GetParagraphText(Paragraph para) {
             var sb = new StringBuilder();
 
@@ -110,7 +107,6 @@ namespace LawEditor.Services.WordServises {
             using var doc = WordprocessingDocument.Open(filePath, false);
             var body = doc.MainDocumentPart.Document.Body;
 
-            // Словарь rId → URL для основного документа
             var docRelationships = BuildRelationshipMap(
                 doc.MainDocumentPart.HyperlinkRelationships);
 
@@ -120,14 +116,12 @@ namespace LawEditor.Services.WordServises {
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
 
-                // Пропускаем мусор
                 if (line.Contains("INCLUDEPICTURE") ||
                     line.Contains("MERGEFORMATINET") ||
                     line.Contains("userway.org") ||
                     line.Contains("\\*"))
                     continue;
 
-                // --- переключатели режимов ---
                 if (line.Contains("Keçİd müddəaları", StringComparison.OrdinalIgnoreCase)) {
                     mode = Mode.Transitional;
                     continue;
@@ -139,7 +133,6 @@ namespace LawEditor.Services.WordServises {
                     continue;
                 }
 
-                // Строка перед sectPr — пропускаем, amendments читаем из endnotes
                 if (line.Contains("KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI",
                         StringComparison.OrdinalIgnoreCase))
                     continue;
@@ -223,24 +216,24 @@ namespace LawEditor.Services.WordServises {
                         continue;
                     }
 
-                    // обычный текст
+                    // обычный текст — если уже есть Clause, то это SubClause
                     if (currentArticle != null) {
                         string? endnoteRefId = ExtractEndnoteRefId(para);
                         if (currentClause == null)
                             currentClause = currentArticle.AddClause(line, endnoteId: endnoteRefId);
                         else
-                            currentClause.Text += " " + line;
+                            currentClause.AddSubClause(line, endnoteId: endnoteRefId);
                         continue;
                     }
                 }
 
-                // TRANSITIONAL — ссылок пока нет в документе, но поля готовы
+                // TRANSITIONAL
                 if (mode == Mode.Transitional) {
                     law.transitionalProvisions.Add(new TransitionalProvisions(line));
                     continue;
                 }
 
-                // SOURCES — извлекаем гиперссылку если есть
+                // SOURCES
                 if (mode == Mode.Sources) {
                     var (linkText, rId) = ExtractHyperlink(para);
                     string? url = rId != null && docRelationships.TryGetValue(rId, out var u)
@@ -255,7 +248,6 @@ namespace LawEditor.Services.WordServises {
             if (law.Header == null)
                 law.Header = headerBuilder.ToString().Trim();
 
-            // ── Читаем amendments из endnotes ──────────────────────────────────
             ReadAmendmentsFromEndnotes(doc, law);
 
             return law;
@@ -270,6 +262,8 @@ namespace LawEditor.Services.WordServises {
             var endnoteRelationships = BuildRelationshipMap(
                 endnotesPart.HyperlinkRelationships);
 
+            int numericCounter = 1;
+
             foreach (var endnote in endnotesPart.Endnotes.Elements<Endnote>()) {
                 var type = endnote.Type;
                 if (type != null &&
@@ -277,39 +271,36 @@ namespace LawEditor.Services.WordServises {
                      type.Value == FootnoteEndnoteValues.ContinuationSeparator))
                     continue;
 
-                // Собираем текст через Run-ы, пропуская <w:endnoteRef/> маркер
                 var sb = new StringBuilder();
                 foreach (var run in endnote.Descendants<Run>()) {
-                    // Пропускаем run если внутри есть endnoteRef маркер
                     if (run.GetFirstChild<EndnoteReferenceMark>() != null)
                         continue;
-
-                    var text = run.GetFirstChild<Text>()?.Text;
-                    if (!string.IsNullOrEmpty(text))
-                        sb.Append(text);
+                    sb.Append(run.InnerText);
                 }
 
                 string content = sb.ToString().Trim();
                 if (string.IsNullOrWhiteSpace(content))
                     continue;
 
-                // KM1KM1, KQ1KQ1 — Word дублирует буквенный id
                 string amendmentId;
                 string amendmentTitle;
 
-                var specialIdMatch = Regex.Match(
-                    content, @"^(K[A-Z]\d+)\1\s*(.+)", RegexOptions.Singleline);
+                // Проверяем начало: буквы + цифра + пробел → буквенный id
+                // Например "KM1 текст" или "KQ1 текст"
+                var specialIdMatch = Regex.Match(content, @"^([A-Z]+\d+)\s+(.+)");
 
                 if (specialIdMatch.Success) {
+                    // Буквенный id — счётчик не трогаем
                     amendmentId = specialIdMatch.Groups[1].Value;
                     amendmentTitle = specialIdMatch.Groups[2].Value.Trim();
                 }
                 else {
-                    amendmentId = endnote.Id?.Value.ToString() ?? "";
+                    // Числовой id — берём счётчик и увеличиваем
+                    amendmentId = numericCounter.ToString();
                     amendmentTitle = content;
+                    numericCounter++;
                 }
 
-                // Ищем гиперссылку
                 string? linkText = null;
                 string? url = null;
 
@@ -321,8 +312,7 @@ namespace LawEditor.Services.WordServises {
                     string? rId = hyperlink.Id?.Value;
 
                     linkText = string.Concat(
-                        hyperlink.Elements<Run>()
-                                 .Select(r => r.GetFirstChild<Text>()?.Text ?? "")
+                        hyperlink.Elements<Run>().Select(r => r.InnerText)
                     ).Trim();
 
                     if (rId != null && endnoteRelationships.TryGetValue(rId, out var u))
