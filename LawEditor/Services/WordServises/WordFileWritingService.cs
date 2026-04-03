@@ -122,7 +122,7 @@ namespace LawEditor.Services.WordServises
             return para;
         }
 
-        private string FormatArticleId(float id)
+        private string FormatArticleId(decimal id)
         {
             // Если целое число, выводим без десятичной части
             if (id == (int)id)

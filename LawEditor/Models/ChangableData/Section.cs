@@ -1,7 +1,8 @@
 ﻿using LawEditor.Models.RootClasses;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
 using LawEditor.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -29,7 +30,20 @@ namespace LawEditor.Models.ChangableData
         public static void ResetCounter() {
             counter = 1;
         }
-        public Article AddArticle(float id, string title, Laws laws, string? endnoteId = null) {
+        public decimal GetMaxPartID(decimal id)
+        {
+            decimal maxId = id;
+            for(decimal i = id + 0.1m; i < id + 1; i += 0.1m)
+            {
+                if (Articles.Any(a => a.Id == i))
+                    maxId = i;
+                else
+                    break;
+            }
+            return maxId;
+
+        }
+        public Article AddArticle(decimal id, string title, Laws laws, string? endnoteId = null) {
             bool isSubArticle = id % 1 != 0;
             if (!isSubArticle) {
                 foreach (var chapter in laws.Chapters)
@@ -52,8 +66,8 @@ namespace LawEditor.Models.ChangableData
             return newArticle;
         }
         public Article AddArticle(string title, Laws laws, string? endnoteId = null) {
-            float newId = Articles.Count > 0
-                ? (float)Math.Floor(Articles.Max(a => a.Id)) + 1
+            decimal newId = Articles.Count > 0
+                ? (decimal)Math.Floor(Articles.Max(a => a.Id)) + 1
                 : 1;
 
             var newArticle = new Article(newId, title);
@@ -61,7 +75,7 @@ namespace LawEditor.Models.ChangableData
             Articles.Add(newArticle);
             return newArticle;
         }
-        public void DeleteArticle(float id, Laws laws) {
+        public void DeleteArticle(decimal id, Laws laws) {
             var article = Articles.FirstOrDefault(a => a.Id == id);
             if (article == null)
                 return;
