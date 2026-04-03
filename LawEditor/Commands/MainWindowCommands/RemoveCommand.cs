@@ -31,7 +31,7 @@ namespace LawEditor.Commands.MainWindowCommands
            
             // Сбрасываем все свойства, связанные с отображением и данными
             _viewModel.IsDisplayLeftVisible = false;
-                _viewModel.IsAddWordVisible = true;
+                _viewModel.IsDisplayButtonsVisible = true;
                 _viewModel.IsDisplayRightVisible = false;
                 _viewModel.FileIsAdded = false;
                 _viewModel.FileNameLeft = string.Empty;

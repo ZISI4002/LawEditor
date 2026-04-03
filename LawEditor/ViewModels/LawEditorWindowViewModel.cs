@@ -44,7 +44,6 @@ namespace LawEditor.ViewModels
         }
         public ICommand SaveCommand { get; set; }
         public ICommand DeleteCommand { get; set; }
-       
         public ICommand AddItemCommand { get; set; }
        
 

@@ -53,7 +53,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
             {
                 if (anchor.Section != null)
                 {
-                    anchor.Section.DeleteArticle(anchor.Article.Id);
+                    anchor.Section.DeleteArticle(anchor.Article.Id,_viewModel.EditedLaws);
                 }
             }
             else if (anchor.Clause != null && anchor.SubClause == null)

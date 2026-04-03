@@ -13,6 +13,12 @@ namespace LawEditor.Services.LawServises
     {
         public static void CopyLawsData(Laws source, Laws target)
         {
+
+            if (source == null)
+            {
+                return;
+            }
+
             target.Header = source.Header;
 
             // Копируем главы
