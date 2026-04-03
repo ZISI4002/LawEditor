@@ -63,14 +63,8 @@ namespace LawEditor.Models.ChangableData
 
             Section.DecreaseCounter();
         }
-        public void UpdateSection(int id, string? newTitle = null) {
-            var section = Sections.FirstOrDefault(s => s.Id == id);
 
-            if (section == null)
-                return;
 
-            if (newTitle != null)
-                section.Title = newTitle;
-        }
+
     }
 }

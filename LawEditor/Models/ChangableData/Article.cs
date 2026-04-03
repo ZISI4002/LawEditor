@@ -44,15 +44,5 @@ namespace LawEditor.Models.ChangableData
             }
         }
 
-        public void UpdateClause(int number, string? newText = null, string? newEndnoteId = null) {
-            var clause = Clauses.FirstOrDefault(c => c.Number == number);
-            if (clause == null)
-                return;
-
-            if (newText != null)
-                clause.Text = newText;
-            if (newEndnoteId != null)
-                clause.EndnoteId = newEndnoteId;
-        }
     }
 }

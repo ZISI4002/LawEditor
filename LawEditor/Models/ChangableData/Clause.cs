@@ -44,15 +44,6 @@ namespace LawEditor.Models.ChangableData
                 s.Number--;
             }
         }
-        public void UpdateSubClause(int number, string? newText = null, string? newEndnoteId = null) {
-            var sub = SubClauses.FirstOrDefault(s => s.Number == number);
-            if (sub == null)
-                return;
 
-            if (newText != null)
-                sub.Text = newText;
-            if (newEndnoteId != null)
-                sub.EndnoteId = newEndnoteId;
-        }
     }
 }

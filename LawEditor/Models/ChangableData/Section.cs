@@ -1,11 +1,14 @@
 ﻿using LawEditor.Models.RootClasses;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using LawEditor.ViewModels;
 
 namespace LawEditor.Models.ChangableData
 {
-    public class Section //Fesil
+    public class Section //Fesil       
     {
+       
+
         private static int counter = 1;
 
         public int Id { get; set; }
@@ -26,50 +29,44 @@ namespace LawEditor.Models.ChangableData
         public static void ResetCounter() {
             counter = 1;
         }
-        
-        public Article AddArticle(float id, string title, string? endnoteId = null) {
-            var newArticle = new Article(id, title);
-            newArticle.EndnoteId = endnoteId;
+        public Article AddArticle(float id, string title, Laws laws, string? endnoteId = null) {
             bool isSubArticle = id % 1 != 0;
             if (!isSubArticle) {
-                foreach (var article in Articles) {
-                    if (article.Id >= id) {
-                        article.Id += 1;
-                    }
-                }
+                foreach (var chapter in laws.Chapters)
+                    foreach (var section in chapter.Sections)
+                        foreach (var article in section.Articles)
+                            if (article.Id >= id)
+                                article.Id += 1;
             }
+
+            var newArticle = new Article(id, title);
+            newArticle.EndnoteId = endnoteId;
+
             Articles.Add(newArticle);
+
             var sortedList = Articles.OrderBy(a => a.Id).ToList();
             Articles.Clear();
-            foreach (var article in sortedList) {
-                Articles.Add(article);
-            }
+            foreach (var a in sortedList)
+                Articles.Add(a);
+
             return newArticle;
         }
-        public void DeleteArticle(float id) {
+        public void DeleteArticle(float id, Laws laws) {
             var article = Articles.FirstOrDefault(a => a.Id == id);
             if (article == null)
                 return;
+
             Articles.Remove(article);
-            foreach (var a in Articles) {
-                if (a.Id > id) {
-                    a.Id -= 1;
-                }
-            }
-            var sortedList = Articles.OrderBy(a => a.Id).ToList();
-            Articles.Clear();
-            foreach (var articl in sortedList) {
-                Articles.Add(articl);
+
+            bool isSubArticle = id % 1 != 0;
+            if (!isSubArticle) {
+                foreach (var chapter in laws.Chapters)
+                    foreach (var section in chapter.Sections)
+                        foreach (var a in section.Articles)
+                            if (a.Id > id)
+                                a.Id -= 1;
             }
         }
-        public void UpdateArticle(float id, string? newTitle = null, string? newEndnoteId = null) {
-            var article = Articles.FirstOrDefault(a => a.Id == id);
-            if (article == null)
-                return;
-            if (newTitle != null)
-                article.Title = newTitle;
-            if (newEndnoteId != null)
-                article.EndnoteId = newEndnoteId;
-        }
+
     }
 }

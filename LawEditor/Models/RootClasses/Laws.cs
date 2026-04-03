@@ -12,7 +12,7 @@ using System.Windows.Documents;
 
 namespace LawEditor.Models.RootClasses
 {
-    public class Laws {
+    public partial class Laws {
         public string? Header { get; set; }
         public ObservableCollection<Chapter> Chapters { get; } = new();
         public ObservableCollection<TransitionalProvisions> transitionalProvisions { get; set; } = new();
@@ -73,15 +73,6 @@ namespace LawEditor.Models.RootClasses
             Chapter.DecreaseCounter();
         }
         // Редактируем главу по Id (например, изменить название)
-        public void UpdateChapter(int id, string? newTitle = null) {
-            var chapter = Chapters.FirstOrDefault(c => c.Id == id);
-
-            if (chapter == null)
-                return;
-
-            if (newTitle != null)
-                chapter.Title = newTitle;
-        }
 
         //----------------------------------------------
         public TransitionalProvisions AddTransitionalProvision(string title, string? linkText = null, string? url = null, int? position = null) {
@@ -113,20 +104,6 @@ namespace LawEditor.Models.RootClasses
             TransitionalProvisions.DecreaseCounter();
         }
 
-        public void UpdateTransitionalProvision(int id, string? newTitle = null, string? newDate = null, string? newLinkText = null, string? newUrl = null) {
-            var item = transitionalProvisions.FirstOrDefault(t => t.Id == id);
-            if (item == null)
-                return;
-
-            if (newTitle != null)
-                item.Title = newTitle;
-            if (newDate != null)
-                item.Date = newDate;
-            if (newLinkText != null)
-                item.LinkText = newLinkText;
-            if (newUrl != null)
-                item.Url = newUrl;
-        }
 
         //----------------------------------------------
 
@@ -159,18 +136,6 @@ namespace LawEditor.Models.RootClasses
             SourceDocumentsList.DecreaseCounter();
         }
 
-        public void UpdateSourceDocument(int id, string? newTitle = null, string? newLinkText = null, string? newUrl = null) {
-            var item = sourceDocumentsLists.FirstOrDefault(s => s.Id == id);
-            if (item == null)
-                return;
-
-            if (newTitle != null)
-                item.Title = newTitle;
-            if (newLinkText != null)
-                item.LinkText = newLinkText;
-            if (newUrl != null)
-                item.Url = newUrl;
-        }
 
         //----------------------------------------------
 
@@ -206,17 +171,5 @@ namespace LawEditor.Models.RootClasses
             }
         }
 
-        public void UpdateConstitutionalAmendment(string id, string? newTitle = null, string? newLinkText = null, string? newUrl = null) {
-            var amendment = constitutionalAmendments.FirstOrDefault(c => c.Id == id);
-            if (amendment == null)
-                return;
-
-            if (!string.IsNullOrWhiteSpace(newTitle))
-                amendment.Title = newTitle;
-            if (newLinkText != null)
-                amendment.LinkText = newLinkText;
-            if (newUrl != null)
-                amendment.Url = newUrl;
-        }
     }
 }
