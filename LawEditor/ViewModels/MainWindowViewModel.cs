@@ -13,12 +13,15 @@ public class MainWindowViewModel : BaseViewModel
         this.GenerateCommand = new GenerateCommand(this);
         this.RemoveCommand = new RemoveCommand(this);
         this.UpdateCommand=new UpdateCommand(this);
+        this.CreateLawsCommand = new CreateLawsCommand(this);
+        this.Laws = new Laws();
     }
 
     public ICommand AddWordCommand { get; set; }
     public ICommand GenerateCommand { get; set; }
     public ICommand RemoveCommand { get; set; }
     public ICommand UpdateCommand { get; set; }
+    public ICommand CreateLawsCommand { get; set; }
     // --- Файлы ---
     public string FilePath { get; set; }
     private bool _fileisadded = false;
@@ -62,11 +65,11 @@ public class MainWindowViewModel : BaseViewModel
         get => _isDisplayLeftVisible;
         set => Set(ref _isDisplayLeftVisible, value);
     }
-    private bool _isAddWordVisible=true;
-    public bool IsAddWordVisible
+    private bool _isDisplayButtonsVisible=true;
+    public bool IsDisplayButtonsVisible
     {
-        get=> _isAddWordVisible;
-        set=> Set(ref _isAddWordVisible, value);
+        get=> _isDisplayButtonsVisible;
+        set=> Set(ref _isDisplayButtonsVisible, value);
     }       
     private bool _isDisplayRightVisible;
     public bool IsDisplayRightVisible

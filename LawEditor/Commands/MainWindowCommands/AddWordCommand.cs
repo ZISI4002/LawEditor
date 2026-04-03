@@ -47,7 +47,7 @@ namespace LawEditor.Commands.MainWindowCommands
                     }
 
                     _viewModel.IsDisplayLeftVisible = true;
-                    _viewModel.IsAddWordVisible = false;
+                    _viewModel.IsDisplayButtonsVisible = false;
                     _viewModel.FilePath = fullPath;
                     _viewModel.FileNameLeft = _fileName;
 

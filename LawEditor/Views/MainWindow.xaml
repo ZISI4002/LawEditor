@@ -251,7 +251,7 @@
         Content="✜ Add Word" Width="130" Height="50"
         Margin="0,0,0,12"
         Command="{Binding AddWordCommand}"
-        Visibility="{Binding IsAddWordVisible, Converter={StaticResource BoolToVis}}"
+        Visibility="{Binding IsDisplayButtonsVisible, Converter={StaticResource BoolToVis}}"
         Style="{StaticResource AddWordButtonStyle}"/>
 
                 <Button x:Name="BtnCreateLaws"
@@ -259,7 +259,7 @@
         Width="130" Height="50"
         Style="{StaticResource CreateLawsButtonStyle}"
         Command="{Binding CreateLawsCommand}"
-        Visibility="{Binding IsCreateLawsVisible, Converter={StaticResource BoolToVis}}"/>
+        Visibility="{Binding IsDisplayButtonsVisible, Converter={StaticResource BoolToVis}}"/>
             </StackPanel>
 
             <Border x:Name="DisplayLeft"

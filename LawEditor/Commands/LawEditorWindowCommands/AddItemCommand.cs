@@ -56,6 +56,8 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     break;
 
                 case "Yuxarıda maddə əlavə et":
+
+
                     break;
                 case "Aşağıda maddə əlavə et":
                     break;
