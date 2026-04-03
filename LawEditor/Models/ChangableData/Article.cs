@@ -6,12 +6,12 @@ namespace LawEditor.Models.ChangableData
 {
     public class Article //Madde
     {
-        public float Id { get; set; }
+        public decimal Id { get; set; }
         public string? Title { get; set; }
         public string? EndnoteId { get; set; }
         public ObservableCollection<Clause> Clauses { get; set; } = new();
         public Article() { }
-        public Article(float id, string title) {
+        public Article(decimal id, string title) {
             Id = id;
             Title = title;
         }
@@ -43,6 +43,7 @@ namespace LawEditor.Models.ChangableData
                 c.Number--;
             }
         }
+       
 
     }
 }

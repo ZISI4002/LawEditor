@@ -1,4 +1,5 @@
-﻿using LawEditor.Models.ChangableData;
+﻿using DocumentFormat.OpenXml.VariantTypes;
+using LawEditor.Models.ChangableData;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace LawEditor.Models.TreeClasses
 
             foreach (var section in chapter.Sections)
             {
-                sb.AppendLine("  {"+$"{section.Id}"+"}"+$"{section.Title}");
+                sb.AppendLine("  {" + section.Id + "} " + section.Title);
                 foreach (var article in section.Articles)
                 {
                     sb.AppendLine($"    [{article.Id.ToString(CultureInfo.InvariantCulture)}] {article.Title}");
@@ -59,7 +60,7 @@ namespace LawEditor.Models.TreeClasses
         private static string GetFullSection(Section section)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("{" + $"{section.Id}"+"}" + $" {section.Title}" );
+            sb.AppendLine("{" + section.Id + "} " + section.Title);
             sb.AppendLine();
 
             foreach (var article in section.Articles)
@@ -146,12 +147,14 @@ namespace LawEditor.Models.TreeClasses
                 int indent = GetIndent(rawLine);
                 var line = rawLine.Trim();
 
+                // Section: indent 2, формат {id} title
                 if (indent >= 2 && indent < 4)
                 {
-                    var match = Regex.Match(line, @"^\[([0-9]+)\]\s*(.*)$");
+                    var match = Regex.Match(line, @"^\{([0-9]+)\}\s+(.*)$");
                     if (match.Success)
                     {
-                        int.TryParse(match.Groups[1].Value, out int secId);
+                        int.TryParse(match.Groups[1].Value, NumberStyles.Integer,
+                            CultureInfo.InvariantCulture, out int secId);
                         currentSection = new Section { Id = secId, Title = match.Groups[2].Value };
                     }
                     else
@@ -162,9 +165,10 @@ namespace LawEditor.Models.TreeClasses
                     currentArticle = null;
                     currentClause = null;
                 }
+                // Article: indent 4, формат [id] title
                 else if (indent >= 4 && indent < 6)
                 {
-                    var match = Regex.Match(line, @"^\{([0-9.]+)\}\s*(.*)$");
+                    var match = Regex.Match(line, @"^\[([0-9.]+)\]\s+(.*)$");
                     if (match.Success)
                     {
                         if (currentSection == null)
@@ -172,36 +176,37 @@ namespace LawEditor.Models.TreeClasses
                             currentSection = new Section { Title = "Auto Section" };
                             chapter.Sections.Add(currentSection);
                         }
+                        decimal.TryParse(match.Groups[1].Value,
+                            NumberStyles.Float, CultureInfo.InvariantCulture, out decimal  artId);
 
-                        float.TryParse(match.Groups[1].Value,
-                            NumberStyles.Float, CultureInfo.InvariantCulture, out float id);
-
-                        currentArticle = new Article { Id = id, Title = match.Groups[2].Value };
+                        currentArticle = new Article { Id = artId, Title = match.Groups[2].Value };
                         currentSection.Articles.Add(currentArticle);
                         currentClause = null;
                     }
                 }
+                // Clause: indent 6
                 else if (indent >= 6 && indent < 8)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\.\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
                     if (match.Success && currentArticle != null)
                     {
                         currentClause = new Clause
                         {
-                            Number = int.Parse(match.Groups[1].Value),
+                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
                             Text = match.Groups[2].Value
                         };
                         currentArticle.Clauses.Add(currentClause);
                     }
                 }
+                // SubClause: indent 8
                 else if (indent >= 8)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\)\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                     if (match.Success && currentClause != null)
                     {
                         currentClause.SubClauses.Add(new SubClause
                         {
-                            Number = int.Parse(match.Groups[1].Value),
+                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
                             Text = match.Groups[2].Value
                         });
                     }
@@ -214,10 +219,12 @@ namespace LawEditor.Models.TreeClasses
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
 
-            var titleMatch = Regex.Match(lines[0].Trim(), @"^\{([0-9]+)\}\s*(.*)$");
+            // Заголовок секции: {id} title
+            var titleMatch = Regex.Match(lines[0].Trim(), @"^\{([0-9]+)\}\s+(.*)$");
             if (titleMatch.Success)
             {
-                int.TryParse(titleMatch.Groups[1].Value, out int secId);
+                int.TryParse(titleMatch.Groups[1].Value, NumberStyles.Integer,
+                    CultureInfo.InvariantCulture, out int secId);
                 section.Id = secId;
                 section.Title = titleMatch.Groups[2].Value;
             }
@@ -239,40 +246,43 @@ namespace LawEditor.Models.TreeClasses
                 int indent = GetIndent(rawLine);
                 var line = rawLine.Trim();
 
+                // Article: indent 2, формат [id] title
                 if (indent >= 2 && indent < 4)
                 {
-                    var match = Regex.Match(line, @"^\[([0-9.]+)\]\s*(.*)$");
+                    var match = Regex.Match(line, @"^\[([0-9.]+)\]\s+(.*)$");
                     if (match.Success)
                     {
-                        float.TryParse(match.Groups[1].Value,
-                            NumberStyles.Float, CultureInfo.InvariantCulture, out float id);
+                        decimal.TryParse(match.Groups[1].Value,
+                            NumberStyles.Float, CultureInfo.InvariantCulture, out decimal artId);
 
-                        currentArticle = new Article { Id = id, Title = match.Groups[2].Value };
+                        currentArticle = new Article { Id = artId, Title = match.Groups[2].Value };
                         section.Articles.Add(currentArticle);
                         currentClause = null;
                     }
                 }
+                // Clause: indent 4
                 else if (indent >= 4 && indent < 6)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\.\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
                     if (match.Success && currentArticle != null)
                     {
                         currentClause = new Clause
                         {
-                            Number = int.Parse(match.Groups[1].Value),
+                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
                             Text = match.Groups[2].Value
                         };
                         currentArticle.Clauses.Add(currentClause);
                     }
                 }
+                // SubClause: indent 6
                 else if (indent >= 6)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\)\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                     if (match.Success && currentClause != null)
                     {
                         currentClause.SubClauses.Add(new SubClause
                         {
-                            Number = int.Parse(match.Groups[1].Value),
+                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
                             Text = match.Groups[2].Value
                         });
                     }
@@ -285,13 +295,18 @@ namespace LawEditor.Models.TreeClasses
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
 
-            var titleMatch = Regex.Match(lines[0].Trim(), @"^\[([0-9.]+)\]\s*(.*)$");
+            // Заголовок статьи: [id] title
+            var titleMatch = Regex.Match(lines[0].Trim(), @"^\[([0-9.]+)\]\s+(.*)$");
             if (titleMatch.Success)
             {
-                float.TryParse(titleMatch.Groups[1].Value,
-                    NumberStyles.Float, CultureInfo.InvariantCulture, out float id);
-                article.Id = id;
+                decimal.TryParse(titleMatch.Groups[1].Value,
+                    NumberStyles.Float, CultureInfo.InvariantCulture, out decimal artId);
+                article.Id = artId;
                 article.Title = titleMatch.Groups[2].Value;
+            }
+            else
+            {
+                article.Title = lines[0].Trim();
             }
 
             article.Clauses.Clear();
@@ -305,27 +320,29 @@ namespace LawEditor.Models.TreeClasses
                 int indent = GetIndent(rawLine);
                 var line = rawLine.Trim();
 
+                // Clause: indent 2
                 if (indent >= 2 && indent < 4)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\.\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
                     if (match.Success)
                     {
                         currentClause = new Clause
                         {
-                            Number = int.Parse(match.Groups[1].Value),
+                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
                             Text = match.Groups[2].Value
                         };
                         article.Clauses.Add(currentClause);
                     }
                 }
+                // SubClause: indent 4
                 else if (indent >= 4)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\)\s*(.*)$");
+                    var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                     if (match.Success && currentClause != null)
                     {
                         currentClause.SubClauses.Add(new SubClause
                         {
-                            Number = int.Parse(match.Groups[1].Value),
+                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
                             Text = match.Groups[2].Value
                         });
                     }
@@ -338,10 +355,10 @@ namespace LawEditor.Models.TreeClasses
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
 
-            var match = Regex.Match(lines[0].Trim(), @"^(\d+)\.\s*(.*)$");
+            var match = Regex.Match(lines[0].Trim(), @"^(\d+)\.\s+(.*)$");
             if (match.Success)
             {
-                clause.Number = int.Parse(match.Groups[1].Value);
+                clause.Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
                 clause.Text = match.Groups[2].Value;
             }
 
@@ -352,12 +369,12 @@ namespace LawEditor.Models.TreeClasses
                 var rawLine = lines[i];
                 if (string.IsNullOrWhiteSpace(rawLine)) continue;
 
-                var subMatch = Regex.Match(rawLine.Trim(), @"^(\d+)\)\s*(.*)$");
+                var subMatch = Regex.Match(rawLine.Trim(), @"^(\d+)\)\s+(.*)$");
                 if (subMatch.Success)
                 {
                     clause.SubClauses.Add(new SubClause
                     {
-                        Number = int.Parse(subMatch.Groups[1].Value),
+                        Number = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture),
                         Text = subMatch.Groups[2].Value
                     });
                 }

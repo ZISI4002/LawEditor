@@ -192,11 +192,11 @@ namespace LawEditor.Services.WordServises {
                         string idStr = artMatch.Groups[1].Value;
                         string title = artMatch.Groups[2].Value;
 
-                        float id = 0;
+                        decimal id = 0;
                         if (idStr.Length == 4 && idStr.All(char.IsDigit))
-                            id = int.Parse(idStr) / 10f;
+                            id = int.Parse(idStr) / 10;
                         else
-                            float.TryParse(idStr, out id);
+                            decimal.TryParse(idStr, out id);
 
                         string? endnoteRefId = ExtractEndnoteRefId(para);
 

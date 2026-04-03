@@ -49,10 +49,10 @@ namespace LawEditor.Services.XMLSErvises
                             {
                                 foreach (var articleElement in articlesElement.Elements("Article"))
                                 {
-                                    float id = 0;
+                                    decimal id = 0;
                                     var idElement = articleElement.Element("Id");
                                     if (idElement != null)
-                                        float.TryParse(idElement.Value, out id);
+                                        decimal.TryParse(idElement.Value, out id);
 
                                     var articleTitle = articleElement.Element("Title")?.Value ?? "";
                                     var article = new Article(id, articleTitle);

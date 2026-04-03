@@ -49,31 +49,42 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     anchor.Chapter.AddSection("Yeni Fəsil", anchor.Section.Id );
                     break;
                 case "İçəridə maddə əlavə et":
-                    var lastArticle = anchor.Section?.Articles.LastOrDefault();
-                    float lastArticleId = lastArticle != null ? lastArticle.Id : 0;
-                    anchor.Section.AddArticle(lastArticleId-lastArticleId%1+1, "Yeni Maddə",_viewModel.EditedLaws);
-                    
+                    anchor.Section.AddArticle("Yeni Maddə",_viewModel.EditedLaws);
+
                     break;
 
                 case "Yuxarıda maddə əlavə et":
 
 
+                    anchor.Section.AddArticle((anchor.Article.Id)-((anchor.Article.Id)%1),"Yeni Maddə", _viewModel.EditedLaws);
+
                     break;
                 case "Aşağıda maddə əlavə et":
+                    anchor.Section.AddArticle((anchor.Article.Id) - ((anchor.Article.Id) % 1)+1, "Yeni Maddə", _viewModel.EditedLaws);
                     break;
                 case "Hissə əlavə et":
+                    decimal cout = anchor.Section.GetMaxPartID(anchor.Article.Id)+0.1m;
+                   
+                    anchor.Section.AddArticle(cout, "Yeni Maddə", _viewModel.EditedLaws);
+
                     break;
                 case "İçəridə bənd əlavə et":
+                    anchor.Article.AddClause("Yeni Bənd");
                     break;
                 case "Yuxarıda bənd əlavə et":
+                        anchor.Article.AddClause("Yeni Bənd",anchor.Clause.Number-1);
                     break;
                 case "Aşağıda bənd əlavə et":
+                        anchor.Article.AddClause("Yeni Bənd", anchor.Clause.Number);
                     break;
                 case "İçəridə altbənd əlavə et":
+                    anchor.Clause.AddSubClause("Yeni Altbənd");
                     break;
                 case "Yuxarıda altbənd əlavə et":
+                    anchor.Clause.AddSubClause("Yeni Altbənd", anchor.SubClause.Number - 1);
                     break;
                 case "Aşağıda altbənd əlavə et":
+                    anchor.Clause.AddSubClause("Yeni Altbənd", anchor.SubClause.Number);
                     break;
                 case "Bölmə əlavə et":
                         _viewModel.EditedLaws.AddChapter("Yeni Bölmə");
