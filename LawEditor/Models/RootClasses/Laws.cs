@@ -1,175 +1,144 @@
-﻿using LawEditor.Models;
-using LawEditor.Models.ChangableData;
+﻿using LawEditor.Models.ChangableData;
 using LawEditor.Models.ChangableSourse;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Metrics;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Documents;
 
 namespace LawEditor.Models.RootClasses
 {
-    public partial class Laws {
-        public string? Header { get; set; }
+    public partial class Laws : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        private string? _header;
+        public string? Header
+        {
+            get => _header;
+            set { _header = value; OnPropertyChanged(nameof(Header)); }
+        }
+
         public ObservableCollection<Chapter> Chapters { get; } = new();
         public ObservableCollection<TransitionalProvisions> transitionalProvisions { get; set; } = new();
         public ObservableCollection<SourceDocumentsList> sourceDocumentsLists { get; set; } = new();
         public ObservableCollection<ConstitutionalAmendment> constitutionalAmendments { get; set; } = new();
 
-
-        //Добавить главу в указанную позицию(если позиция не указана, то в конец)
-        public Chapter AddChapter(string title, int? position = null) {
-            // создаём через конструктор → срабатывает counter
+        public Chapter AddChapter(string title, int? position = null)
+        {
             var newChapter = new Chapter(title);
-
-            // если добавляем в конец
-            if (position == null || position >= Chapters.Count) {
+            if (position == null || position >= Chapters.Count)
+            {
                 Chapters.Add(newChapter);
                 return newChapter;
             }
-
-            // получаем Id, куда вставляем
             int insertId = Chapters[position.Value].Id;
-
-            // сдвигаем все элементы начиная с этой позиции
-            foreach (var ch in Chapters.Where(c => c.Id >= insertId)) {
+            foreach (var ch in Chapters.Where(c => c.Id >= insertId))
                 ch.Id++;
-            }
-
-            // задаём правильный Id новому элементу
             newChapter.Id = insertId;
-
-            // вставляем в список
             Chapters.Insert(position.Value, newChapter);
-
             return newChapter;
         }
-        public void ResetCounter() {
+
+        public void ResetCounter()
+        {
             Chapter.ResetCounter();
-            foreach (var chapter in Chapters) {
+            foreach (var chapter in Chapters)
                 chapter.ResetSectionCounter();
-            }
         }
 
-        // Удалить главу по Id
-        public void DeleteChapter(int id) {
+        public void DeleteChapter(int id)
+        {
             var chapter = Chapters.FirstOrDefault(c => c.Id == id);
-
-            if (chapter == null)
-                return;
-
-            // Удаляем
+            if (chapter == null) return;
             Chapters.Remove(chapter);
-
-            // Сдвигаем все последующие назад
-            foreach (var ch in Chapters.Where(c => c.Id > id)) {
+            foreach (var ch in Chapters.Where(c => c.Id > id))
                 ch.Id--;
-            }
-
-            // Уменьшаем counter
             Chapter.DecreaseCounter();
         }
-        // Редактируем главу по Id (например, изменить название)
 
-        //----------------------------------------------
-        public TransitionalProvisions AddTransitionalProvision(string title, string? linkText = null, string? url = null, int? position = null) {
+        public TransitionalProvisions AddTransitionalProvision(string title, string? linkText = null, string? url = null, int? position = null)
+        {
             var newItem = new TransitionalProvisions(title, linkText, url);
-
-            if (position == null || position >= transitionalProvisions.Count) {
+            if (position == null || position >= transitionalProvisions.Count)
+            {
                 transitionalProvisions.Add(newItem);
                 return newItem;
             }
-
             int insertId = transitionalProvisions[position.Value].Id;
-            foreach (var item in transitionalProvisions.Where(t => t.Id >= insertId)) {
+            foreach (var item in transitionalProvisions.Where(t => t.Id >= insertId))
                 item.Id++;
-            }
             newItem.Id = insertId;
             transitionalProvisions.Insert(position.Value, newItem);
             return newItem;
         }
 
-        public void DeleteTransitionalProvision(int id) {
+        public void DeleteTransitionalProvision(int id)
+        {
             var item = transitionalProvisions.FirstOrDefault(t => t.Id == id);
-            if (item == null)
-                return;
-
+            if (item == null) return;
             transitionalProvisions.Remove(item);
-            foreach (var t in transitionalProvisions.Where(t => t.Id > id)) {
+            foreach (var t in transitionalProvisions.Where(t => t.Id > id))
                 t.Id--;
-            }
             TransitionalProvisions.DecreaseCounter();
         }
 
-
-        //----------------------------------------------
-
-        public SourceDocumentsList AddSourceDocument(string title, string? linkText = null, string? url = null, int? position = null) {
+        public SourceDocumentsList AddSourceDocument(string title, string? linkText = null, string? url = null, int? position = null)
+        {
             var newItem = new SourceDocumentsList(title, linkText, url);
-
-            if (position == null || position >= sourceDocumentsLists.Count) {
+            if (position == null || position >= sourceDocumentsLists.Count)
+            {
                 sourceDocumentsLists.Add(newItem);
                 return newItem;
             }
-
             int insertId = sourceDocumentsLists[position.Value].Id;
-            foreach (var item in sourceDocumentsLists.Where(s => s.Id >= insertId)) {
+            foreach (var item in sourceDocumentsLists.Where(s => s.Id >= insertId))
                 item.Id++;
-            }
             newItem.Id = insertId;
             sourceDocumentsLists.Insert(position.Value, newItem);
             return newItem;
         }
 
-        public void DeleteSourceDocument(int id) {
+        public void DeleteSourceDocument(int id)
+        {
             var item = sourceDocumentsLists.FirstOrDefault(s => s.Id == id);
-            if (item == null)
-                return;
-
+            if (item == null) return;
             sourceDocumentsLists.Remove(item);
-            foreach (var s in sourceDocumentsLists.Where(s => s.Id > id)) {
+            foreach (var s in sourceDocumentsLists.Where(s => s.Id > id))
                 s.Id--;
-            }
             SourceDocumentsList.DecreaseCounter();
         }
 
-
-        //----------------------------------------------
-
-        public ConstitutionalAmendment AddConstitutionalAmendment(string id, string title, string? linkText = null, string? url = null, int? position = null) {
+        public ConstitutionalAmendment AddConstitutionalAmendment(string id, string title, string? linkText = null, string? url = null, int? position = null)
+        {
             var newItem = new ConstitutionalAmendment(id, title, linkText, url);
-
-            if (position == null || position >= constitutionalAmendments.Count) {
+            if (position == null || position >= constitutionalAmendments.Count)
+            {
                 constitutionalAmendments.Add(newItem);
                 return newItem;
             }
-
-            if (int.TryParse(id, out int numericId)) {
-                foreach (var item in constitutionalAmendments) {
+            if (int.TryParse(id, out int numericId))
+            {
+                foreach (var item in constitutionalAmendments)
                     if (int.TryParse(item.Id, out int itemNumericId) && itemNumericId >= numericId)
                         item.Id = (itemNumericId + 1).ToString();
-                }
             }
             constitutionalAmendments.Insert(position.Value, newItem);
             return newItem;
         }
 
-        public void DeleteConstitutionalAmendment(string id) {
+        public void DeleteConstitutionalAmendment(string id)
+        {
             var item = constitutionalAmendments.FirstOrDefault(c => c.Id == id);
-            if (item == null)
-                return;
-
+            if (item == null) return;
             constitutionalAmendments.Remove(item);
-            if (int.TryParse(id, out int numericId)) {
-                foreach (var c in constitutionalAmendments) {
+            if (int.TryParse(id, out int numericId))
+            {
+                foreach (var c in constitutionalAmendments)
                     if (int.TryParse(c.Id, out int itemNumericId) && itemNumericId > numericId)
                         c.Id = (itemNumericId - 1).ToString();
-                }
             }
         }
-
     }
 }

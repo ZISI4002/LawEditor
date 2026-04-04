@@ -1,21 +1,26 @@
 ﻿using LawEditor.Models.ChangableData;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using LawEditor.Models.ChangableSourse;
+using LawEditor.Models.RootClasses;
 
 namespace LawEditor.Models.TreeClasses
 {
     public class LawAnchor
     {
+        // Корень документа
+        public Laws? Laws { get; set; }
+
+        // Иерархия
         public Chapter? Chapter { get; set; }
         public Section? Section { get; set; }
         public Article? Article { get; set; }
         public Clause? Clause { get; set; }
         public SubClause? SubClause { get; set; }
 
-        // Получить самый глубокий выбранный элемент
+        // Дополнительные разделы Laws
+        public TransitionalProvisions? TransitionalProvision { get; set; }
+        public SourceDocumentsList? SourceDocument { get; set; }
+        public ConstitutionalAmendment? ConstitutionalAmendment { get; set; }
+
         public object? GetDeepestItem()
         {
             if (SubClause != null) return SubClause;
@@ -23,10 +28,13 @@ namespace LawEditor.Models.TreeClasses
             if (Article != null) return Article;
             if (Section != null) return Section;
             if (Chapter != null) return Chapter;
+            if (TransitionalProvision != null) return TransitionalProvision;
+            if (SourceDocument != null) return SourceDocument;
+            if (ConstitutionalAmendment != null) return ConstitutionalAmendment;
+            if (Laws != null) return Laws;
             return null;
         }
 
-        // Определить уровень вложенности
         public int GetLevel()
         {
             if (SubClause != null) return 5;
@@ -34,22 +42,23 @@ namespace LawEditor.Models.TreeClasses
             if (Article != null) return 3;
             if (Section != null) return 2;
             if (Chapter != null) return 1;
-            return 0;
+            if (TransitionalProvision != null) return 0;
+            if (SourceDocument != null) return 0;
+            if (ConstitutionalAmendment != null) return 0;
+            if (Laws != null) return 0;
+            return -1;
         }
 
-        // Проверка, что якорь заполнен корректно
         public bool IsValid()
         {
+            if (Laws != null) return true;
+            if (TransitionalProvision != null) return true;
+            if (SourceDocument != null) return true;
+            if (ConstitutionalAmendment != null) return true;
             if (Chapter == null) return false;
-            // Если есть Section, должен быть Chapter
-            if (Section != null && Chapter == null) return false;
-            // Если есть Article, должны быть Section и Chapter
             if (Article != null && (Section == null || Chapter == null)) return false;
-            // Если есть Clause, должны быть Article, Section, Chapter
             if (Clause != null && (Article == null || Section == null || Chapter == null)) return false;
-            // Если есть SubClause, должны быть все родители
             if (SubClause != null && (Clause == null || Article == null || Section == null || Chapter == null)) return false;
-
             return true;
         }
     }

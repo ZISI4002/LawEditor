@@ -1,14 +1,9 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using LawEditor.Models.ChangableData;
+﻿using LawEditor.Models.ChangableData;
 using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
 using LawEditor.Models.TreeClasses;
 using LawEditor.Services.LawServises;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 
@@ -16,60 +11,75 @@ namespace LawEditor.ViewModels
 {
     public class LawEditorWindowViewModel : BaseViewModel
     {
-        
-        
-        public LawEditorWindowViewModel(Window window,MainWindowViewModel mainWindowViewModel) : base(window)
+        public LawEditorWindowViewModel(Window window, MainWindowViewModel mainWindowViewModel) : base(window)
         {
             this.MainWindowModel = mainWindowViewModel;
-           Laws= mainWindowViewModel.Laws;
+            this.Laws = mainWindowViewModel.Laws;
 
             EditedLaws = new Laws();
             CopyLawsServise.CopyLawsData(Laws, EditedLaws);
+
+            BuildTreeRoots();
+
             this.SaveCommand = new Commands.LawEditorWindowCommands.SaveCommand(this);
             this.DeleteCommand = new Commands.LawEditorWindowCommands.DeleteCommand(this);
-           
             this.AddItemCommand = new Commands.LawEditorWindowCommands.AddItemCommand(this);
-
         }
-        public MainWindowViewModel MainWindowModel { get; set; }
 
+        public MainWindowViewModel MainWindowModel { get; set; }
         public Laws Laws { get; set; }
         public Laws EditedLaws { get; set; }
         public LawAnchor CurrentAnchor { get; set; } = new();
+
+        // Единая коллекция для TreeView
+        public ObservableCollection<object> TreeRoots { get; } = new();
+
+        private void BuildTreeRoots()
+        {
+            TreeRoots.Clear();
+            TreeRoots.Add(EditedLaws);                              // Header (корень)
+            foreach (var ch in EditedLaws.Chapters)
+                TreeRoots.Add(ch);
+            foreach (var tp in EditedLaws.transitionalProvisions)
+                TreeRoots.Add(tp);
+            foreach (var sd in EditedLaws.sourceDocumentsLists)
+                TreeRoots.Add(sd);
+            foreach (var ca in EditedLaws.constitutionalAmendments)
+                TreeRoots.Add(ca);
+        }
+
         private bool _isMenuOpen;
         public bool IsAddMenuOpen
         {
             get => _isMenuOpen;
             set => Set(ref _isMenuOpen, value);
         }
+
         public ICommand SaveCommand { get; set; }
         public ICommand DeleteCommand { get; set; }
         public ICommand AddItemCommand { get; set; }
-       
 
         public string MenuItem1Text => GetMenuItems().Item1;
         public string MenuItem2Text => GetMenuItems().Item2;
         public string MenuItem3Text => GetMenuItems().Item3;
         public string MenuItem4Text => GetMenuItems().Item4;
-       
 
-        // Видимость кнопок
         public bool MenuItem1Visible => GetMenuItems().Item1 != null;
         public bool MenuItem2Visible => GetMenuItems().Item2 != null;
         public bool MenuItem3Visible => GetMenuItems().Item3 != null;
         public bool MenuItem4Visible => GetMenuItems().Item4 != null;
 
-
         private (string Item1, string Item2, string Item3, string Item4) GetMenuItems()
         {
             return _selectedItem switch
             {
-                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et",null),
+                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et", null),
                 Section => ("Yuxarıda fəsil əlavə et", "Aşağıda fəsil əlavə et", "İçəridə maddə əlavə et", null),
-                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et","İçəridə bənd əlavə et"),
+                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et", "İçəridə bənd əlavə et"),
                 Clause => ("Yuxarıda bənd əlavə et", "Aşağıda bənd əlavə et", "İçəridə altbənd əlavə et", null),
                 SubClause => ("Yuxarıda altbənd əlavə et", "Aşağıda altbənd əlavə et", null, null),
-                _ => ("Bölmə əlavə et", null, null,null),
+                Models.RootClasses.Laws => ("Bölmə əlavə et", null, null, null),
+                _ => (null, null, null, null),
             };
         }
 
@@ -101,6 +111,10 @@ namespace LawEditor.ViewModels
 
             switch (item)
             {
+                case Laws l:
+                    CurrentAnchor.Laws = l;
+                    break;
+
                 case Chapter c:
                     CurrentAnchor.Chapter = c;
                     break;
@@ -149,12 +163,26 @@ namespace LawEditor.ViewModels
                                         CurrentAnchor.SubClause = sc;
                                     }
                     break;
+
+                case TransitionalProvisions tp:
+                    CurrentAnchor.TransitionalProvision = tp;
+                    break;
+
+                case SourceDocumentsList sd:
+                    CurrentAnchor.SourceDocument = sd;
+                    break;
+
+                case ConstitutionalAmendment ca:
+                    CurrentAnchor.ConstitutionalAmendment = ca;
+                    break;
             }
         }
+
         public void RefreshSelectedText()
         {
             OnPropertyChanged(nameof(SelectedText));
         }
+
         public string SelectedText
         {
             get => FullTextWrapper.GetFullText(_selectedItem);
@@ -163,16 +191,18 @@ namespace LawEditor.ViewModels
 
         public string SelectedTypeName => _selectedItem switch
         {
+            Models.RootClasses.Laws => "Qanunun başlığı (Header)",
             Chapter => "Bölmə (Chapter)",
             Section => "Fəsil (Section)",
             Article => "Maddə (Article)",
             Clause => "Bənd (Clause)",
             SubClause => "Alt Bənd (SubClause)",
+            TransitionalProvisions => "KEÇİD MÜDDƏALARI",
+            SourceDocumentsList => "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI",
+            ConstitutionalAmendment => "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI",
             _ => ""
         };
 
         public bool HasSelection => _selectedItem != null;
-
-        
     }
 }

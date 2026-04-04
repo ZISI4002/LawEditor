@@ -98,7 +98,7 @@ namespace LawEditor.Services.WordServises
                         // Article title
                         if (!string.IsNullOrWhiteSpace(article.Title))
                         {
-                            doc.Blocks.Add(new Paragraph(new Run(article.Title))
+                            doc.Blocks.Add(new Paragraph(new Run($"{article.Title}"+$"{article.EndnoteId}"))
                             {
                                 FontSize = 14,
                                 FontWeight = FontWeights.Bold,
@@ -113,7 +113,7 @@ namespace LawEditor.Services.WordServises
                         {
                             string roman = clauseIndex < RomanNumerals.Length ? RomanNumerals[clauseIndex] : (clauseIndex + 1).ToString();
 
-                            doc.Blocks.Add(new Paragraph(new Run($"{roman}. {clause.Text}"))
+                            doc.Blocks.Add(new Paragraph(new Run($"{roman}. {clause.Text}  {clause.EndnoteId}"))
                             {
                                 FontSize = 13,
                                 Foreground = Brushes.Black,
@@ -124,7 +124,7 @@ namespace LawEditor.Services.WordServises
 
                             foreach (var sub in clause.SubClauses)
                             {
-                                doc.Blocks.Add(new Paragraph(new Run($"{sub.Number}) {sub.Text}"))
+                                doc.Blocks.Add(new Paragraph(new Run($"{sub.Number}) {sub.Text}  {sub.EndnoteId}"))
                                 {
                                     FontSize = 13,
                                     Foreground = Brushes.Black,

@@ -46,14 +46,20 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
             // Обновляем ссылку в MainWindowModel
             _viewModel.MainWindowModel.Laws = _viewModel.Laws;
-            var wordWriter = new WordFileWritingService();
-            wordWriter.WriteWordFile(_viewModel.MainWindowModel.FilePath, _viewModel.MainWindowModel.Laws);
+            if (_viewModel.MainWindowModel.FileIsAdded)
+            {
+                var wordWriter = new WordFileWritingService();
+                wordWriter.WriteWordFile(_viewModel.MainWindowModel.FilePath, _viewModel.MainWindowModel.Laws);
 
+
+            }
             if (_viewModel.MainWindowModel.Window is MainWindow mainWindow)
             {
                 mainWindow.DisplayLaws(_viewModel.Laws);
-                mainWindow.DisplayChangedXML(_viewModel.MainWindowModel);
-                
+                if (_viewModel.MainWindowModel.FileIsAdded)
+                {
+                    mainWindow.DisplayChangedXML(_viewModel.MainWindowModel);
+                }
             }
 
             // Закрываем окно
