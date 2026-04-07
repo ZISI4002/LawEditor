@@ -5,6 +5,7 @@ using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -92,6 +93,18 @@ namespace LawEditor.Services.WordServises {
         // ── Основной метод ────────────────────────────────────────────────────
         public Laws ReadWordFile(string filePath) {
             var law = new Laws();
+
+            var transitional = law.SourceData
+                .OfType<SourceData<TransitionalProvisions>>()
+                .FirstOrDefault();
+
+            var sources = law.SourceData
+                .OfType<SourceData<SourceDocumentsList>>()
+                .FirstOrDefault();
+
+            var amendments = law.SourceData
+                .OfType<SourceData<ConstitutionalAmendment>>()
+                .FirstOrDefault();
 
             Chapter currentChapter = null;
             Section currentSection = null;
@@ -229,7 +242,7 @@ namespace LawEditor.Services.WordServises {
 
                 // TRANSITIONAL
                 if (mode == Mode.Transitional) {
-                    law.transitionalProvisions.Add(new TransitionalProvisions(line));
+                    transitional.Source.Add(new TransitionalProvisions(line));
                     continue;
                 }
 
@@ -239,7 +252,7 @@ namespace LawEditor.Services.WordServises {
                     string? url = rId != null && docRelationships.TryGetValue(rId, out var u)
                         ? u : null;
 
-                    law.sourceDocumentsLists.Add(
+                    sources.Source.Add(
                         new SourceDocumentsList(line, linkText, url));
                     continue;
                 }
@@ -248,13 +261,13 @@ namespace LawEditor.Services.WordServises {
             if (law.Header == null)
                 law.Header = headerBuilder.ToString().Trim();
 
-            ReadAmendmentsFromEndnotes(doc, law);
+            ReadAmendmentsFromEndnotes(doc, amendments);
 
             return law;
         }
 
         // ── Читаем amendments из endnotes ─────────────────────────────────────
-        private void ReadAmendmentsFromEndnotes(WordprocessingDocument doc, Laws law) {
+        private void ReadAmendmentsFromEndnotes(WordprocessingDocument doc,SourceData<ConstitutionalAmendment> amendments) {
             var endnotesPart = doc.MainDocumentPart?.EndnotesPart;
             if (endnotesPart == null)
                 return;
@@ -319,7 +332,7 @@ namespace LawEditor.Services.WordServises {
                         url = u;
                 }
 
-                law.constitutionalAmendments.Add(
+                amendments.Source.Add(
                     new ConstitutionalAmendment(
                         amendmentId,
                         amendmentTitle,
