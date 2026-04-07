@@ -93,7 +93,10 @@ namespace LawEditor.Services.WordServises {
         // ── Основной метод ────────────────────────────────────────────────────
         public Laws ReadWordFile(string filePath) {
             var law = new Laws();
+           
 
+
+            /*
             var transitional = law.SourceData
                 .OfType<SourceData<TransitionalProvisions>>()
                 .FirstOrDefault();
@@ -105,11 +108,16 @@ namespace LawEditor.Services.WordServises {
             var amendments = law.SourceData
                 .OfType<SourceData<ConstitutionalAmendment>>()
                 .FirstOrDefault();
+            */
+            ObservableCollection<TransitionalProvisions> transitional = new ObservableCollection<TransitionalProvisions>();
+            ObservableCollection<SourceDocumentsList> sources = new ObservableCollection<SourceDocumentsList>();
+            ObservableCollection<ConstitutionalAmendment> amendments = new ObservableCollection<ConstitutionalAmendment>();
 
             Chapter currentChapter = null;
             Section currentSection = null;
             Article currentArticle = null;
             Clause currentClause = null;
+           
 
             Mode mode = Mode.Header;
             var headerBuilder = new StringBuilder();
@@ -242,7 +250,7 @@ namespace LawEditor.Services.WordServises {
 
                 // TRANSITIONAL
                 if (mode == Mode.Transitional) {
-                    transitional.Source.Add(new TransitionalProvisions(line));
+                    transitional.Add(new TransitionalProvisions(line));
                     continue;
                 }
 
@@ -252,8 +260,7 @@ namespace LawEditor.Services.WordServises {
                     string? url = rId != null && docRelationships.TryGetValue(rId, out var u)
                         ? u : null;
 
-                    sources.Source.Add(
-                        new SourceDocumentsList(line, linkText, url));
+                   sources.Add(new SourceDocumentsList(line, linkText, url));
                     continue;
                 }
             }
@@ -263,11 +270,31 @@ namespace LawEditor.Services.WordServises {
 
             ReadAmendmentsFromEndnotes(doc, amendments);
 
+
+            // Копируем коллекции в law.SourceData
+            law.SourceData.Add(new SourceData {
+                Id = 1,
+                Type = "TransitionalProvisions",
+                Source = new ObservableCollection<object>(transitional.Cast<object>())
+            });
+
+            law.SourceData.Add(new SourceData {
+                Id = 2,
+                Type = "SourceDocumentsList",
+                Source = new ObservableCollection<object>(sources.Cast<object>())
+            });
+
+            law.SourceData.Add(new SourceData {
+                Id = 3,
+                Type = "ConstitutionalAmendment",
+                Source = new ObservableCollection<object>(amendments.Cast<object>())
+            });
+
             return law;
         }
 
         // ── Читаем amendments из endnotes ─────────────────────────────────────
-        private void ReadAmendmentsFromEndnotes(WordprocessingDocument doc,SourceData<ConstitutionalAmendment> amendments) {
+        private void ReadAmendmentsFromEndnotes(WordprocessingDocument doc,ObservableCollection<ConstitutionalAmendment> amendments) {
             var endnotesPart = doc.MainDocumentPart?.EndnotesPart;
             if (endnotesPart == null)
                 return;
@@ -332,7 +359,7 @@ namespace LawEditor.Services.WordServises {
                         url = u;
                 }
 
-                amendments.Source.Add(
+                amendments.Add(
                     new ConstitutionalAmendment(
                         amendmentId,
                         amendmentTitle,

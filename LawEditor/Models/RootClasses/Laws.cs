@@ -22,7 +22,8 @@ namespace LawEditor.Models.RootClasses
 
         public ObservableCollection<Chapter> Chapters { get; } = new();
 
-        public ObservableCollection<object> SourceData { get; set; } = new()
+        public ObservableCollection<object> SourceData { get; set; } = new();
+        /*
         {
             new SourceData<TransitionalProvisions>
             {
@@ -42,6 +43,7 @@ namespace LawEditor.Models.RootClasses
                 Type = "ConstitutionalAmendment"
             }
         };
+        */
 
         public Chapter AddChapter(string title, int? position = null)
         {
@@ -75,7 +77,7 @@ namespace LawEditor.Models.RootClasses
                 ch.Id--;
             Chapter.DecreaseCounter();
         }
-
+        /*
         public TransitionalProvisions AddTransitionalProvision(
         string title, string? linkText = null, string? url = null, int? position = null) {
             var container = SourceData
@@ -211,5 +213,6 @@ namespace LawEditor.Models.RootClasses
                 }
             }
         }
+        */
     }
 }

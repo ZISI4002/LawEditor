@@ -6,10 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace LawEditor.Models.ChangableSourse {
-    public class SourceData<T> {
+    public class SourceData {
         public int Id { get; set; }
         public string Type { get; set; }
 
-        public ObservableCollection<T> Source { get; set; } = new();
+        public ObservableCollection<object> Source { get; set; } = new();
+
+
     }
 }
