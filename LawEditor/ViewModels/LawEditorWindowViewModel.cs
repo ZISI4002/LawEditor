@@ -34,18 +34,16 @@ namespace LawEditor.ViewModels
         // Единая коллекция для TreeView
         public ObservableCollection<object> TreeRoots { get; } = new();
 
-        private void BuildTreeRoots()
+        public void BuildTreeRoots()
         {
             TreeRoots.Clear();
-            TreeRoots.Add(EditedLaws);                              // Header (корень)
+            TreeRoots.Add(EditedLaws);
+
             foreach (var ch in EditedLaws.Chapters)
                 TreeRoots.Add(ch);
-            foreach (var tp in EditedLaws.transitionalProvisions)
-                TreeRoots.Add(tp);
-            foreach (var sd in EditedLaws.sourceDocumentsLists)
-                TreeRoots.Add(sd);
-            foreach (var ca in EditedLaws.constitutionalAmendments)
-                TreeRoots.Add(ca);
+
+            foreach (var container in EditedLaws.SourceData)
+                TreeRoots.Add(container); 
         }
 
         private bool _isMenuOpen;
@@ -63,23 +61,27 @@ namespace LawEditor.ViewModels
         public string MenuItem2Text => GetMenuItems().Item2;
         public string MenuItem3Text => GetMenuItems().Item3;
         public string MenuItem4Text => GetMenuItems().Item4;
+        public string MenuItem5Text => GetMenuItems().Item5;
+        public string MenuItem6Text => GetMenuItems().Item6;
 
         public bool MenuItem1Visible => GetMenuItems().Item1 != null;
         public bool MenuItem2Visible => GetMenuItems().Item2 != null;
         public bool MenuItem3Visible => GetMenuItems().Item3 != null;
         public bool MenuItem4Visible => GetMenuItems().Item4 != null;
+        public bool MenuItem5Visible => GetMenuItems().Item5 != null;
+        public bool MenuItem6Visible => GetMenuItems().Item6 != null;
 
-        private (string Item1, string Item2, string Item3, string Item4) GetMenuItems()
+        private (string Item1, string Item2, string Item3, string Item4,string Item5,string Item6) GetMenuItems()
         {
             return _selectedItem switch
             {
-                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et", null),
-                Section => ("Yuxarıda fəsil əlavə et", "Aşağıda fəsil əlavə et", "İçəridə maddə əlavə et", null),
-                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et", "İçəridə bənd əlavə et"),
-                Clause => ("Yuxarıda bənd əlavə et", "Aşağıda bənd əlavə et", "İçəridə altbənd əlavə et", null),
-                SubClause => ("Yuxarıda altbənd əlavə et", "Aşağıda altbənd əlavə et", null, null),
-                Models.RootClasses.Laws => ("Bölmə əlavə et", null, null, null),
-                _ => (null, null, null, null),
+                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et", null,null,null),
+                Section => ("Yuxarıda fəsil əlavə et", "Aşağıda fəsil əlavə et", "İçəridə maddə əlavə et", null,null,null),
+                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et", "İçəridə bənd əlavə et","Yuxarıda hissə əlavə et", "Aşağıda hissə əlavə et"),
+                Clause => ("Yuxarıda bənd əlavə et", "Aşağıda bənd əlavə et", "İçəridə altbənd əlavə et", null, null, null),
+                SubClause => ("Yuxarıda altbənd əlavə et", "Aşağıda altbənd əlavə et", null, null, null, null),
+                Models.RootClasses.Laws => ("Bölmə əlavə et", null, null, null, null, null),
+                _ => ("Bölmə əlavə et", null, null, null, null, null),
             };
         }
 
@@ -97,10 +99,14 @@ namespace LawEditor.ViewModels
                 OnPropertyChanged(nameof(MenuItem2Text));
                 OnPropertyChanged(nameof(MenuItem3Text));
                 OnPropertyChanged(nameof(MenuItem4Text));
+                OnPropertyChanged(nameof(MenuItem5Text));
+                OnPropertyChanged(nameof(MenuItem6Text));
                 OnPropertyChanged(nameof(MenuItem1Visible));
                 OnPropertyChanged(nameof(MenuItem2Visible));
                 OnPropertyChanged(nameof(MenuItem3Visible));
                 OnPropertyChanged(nameof(MenuItem4Visible));
+                OnPropertyChanged(nameof(MenuItem5Visible));
+                OnPropertyChanged(nameof(MenuItem6Visible));
                 UpdateAnchor(value);
             }
         }

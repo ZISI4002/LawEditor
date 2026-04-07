@@ -26,10 +26,8 @@ namespace LawEditor.Commands.MainWindowCommands
             // Очищаем оригинальный Laws
             _viewModel.Laws.ResetCounter();
             _viewModel.Laws.Chapters.Clear();
-            _viewModel.Laws.transitionalProvisions.Clear();
-            _viewModel.Laws.constitutionalAmendments.Clear();
-            _viewModel.Laws.sourceDocumentsLists.Clear();
-           
+            _viewModel.Laws.SourceData.Clear();
+
             // Сбрасываем все свойства, связанные с отображением и данными
             _viewModel.IsDisplayLeftVisible = false;
                 _viewModel.IsDisplayButtonsVisible = true;

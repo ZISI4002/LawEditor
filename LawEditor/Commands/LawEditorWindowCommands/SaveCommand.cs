@@ -37,9 +37,8 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
             // Очищаем оригинальный Laws
             _viewModel.Laws.Chapters.Clear();
-            _viewModel.Laws.transitionalProvisions.Clear();
-            _viewModel.Laws.constitutionalAmendments.Clear();
-            _viewModel.Laws.sourceDocumentsLists.Clear();
+            _viewModel.Laws.SourceData.Clear();
+            
           
             // Копируем EditedLaws обратно в Laws
            CopyLawsServise.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);

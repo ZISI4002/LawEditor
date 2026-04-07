@@ -94,21 +94,6 @@ namespace LawEditor.Services.WordServises {
         public Laws ReadWordFile(string filePath) {
             var law = new Laws();
            
-
-
-            /*
-            var transitional = law.SourceData
-                .OfType<SourceData<TransitionalProvisions>>()
-                .FirstOrDefault();
-
-            var sources = law.SourceData
-                .OfType<SourceData<SourceDocumentsList>>()
-                .FirstOrDefault();
-
-            var amendments = law.SourceData
-                .OfType<SourceData<ConstitutionalAmendment>>()
-                .FirstOrDefault();
-            */
             ObservableCollection<TransitionalProvisions> transitional = new ObservableCollection<TransitionalProvisions>();
             ObservableCollection<SourceDocumentsList> sources = new ObservableCollection<SourceDocumentsList>();
             ObservableCollection<ConstitutionalAmendment> amendments = new ObservableCollection<ConstitutionalAmendment>();
@@ -274,19 +259,19 @@ namespace LawEditor.Services.WordServises {
             // Копируем коллекции в law.SourceData
             law.SourceData.Add(new SourceData {
                 Id = 1,
-                Type = "TransitionalProvisions",
+                Type = "KEÇİD MÜDDƏALARI",
                 Source = new ObservableCollection<object>(transitional.Cast<object>())
             });
 
             law.SourceData.Add(new SourceData {
                 Id = 2,
-                Type = "SourceDocumentsList",
+                Type = "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI",
                 Source = new ObservableCollection<object>(sources.Cast<object>())
             });
 
             law.SourceData.Add(new SourceData {
                 Id = 3,
-                Type = "ConstitutionalAmendment",
+                Type = "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI",
                 Source = new ObservableCollection<object>(amendments.Cast<object>())
             });
 
