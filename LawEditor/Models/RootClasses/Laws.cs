@@ -75,89 +75,141 @@ namespace LawEditor.Models.RootClasses
                 ch.Id--;
             Chapter.DecreaseCounter();
         }
-        /*
-        public TransitionalProvisions AddTransitionalProvision(string title, string? linkText = null, string? url = null, int? position = null)
-        {
+
+        public TransitionalProvisions AddTransitionalProvision(
+        string title, string? linkText = null, string? url = null, int? position = null) {
+            var container = SourceData
+                .OfType<SourceData<TransitionalProvisions>>()
+                .First();
+
+            var list = container.Source;
+
             var newItem = new TransitionalProvisions(title, linkText, url);
-            if (position == null || position >= transitionalProvisions.Count)
-            {
-                transitionalProvisions.Add(newItem);
+
+            if (position == null || position >= list.Count) {
+                list.Add(newItem);
                 return newItem;
             }
-            int insertId = transitionalProvisions[position.Value].Id;
-            foreach (var item in transitionalProvisions.Where(t => t.Id >= insertId))
+
+            int insertId = list[position.Value].Id;
+
+            foreach (var item in list.Where(t => t.Id >= insertId))
                 item.Id++;
+
             newItem.Id = insertId;
-            transitionalProvisions.Insert(position.Value, newItem);
+            list.Insert(position.Value, newItem);
+
             return newItem;
         }
 
-        public void DeleteTransitionalProvision(int id)
-        {
-            var item = transitionalProvisions.FirstOrDefault(t => t.Id == id);
+        public void DeleteTransitionalProvision(int id) {
+            var container = SourceData
+                .OfType<SourceData<TransitionalProvisions>>()
+                .First();
+
+            var list = container.Source;
+
+            var item = list.FirstOrDefault(t => t.Id == id);
             if (item == null) return;
-            transitionalProvisions.Remove(item);
-            foreach (var t in transitionalProvisions.Where(t => t.Id > id))
+
+            list.Remove(item);
+
+            foreach (var t in list.Where(t => t.Id > id))
                 t.Id--;
+
             TransitionalProvisions.DecreaseCounter();
         }
 
-        public SourceDocumentsList AddSourceDocument(string title, string? linkText = null, string? url = null, int? position = null)
-        {
+        //////////////////////////////////////////////////
+        public SourceDocumentsList AddSourceDocument(
+    string title, string? linkText = null, string? url = null, int? position = null) {
+            var container = SourceData
+                .OfType<SourceData<SourceDocumentsList>>()
+                .First();
+
+            var list = container.Source;
+
             var newItem = new SourceDocumentsList(title, linkText, url);
-            if (position == null || position >= sourceDocumentsLists.Count)
-            {
-                sourceDocumentsLists.Add(newItem);
+
+            if (position == null || position >= list.Count) {
+                list.Add(newItem);
                 return newItem;
             }
-            int insertId = sourceDocumentsLists[position.Value].Id;
-            foreach (var item in sourceDocumentsLists.Where(s => s.Id >= insertId))
+
+            int insertId = list[position.Value].Id;
+
+            foreach (var item in list.Where(s => s.Id >= insertId))
                 item.Id++;
+
             newItem.Id = insertId;
-            sourceDocumentsLists.Insert(position.Value, newItem);
+            list.Insert(position.Value, newItem);
+
             return newItem;
         }
 
-        public void DeleteSourceDocument(int id)
-        {
-            var item = sourceDocumentsLists.FirstOrDefault(s => s.Id == id);
+        public void DeleteSourceDocument(int id) {
+            var container = SourceData
+                .OfType<SourceData<SourceDocumentsList>>()
+                .First();
+
+            var list = container.Source;
+
+            var item = list.FirstOrDefault(s => s.Id == id);
             if (item == null) return;
-            sourceDocumentsLists.Remove(item);
-            foreach (var s in sourceDocumentsLists.Where(s => s.Id > id))
+
+            list.Remove(item);
+
+            foreach (var s in list.Where(s => s.Id > id))
                 s.Id--;
+
             SourceDocumentsList.DecreaseCounter();
         }
 
-        public ConstitutionalAmendment AddConstitutionalAmendment(string id, string title, string? linkText = null, string? url = null, int? position = null)
-        {
+        public ConstitutionalAmendment AddConstitutionalAmendment(
+    string id, string title, string? linkText = null, string? url = null, int? position = null) {
+            var container = SourceData
+                .OfType<SourceData<ConstitutionalAmendment>>()
+                .First();
+
+            var list = container.Source;
+
             var newItem = new ConstitutionalAmendment(id, title, linkText, url);
-            if (position == null || position >= constitutionalAmendments.Count)
-            {
-                constitutionalAmendments.Add(newItem);
+
+            if (position == null || position >= list.Count) {
+                list.Add(newItem);
                 return newItem;
             }
-            if (int.TryParse(id, out int numericId))
-            {
-                foreach (var item in constitutionalAmendments)
+
+            if (int.TryParse(id, out int numericId)) {
+                foreach (var item in list) {
                     if (int.TryParse(item.Id, out int itemNumericId) && itemNumericId >= numericId)
                         item.Id = (itemNumericId + 1).ToString();
+                }
             }
-            constitutionalAmendments.Insert(position.Value, newItem);
+
+            list.Insert(position.Value, newItem);
+
             return newItem;
         }
 
-        public void DeleteConstitutionalAmendment(string id)
-        {
-            var item = constitutionalAmendments.FirstOrDefault(c => c.Id == id);
+        public void DeleteConstitutionalAmendment(string id) {
+            var container = SourceData
+                .OfType<SourceData<ConstitutionalAmendment>>()
+                .First();
+
+            var list = container.Source;
+
+            var item = list.FirstOrDefault(c => c.Id == id);
             if (item == null) return;
-            constitutionalAmendments.Remove(item);
-            if (int.TryParse(id, out int numericId))
-            {
-                foreach (var c in constitutionalAmendments)
+
+            list.Remove(item);
+
+            if (int.TryParse(id, out int numericId)) {
+                foreach (var c in list) {
                     if (int.TryParse(c.Id, out int itemNumericId) && itemNumericId > numericId)
                         c.Id = (itemNumericId - 1).ToString();
+                }
             }
         }
-        */
     }
 }
