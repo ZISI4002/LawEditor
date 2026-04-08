@@ -32,11 +32,13 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "Yuxarıda bölmə əlavə et":
 
                     _viewModel.EditedLaws.AddChapter("Yeni Bölmə",anchor.Chapter.Id-1);
-                    
+                    _viewModel.BuildTreeRoots();
+
                     break;
                 case "Aşağıda bölmə əlavə et":
 
                         _viewModel.EditedLaws.AddChapter("Yeni Bölmə", anchor.Chapter.Id);
+                    _viewModel.BuildTreeRoots();
                     break;
 
                 case "İçəridə fəsil əlavə et":
@@ -62,6 +64,24 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "Aşağıda maddə əlavə et":
                     anchor.Section.AddArticle((anchor.Article.Id) - ((anchor.Article.Id) % 1)+1, "Yeni Maddə", _viewModel.EditedLaws);
                     break;
+
+                case "Yuxarıda hissə əlavə et":
+                    if(anchor.Article.Id % 1 != 0) { 
+                    anchor.Section.AddArticle(anchor.Article.Id, "Yeni Maddə", _viewModel.EditedLaws);
+                    }
+                    else
+                    {
+                        decimal newUpPartID = anchor.Article.Id + 0.1m;
+                        
+                        anchor.Section.AddArticle(newUpPartID, "Yeni Maddə", _viewModel.EditedLaws);
+                    }
+                        break;
+                case "Aşağıda hissə əlavə et":
+                   
+                        decimal newBelowPartID = anchor.Article.Id + 0.1m;
+                        anchor.Section.AddArticle(newBelowPartID, "Yeni Maddə", _viewModel.EditedLaws);
+                    break;
+
                 case "Hissə əlavə et":
                     decimal cout = anchor.Section.GetMaxPartID(anchor.Article.Id)+0.1m;
                    
@@ -88,11 +108,12 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     break;
                 case "Bölmə əlavə et":
                         _viewModel.EditedLaws.AddChapter("Yeni Bölmə");
+                    _viewModel.BuildTreeRoots();
                     break;
 
 
             }
-
+           
             _viewModel.RefreshSelectedText();
 
         }

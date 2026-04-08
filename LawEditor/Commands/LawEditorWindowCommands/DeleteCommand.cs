@@ -3,6 +3,7 @@ using LawEditor.Models.TreeClasses;
 using LawEditor.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,9 +26,19 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
         public void Execute(object? parameter)
         {
-           
 
-            if (!_viewModel.CurrentAnchor.IsValid()) return;
+
+            if (!_viewModel.CurrentAnchor.IsValid()) {
+
+                       MessageBox.Show(
+                       "Silmək üçün heç bir element seçilməyib.", 
+                       "Məlumat",                               
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                        );
+
+
+                return; }
 
 
  MessageBoxResult result = MessageBox.Show("Deleting it will remove all other elements relying on it!", "Are you sure?", MessageBoxButton.YesNoCancel, MessageBoxImage
@@ -41,6 +52,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
             if (anchor.Chapter != null && anchor.Section == null)
             {
                 _viewModel.EditedLaws.DeleteChapter(anchor.Chapter.Id);
+                _viewModel.BuildTreeRoots();
             }
             else if (anchor.Section != null && anchor.Article == null)
             {
@@ -70,6 +82,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     anchor.Clause.DeleteSubClause(anchor.SubClause.Number);
                 }
             }
+           
         }
     }
 }

@@ -3,6 +3,7 @@ using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,97 +14,82 @@ namespace LawEditor.Services.LawServises
     {
         public static void CopyLawsData(Laws source, Laws target)
         {
-
-            if (source == null)
-            {
-                return;
-            }
+            if (source == null) return;
 
             target.Header = source.Header;
 
             // Копируем главы
             foreach (var ch in source.Chapters)
             {
-                var newChapter = new Chapter
-                {
-                    Id = ch.Id,
-                    Title = ch.Title
-                };
-
+                var newChapter = new Chapter { Id = ch.Id, Title = ch.Title };
                 foreach (var sec in ch.Sections)
                 {
-                    var newSection = new Section
-                    {
-                        Id = sec.Id,
-                        Title = sec.Title
-                    };
-
+                    var newSection = new Section { Id = sec.Id, Title = sec.Title };
                     foreach (var art in sec.Articles)
                     {
-                        var newArticle = new Article
-                        {
-                            Id = art.Id,
-                            Title = art.Title
-                        };
-
+                        var newArticle = new Article { Id = art.Id, Title = art.Title };
                         foreach (var cl in art.Clauses)
                         {
-                            var newClause = new Clause
-                            {
-                                Number = cl.Number,
-                                Text = cl.Text
-                            };
-
+                            var newClause = new Clause { Number = cl.Number, Text = cl.Text };
                             foreach (var sc in cl.SubClauses)
-                            {
-                                newClause.SubClauses.Add(new SubClause
-                                {
-                                    Number = sc.Number,
-                                    Text = sc.Text
-                                });
-                            }
-
+                                newClause.SubClauses.Add(new SubClause { Number = sc.Number, Text = sc.Text });
                             newArticle.Clauses.Add(newClause);
                         }
-
                         newSection.Articles.Add(newArticle);
                     }
-
                     newChapter.Sections.Add(newSection);
                 }
-
                 target.Chapters.Add(newChapter);
             }
 
-            // Копируем TransitionalProvisions
-            foreach (var tp in source.transitionalProvisions)
-            {
-                target.transitionalProvisions.Add(new TransitionalProvisions
-                {
-                    Id = tp.Id,
-                    Title = tp.Title,
-                    Date = tp.Date
-                });
-            }
+            // Копируем SourceData
+            target.SourceData.Clear();
 
-            // Копируем ConstitutionalAmendment
-            foreach (var ca in source.constitutionalAmendments)
+            foreach (var sourceContainer in source.SourceData)
             {
-                target.constitutionalAmendments.Add(new ConstitutionalAmendment
-                {
-                    Id = ca.Id,
-                    Title = ca.Title
-                });
-            }
+                if (sourceContainer is not SourceData src) continue;
 
-            // Копируем SourceDocumentsList
-            foreach (var sd in source.sourceDocumentsLists)
-            {
-                target.sourceDocumentsLists.Add(new SourceDocumentsList
+                var newContainer = new SourceData
                 {
-                    Id = sd.Id,
-                    Title = sd.Title
-                });
+                    Id = src.Id,
+                    Type = src.Type,
+                    Source = new ObservableCollection<object>()
+                };
+
+                foreach (var item in src.Source)
+                {
+                    object? copy = item switch
+                    {
+                        TransitionalProvisions tp => new TransitionalProvisions
+                        {
+                            Id = tp.Id,
+                            Title = tp.Title,
+                            Date = tp.Date,
+                            LinkText= tp.LinkText,
+                            Url = tp.Url
+                        },
+                        ConstitutionalAmendment ca => new ConstitutionalAmendment
+                        {
+                            Id = ca.Id,
+                            Title = ca.Title,
+                            LinkText= ca.LinkText,
+                            Url = ca.Url
+                        },
+                        SourceDocumentsList sd => new SourceDocumentsList
+                        {
+                            Id = sd.Id,
+                            Title = sd.Title,
+                            LinkText= sd.LinkText,
+                            Url = sd.Url
+                        },
+                        _ => null
+                    };
+
+                    if (copy != null)
+                        newContainer.Source.Add(copy);
+                }
+
+                target.SourceData.Add(newContainer);
             }
         }
     }

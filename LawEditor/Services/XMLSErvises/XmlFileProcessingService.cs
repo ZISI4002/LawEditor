@@ -97,35 +97,39 @@ namespace LawEditor.Services.XMLSErvises
             }
 
             // TransitionalProvisions
+            var transitionalProvisions = law.SourceData[0] as dynamic;
             var transitionalElement = root.Element("transitionalProvisions");
             if (transitionalElement != null)
             {
                 foreach (var item in transitionalElement.Elements("TransitionalProvisions"))
                 {
                     var title = item.Element("Title")?.Value ?? "";
-                    law.transitionalProvisions.Add(new TransitionalProvisions(title));
+                    transitionalProvisions.Add(new TransitionalProvisions(title));
                 }
             }
 
             // ConstitutionalAmendments
+            var constitutionalAmendments = law.SourceData[1] as dynamic;
             var amendmentsElement = root.Element("constitutionalAmendments");
             if (amendmentsElement != null)
             {
                 foreach (var item in amendmentsElement.Elements("ConstitutionalAmendment"))
                 {
                     var title = item.Element("Title")?.Value ?? "";
-                    //law.constitutionalAmendments.Add(new ConstitutionalAmendment(title));
+                    var Id = item.Element("Id")?.Value ?? "";
+                    constitutionalAmendments.Add(new ConstitutionalAmendment(Id,title));
                 }
             }
 
             // SourceDocuments
+            var sourceDocumentsLists = law.SourceData[2] as dynamic;
             var sourcesElement = root.Element("sourceDocumentsLists");
             if (sourcesElement != null)
             {
                 foreach (var item in sourcesElement.Elements("SourceDocumentsList"))
                 {
                     var title = item.Element("Title")?.Value ?? "";
-                    law.sourceDocumentsLists.Add(new SourceDocumentsList(title));
+                    sourceDocumentsLists.Add(new SourceDocumentsList(title));
                 }
             }
 

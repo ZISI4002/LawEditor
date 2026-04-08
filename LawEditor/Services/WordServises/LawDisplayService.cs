@@ -136,8 +136,10 @@ namespace LawEditor.Services.WordServises
                 }
             }
 
+
             // TRANSITIONAL PROVISIONS
-            if (laws.transitionalProvisions.Count > 0)
+            var transitionalProvisions = laws.SourceData[0] as dynamic;
+            if (transitionalProvisions.Source.Count > 0)
             {
                 doc.Blocks.Add(new Paragraph(new Run("Keçid müddəaları"))
                 {
@@ -148,7 +150,7 @@ namespace LawEditor.Services.WordServises
                     Margin = new Thickness(0, 20, 0, 8)
                 });
 
-                foreach (var tp in laws.transitionalProvisions)
+                foreach (var tp in transitionalProvisions.Source)
                 {
                     doc.Blocks.Add(new Paragraph(new Run(tp.Title))
                     {
@@ -170,7 +172,8 @@ namespace LawEditor.Services.WordServises
             }
 
              // SOURCE DOCUMENTS
-            if (laws.sourceDocumentsLists.Count > 0)
+             var sourceDocumentsLists = laws.SourceData[1] as dynamic;
+            if (sourceDocumentsLists.Source.Count > 0)
             {
                 doc.Blocks.Add(new Paragraph(new Run("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI"))
                 {
@@ -181,7 +184,7 @@ namespace LawEditor.Services.WordServises
                     Margin = new Thickness(0, 20, 0, 8)
                 });
 
-                foreach (var source in laws.sourceDocumentsLists)
+                foreach (var source in sourceDocumentsLists.Source)
                 {
                     doc.Blocks.Add(new Paragraph(new Run($" {source.Id} {source.Title}"))
                     {
@@ -193,7 +196,8 @@ namespace LawEditor.Services.WordServises
             }
 
             // CONSTITUTIONAL AMENDMENTS
-            if (laws.constitutionalAmendments.Count > 0)
+            var constitutionalAmendments = laws.SourceData[2] as dynamic;
+            if (constitutionalAmendments.Source.Count > 0)
             {
                 doc.Blocks.Add(new Paragraph(new Run("KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI"))
                 {
@@ -204,7 +208,7 @@ namespace LawEditor.Services.WordServises
                     Margin = new Thickness(0, 20, 0, 8)
                 });
 
-                foreach (var amendment in laws.constitutionalAmendments)
+                foreach (var amendment in constitutionalAmendments.Source)
                 {
                     doc.Blocks.Add(new Paragraph(new Run($"{amendment.Id}. {amendment.Title}"))
                     {

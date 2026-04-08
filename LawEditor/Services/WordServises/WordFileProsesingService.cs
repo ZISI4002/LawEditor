@@ -259,19 +259,19 @@ namespace LawEditor.Services.WordServises {
             // Копируем коллекции в law.SourceData
             law.SourceData.Add(new SourceData {
                 Id = 1,
-                Type = "TransitionalProvisions",
+                Type = "KEÇİD MÜDDƏALARI",
                 Source = new ObservableCollection<object>(transitional.Cast<object>())
             });
 
             law.SourceData.Add(new SourceData {
                 Id = 2,
-                Type = "SourceDocumentsList",
+                Type = "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI",
                 Source = new ObservableCollection<object>(sources.Cast<object>())
             });
 
             law.SourceData.Add(new SourceData {
                 Id = 3,
-                Type = "ConstitutionalAmendment",
+                Type = "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI",
                 Source = new ObservableCollection<object>(amendments.Cast<object>())
             });
 

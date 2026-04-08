@@ -67,21 +67,25 @@
                         <TextBlock Text="{Binding Text}"/>
                     </DataTemplate>
 
+                    <!-- SorseData -->
+                    <HierarchicalDataTemplate DataType="{x:Type src:SourceData}"
+                          ItemsSource="{Binding Source}">
+                        <TextBlock Text="{Binding Type}" />
+                    </HierarchicalDataTemplate>
                     <!-- TransitionalProvisions -->
                     <DataTemplate DataType="{x:Type src:TransitionalProvisions}">
-                        <TextBlock Text="{Binding Title}" Foreground="DarkBlue"/>
+                        <TextBlock Text="{Binding Title}" Foreground="DarkBlue" FontWeight="Bold"/>
                     </DataTemplate>
 
                     <!-- SourceDocumentsList -->
                     <DataTemplate DataType="{x:Type src:SourceDocumentsList}">
-                        <TextBlock Text="{Binding Title}" Foreground="DarkGreen"/>
+                        <TextBlock Text="{Binding Title}" Foreground="DarkGreen" FontWeight="Bold"/>
                     </DataTemplate>
 
                     <!-- ConstitutionalAmendment -->
                     <DataTemplate DataType="{x:Type src:ConstitutionalAmendment}">
-                        <TextBlock Text="{Binding Title}" Foreground="DarkRed"/>
+                        <TextBlock Text="{Binding Title}" Foreground="DarkRed" FontWeight="Bold"/>
                     </DataTemplate>
-
                 </TreeView.Resources>
             </TreeView>
 
@@ -115,6 +119,17 @@
                                       CommandParameter="{Binding MenuItem4Text}"
                                       Visibility="{Binding MenuItem4Visible,
                                                    Converter={StaticResource BoolToVisibility}}"/>
+                            <MenuItem Header="{Binding MenuItem5Text}"
+                               Command="{Binding AddItemCommand}"
+                               CommandParameter="{Binding MenuItem5Text}"
+                               Visibility="{Binding MenuItem5Visible,
+                               Converter={StaticResource BoolToVisibility}}"/>
+                            
+                               <MenuItem Header="{Binding MenuItem6Text}"
+                               Command="{Binding AddItemCommand}"
+                               CommandParameter="{Binding MenuItem6Text}"
+                               Visibility="{Binding MenuItem6Visible,
+                               Converter={StaticResource BoolToVisibility}}"/>
                         </StackPanel>
                     </Border>
                 </Popup>

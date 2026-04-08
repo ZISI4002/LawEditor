@@ -74,30 +74,33 @@ namespace LawEditor.Services.WordServises
             }
 
             // Transitional Provisions
-            if (laws.transitionalProvisions.Any())
+            var transitionalProvisions = laws.SourceData[0] as dynamic;
+            if (transitionalProvisions.Any())
             {
                 body.AppendChild(CreateParagraph("Keçİd müddəaları", true));
-                foreach (var tp in laws.transitionalProvisions)
+                foreach (var tp in transitionalProvisions)
                 {
                     body.AppendChild(CreateParagraph(tp.Title));
                 }
             }
 
             // Source Documents
-            if (laws.sourceDocumentsLists.Any())
+            var sourceDocumentsLists = laws.SourceData[1] as dynamic;
+            if (sourceDocumentsLists.Any())
             {
                 body.AppendChild(CreateParagraph("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI", true));
-                foreach (var sd in laws.sourceDocumentsLists)
+                foreach (var sd in sourceDocumentsLists)
                 {
                     body.AppendChild(CreateParagraph(sd.Title));
                 }
             }
 
             // Constitutional Amendments
-            if (laws.constitutionalAmendments.Any())
+            var constitutionalAmendments = laws.SourceData[2] as dynamic;
+            if (constitutionalAmendments.Any())
             {
                 body.AppendChild(CreateParagraph("KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI", true));
-                foreach (var ca in laws.constitutionalAmendments)
+                foreach (var ca in constitutionalAmendments)
                 {
                     body.AppendChild(CreateParagraph(ca.Title));
                 }
