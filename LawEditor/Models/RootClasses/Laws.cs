@@ -23,27 +23,6 @@ namespace LawEditor.Models.RootClasses
         public ObservableCollection<Chapter> Chapters { get; } = new();
 
         public ObservableCollection<object> SourceData { get; set; } = new();
-        /*
-        {
-            new SourceData<TransitionalProvisions>
-            {
-                Id = 1,
-                Type = "TransitionalProvisions"
-            },
-
-            new SourceData<SourceDocumentsList>
-            {
-                Id = 2,
-                Type = "SourceDocumentsList"
-            },
-
-            new SourceData<ConstitutionalAmendment>
-            {
-                Id = 3,
-                Type = "ConstitutionalAmendment"
-            }
-        };
-        */
 
         public Chapter AddChapter(string title, int? position = null)
         {
@@ -77,19 +56,19 @@ namespace LawEditor.Models.RootClasses
                 ch.Id--;
             Chapter.DecreaseCounter();
         }
-        /*
-        public TransitionalProvisions AddTransitionalProvision(
-        string title, string? linkText = null, string? url = null, int? position = null) {
-            var container = SourceData
-                .OfType<SourceData<TransitionalProvisions>>()
-                .First();
 
-            var list = container.Source;
+        public TransitionalProvisions AddTransitionalProvision(
+    string title, string? linkText = null, string? url = null, int? position = null) {
+            var container = SourceData
+                .Cast<SourceData>()
+                .First(x => x.Type == "TransitionalProvisions");
+
+            var list = container.Source.Cast<TransitionalProvisions>().ToList();
 
             var newItem = new TransitionalProvisions(title, linkText, url);
 
             if (position == null || position >= list.Count) {
-                list.Add(newItem);
+                container.Source.Add(newItem);
                 return newItem;
             }
 
@@ -99,24 +78,25 @@ namespace LawEditor.Models.RootClasses
                 item.Id++;
 
             newItem.Id = insertId;
-            list.Insert(position.Value, newItem);
+            container.Source.Insert(position.Value, newItem);
 
             return newItem;
         }
 
         public void DeleteTransitionalProvision(int id) {
             var container = SourceData
-                .OfType<SourceData<TransitionalProvisions>>()
-                .First();
+                .Cast<SourceData>()
+                .First(x => x.Type == "TransitionalProvisions");
 
-            var list = container.Source;
+            var item = container.Source
+                .Cast<TransitionalProvisions>()
+                .FirstOrDefault(t => t.Id == id);
 
-            var item = list.FirstOrDefault(t => t.Id == id);
             if (item == null) return;
 
-            list.Remove(item);
+            container.Source.Remove(item);
 
-            foreach (var t in list.Where(t => t.Id > id))
+            foreach (var t in container.Source.Cast<TransitionalProvisions>().Where(t => t.Id > id))
                 t.Id--;
 
             TransitionalProvisions.DecreaseCounter();
@@ -126,15 +106,15 @@ namespace LawEditor.Models.RootClasses
         public SourceDocumentsList AddSourceDocument(
     string title, string? linkText = null, string? url = null, int? position = null) {
             var container = SourceData
-                .OfType<SourceData<SourceDocumentsList>>()
-                .First();
+                .Cast<SourceData>()
+                .First(x => x.Type == "SourceDocumentsList");
 
-            var list = container.Source;
+            var list = container.Source.Cast<SourceDocumentsList>().ToList();
 
             var newItem = new SourceDocumentsList(title, linkText, url);
 
             if (position == null || position >= list.Count) {
-                list.Add(newItem);
+                container.Source.Add(newItem);
                 return newItem;
             }
 
@@ -144,41 +124,44 @@ namespace LawEditor.Models.RootClasses
                 item.Id++;
 
             newItem.Id = insertId;
-            list.Insert(position.Value, newItem);
+            container.Source.Insert(position.Value, newItem);
 
             return newItem;
         }
 
         public void DeleteSourceDocument(int id) {
             var container = SourceData
-                .OfType<SourceData<SourceDocumentsList>>()
-                .First();
+                .Cast<SourceData>()
+                .First(x => x.Type == "SourceDocumentsList");
 
-            var list = container.Source;
+            var item = container.Source
+                .Cast<SourceDocumentsList>()
+                .FirstOrDefault(s => s.Id == id);
 
-            var item = list.FirstOrDefault(s => s.Id == id);
             if (item == null) return;
 
-            list.Remove(item);
+            container.Source.Remove(item);
 
-            foreach (var s in list.Where(s => s.Id > id))
+            foreach (var s in container.Source.Cast<SourceDocumentsList>().Where(s => s.Id > id))
                 s.Id--;
 
             SourceDocumentsList.DecreaseCounter();
         }
 
+        //////////////////////////////////////////////////
+
         public ConstitutionalAmendment AddConstitutionalAmendment(
     string id, string title, string? linkText = null, string? url = null, int? position = null) {
             var container = SourceData
-                .OfType<SourceData<ConstitutionalAmendment>>()
-                .First();
+                .Cast<SourceData>()
+                .First(x => x.Type == "ConstitutionalAmendment");
 
-            var list = container.Source;
+            var list = container.Source.Cast<ConstitutionalAmendment>().ToList();
 
             var newItem = new ConstitutionalAmendment(id, title, linkText, url);
 
             if (position == null || position >= list.Count) {
-                list.Add(newItem);
+                container.Source.Add(newItem);
                 return newItem;
             }
 
@@ -189,30 +172,31 @@ namespace LawEditor.Models.RootClasses
                 }
             }
 
-            list.Insert(position.Value, newItem);
+            container.Source.Insert(position.Value, newItem);
 
             return newItem;
         }
 
         public void DeleteConstitutionalAmendment(string id) {
             var container = SourceData
-                .OfType<SourceData<ConstitutionalAmendment>>()
-                .First();
+                .Cast<SourceData>()
+                .First(x => x.Type == "ConstitutionalAmendment");
 
-            var list = container.Source;
+            var item = container.Source
+                .Cast<ConstitutionalAmendment>()
+                .FirstOrDefault(c => c.Id == id);
 
-            var item = list.FirstOrDefault(c => c.Id == id);
             if (item == null) return;
 
-            list.Remove(item);
+            container.Source.Remove(item);
 
             if (int.TryParse(id, out int numericId)) {
-                foreach (var c in list) {
+                foreach (var c in container.Source.Cast<ConstitutionalAmendment>()) {
                     if (int.TryParse(c.Id, out int itemNumericId) && itemNumericId > numericId)
                         c.Id = (itemNumericId - 1).ToString();
                 }
             }
         }
-        */
+
     }
 }

@@ -94,21 +94,6 @@ namespace LawEditor.Services.WordServises {
         public Laws ReadWordFile(string filePath) {
             var law = new Laws();
            
-
-
-            /*
-            var transitional = law.SourceData
-                .OfType<SourceData<TransitionalProvisions>>()
-                .FirstOrDefault();
-
-            var sources = law.SourceData
-                .OfType<SourceData<SourceDocumentsList>>()
-                .FirstOrDefault();
-
-            var amendments = law.SourceData
-                .OfType<SourceData<ConstitutionalAmendment>>()
-                .FirstOrDefault();
-            */
             ObservableCollection<TransitionalProvisions> transitional = new ObservableCollection<TransitionalProvisions>();
             ObservableCollection<SourceDocumentsList> sources = new ObservableCollection<SourceDocumentsList>();
             ObservableCollection<ConstitutionalAmendment> amendments = new ObservableCollection<ConstitutionalAmendment>();
