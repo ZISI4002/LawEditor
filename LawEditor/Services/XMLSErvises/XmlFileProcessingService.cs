@@ -22,10 +22,24 @@ namespace LawEditor.Services.XMLSErvises
 
             var law = new Laws();
 
+            // Initialize SourceData containers
+            law.SourceData.Add(new SourceData { Type = "TransitionalProvisions", Source = new() });
+            law.SourceData.Add(new SourceData { Type = "ConstitutionalAmendment", Source = new() });
+            law.SourceData.Add(new SourceData { Type = "SourceDocumentsList", Source = new() });
+
+            // Initialize UpperObjects if needed
+            if (law.UpperObjects.Count == 0)
+            {
+                law.UpperObjects.Add(new UpperObject { ObjectName = "Default" });
+                if (law.UpperObjects[0].Headers == null)
+                    law.UpperObjects[0].Headers = new();
+                law.UpperObjects[0].Headers.Add(new Header());
+            }
+
             // Header
             var headerElement = root.Element("Header");
             if (headerElement != null)
-                law.Header = headerElement.Value;
+                law.UpperObjects[0].Headers[0].FullText = headerElement.Value;
 
             // Chapters
             var chaptersElement = root.Element("Chapters");
@@ -117,7 +131,7 @@ namespace LawEditor.Services.XMLSErvises
                 {
                     var title = item.Element("Title")?.Value ?? "";
                     var Id = item.Element("Id")?.Value ?? "";
-                    constitutionalAmendments.Add(new ConstitutionalAmendment(Id,title));
+                    constitutionalAmendments.Add(new ConstitutionalAmendment(Id, title));
                 }
             }
 

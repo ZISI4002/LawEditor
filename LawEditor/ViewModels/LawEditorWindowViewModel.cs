@@ -17,6 +17,10 @@ namespace LawEditor.ViewModels
             this.Laws = mainWindowViewModel.Laws;
 
             EditedLaws = new Laws();
+            // Инициализируем UpperObjects перед копированием данных
+            if (EditedLaws.UpperObjects == null)
+                EditedLaws.UpperObjects = new ObservableCollection<UpperObject>();
+                
             CopyLawsServise.CopyLawsData(Laws, EditedLaws);
 
             BuildTreeRoots();
@@ -37,7 +41,9 @@ namespace LawEditor.ViewModels
         public void BuildTreeRoots()
         {
             TreeRoots.Clear();
-            TreeRoots.Add(EditedLaws);
+
+            foreach (var upperObj in EditedLaws.UpperObjects)
+                TreeRoots.Add(upperObj);
 
             foreach (var ch in EditedLaws.Chapters)
                 TreeRoots.Add(ch);
@@ -71,16 +77,16 @@ namespace LawEditor.ViewModels
         public bool MenuItem5Visible => GetMenuItems().Item5 != null;
         public bool MenuItem6Visible => GetMenuItems().Item6 != null;
 
-        private (string Item1, string Item2, string Item3, string Item4,string Item5,string Item6) GetMenuItems()
+        private (string Item1, string Item2, string Item3, string Item4, string Item5, string Item6) GetMenuItems()
         {
             return _selectedItem switch
             {
-                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et", null,null,null),
-                Section => ("Yuxarıda fəsil əlavə et", "Aşağıda fəsil əlavə et", "İçəridə maddə əlavə et", null,null,null),
-                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et", "İçəridə bənd əlavə et","Yuxarıda hissə əlavə et", "Aşağıda hissə əlavə et"),
+                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et", null, null, null),
+                Section => ("Yuxarıda fəsil əlavə et", "Aşağıda fəsil əlavə et", "İçəridə maddə əlavə et", null, null, null),
+                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et", "İçəridə bənd əlavə et", "Yuxarıda hissə əlavə et", "Aşağıda hissə əlavə et"),
                 Clause => ("Yuxarıda bənd əlavə et", "Aşağıda bənd əlavə et", "İçəridə altbənd əlavə et", null, null, null),
                 SubClause => ("Yuxarıda altbənd əlavə et", "Aşağıda altbənd əlavə et", null, null, null, null),
-                Models.RootClasses.Laws => ("Bölmə əlavə et", null, null, null, null, null),
+               Models.RootClasses. Laws => ("Bölmə əlavə et", null, null, null, null, null),
                 _ => ("Bölmə əlavə et", null, null, null, null, null),
             };
         }
@@ -117,8 +123,16 @@ namespace LawEditor.ViewModels
 
             switch (item)
             {
-                case Laws l:
-                    CurrentAnchor.Laws = l;
+               
+
+                case UpperObject uo:
+                    CurrentAnchor.UpperObject = uo;
+                    break;
+
+                case Header h:
+                    var upperObj = EditedLaws.UpperObjects.FirstOrDefault(u => u.Headers.Contains(h));
+                    if (upperObj != null)
+                        CurrentAnchor.UpperObject = upperObj;
                     break;
 
                 case Chapter c:
@@ -197,7 +211,9 @@ namespace LawEditor.ViewModels
 
         public string SelectedTypeName => _selectedItem switch
         {
-            Models.RootClasses.Laws => "Qanunun başlığı (Header)",
+           
+            UpperObject => "Qanunun başlığı (Header)",
+            Header => "Başlıq mətn (Header Text)",
             Chapter => "Bölmə (Chapter)",
             Section => "Fəsil (Section)",
             Article => "Maddə (Article)",

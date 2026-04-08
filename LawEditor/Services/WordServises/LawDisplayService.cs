@@ -16,8 +16,15 @@ namespace LawEditor.Services.WordServises
             var doc = new FlowDocument();
             doc.PagePadding = new Thickness(12);
 
+            // Проверка наличия данных
+            if (laws?.UpperObjects?.Count == 0 || laws?.UpperObjects[0]?.Headers?.Count == 0)
+            {
+                doc.Blocks.Add(new Paragraph(new Run("Нет доступных данных")));
+                return doc;
+            }
+
             // HEADER
-            doc.Blocks.Add(new Paragraph(new Run(laws.Header))
+            doc.Blocks.Add(new Paragraph(new Run(laws.UpperObjects[0].Headers[0].FullText))
             {
                 FontSize = 20,
                 FontWeight = FontWeights.Bold,

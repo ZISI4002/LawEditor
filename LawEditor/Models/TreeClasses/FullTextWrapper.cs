@@ -15,7 +15,8 @@ namespace LawEditor.Models.TreeClasses
         {
             return item switch
             {
-                Laws l => l.Header ?? "",
+                Header h => h.FullText ?? "",
+                UpperObject u => GetFullUpperObject(u),
                 Chapter c => GetFullChapter(c),
                 Section s => GetFullSection(s),
                 Article a => GetFullArticle(a),
@@ -34,6 +35,21 @@ namespace LawEditor.Models.TreeClasses
         }
 
         // ==================== GET ====================
+        
+        private static string GetFullUpperObject(UpperObject upperObject)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(upperObject.ObjectName);
+            sb.AppendLine();
+            if (upperObject.Headers != null)
+            {
+                foreach (var header in upperObject.Headers)
+                {
+                    sb.AppendLine($"{header.FullText}");
+                }
+            }
+            return sb.ToString();
+        }
 
         private static string GetFullChapter(Chapter chapter)
         {
@@ -114,12 +130,13 @@ namespace LawEditor.Models.TreeClasses
         {
             switch (item)
             {
-                case Laws l: l.Header = value; break;
+                case UpperObject u: ParseUpperObyect(u,value); break;
                 case Chapter c: ParseChapter(c, value); break;
                 case Section s: ParseSection(s, value); break;
                 case Article a: ParseArticle(a, value); break;
                 case Clause cl: ParseClause(cl, value); break;
                 case SubClause sc: sc.Text = value; break;
+                case Header h: h.FullText = value; break;
                 case TransitionalProvisions tp: tp.Title = value; break;
                 case SourceDocumentsList sd: sd.Title = value; break;
                 case ConstitutionalAmendment ca: ca.Title = value; break;
@@ -128,6 +145,24 @@ namespace LawEditor.Models.TreeClasses
 
         // ==================== PARSE ====================
 
+        private static void ParseUpperObyect(UpperObject upperObject, string text)
+        {
+            var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            if (lines.Length == 0) return;
+            upperObject.ObjectName = lines[0].Trim();
+            upperObject.Headers.Clear();
+            for (int i = 1; i < lines.Length; i++)
+            {
+                var rawLine = lines[i];
+                if (string.IsNullOrWhiteSpace(rawLine)) continue;
+                int indent = GetIndent(rawLine);
+                var line = rawLine.Trim();
+                if (indent >= 2)
+                {
+                    upperObject.Headers.Add(new Header { FullText = line });
+                }
+            }
+        }
         private static void ParseChapter(Chapter chapter, string text)
         {
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);

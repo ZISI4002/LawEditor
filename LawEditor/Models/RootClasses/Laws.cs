@@ -4,22 +4,17 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Documents;
+using System.Xml.Serialization;
 
 namespace LawEditor.Models.RootClasses
 {
-    public partial class Laws : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged(string name) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-        private string? _header;
-        public string? Header
-        {
-            get => _header;
-            set { _header = value; OnPropertyChanged(nameof(Header)); }
-        }
-
+    [XmlInclude(typeof(SourceData))]
+    [XmlInclude(typeof(TransitionalProvisions))]
+    [XmlInclude(typeof(SourceDocumentsList))]
+    [XmlInclude(typeof(ConstitutionalAmendment))]
+    public partial class Laws 
+    {       
+        public ObservableCollection<UpperObject> UpperObjects { get; set; } = new();
         public ObservableCollection<Chapter> Chapters { get; } = new();
 
         public ObservableCollection<object> SourceData { get; set; } = new();

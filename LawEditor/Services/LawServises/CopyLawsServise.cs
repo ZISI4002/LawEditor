@@ -16,7 +16,28 @@ namespace LawEditor.Services.LawServises
         {
             if (source == null) return;
 
-            target.Header = source.Header;
+            // Копируем UpperObjects
+            foreach (var upperObj in source.UpperObjects)
+            {
+                var newUpperObject = new UpperObject 
+                { 
+                    Id = upperObj.Id, 
+                    ObjectName = upperObj.ObjectName,
+                    Headers = new ObservableCollection<Header>()
+                };
+                
+                foreach (var header in upperObj.Headers)
+                {
+                    newUpperObject.Headers.Add(new Header 
+                    { 
+                        Id = header.Id, 
+                        HeaderName = header.HeaderName, 
+                        FullText = header.FullText 
+                    });
+                }
+                
+                target.UpperObjects.Add(newUpperObject);
+            }
 
             // Копируем главы
             foreach (var ch in source.Chapters)
