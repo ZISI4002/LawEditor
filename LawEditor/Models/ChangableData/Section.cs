@@ -8,8 +8,6 @@ namespace LawEditor.Models.ChangableData
 {
     public class Section //Fesil       
     {
-       
-
         private static int counter = 1;
 
         public int Id { get; set; }
@@ -45,12 +43,30 @@ namespace LawEditor.Models.ChangableData
         }
         public Article AddArticle(decimal id, string title, Laws laws, string? endnoteId = null) {
             bool isSubArticle = id % 1 != 0;
+
             if (!isSubArticle) {
+                //сдвигаем все целые
                 foreach (var chapter in laws.Chapters)
                     foreach (var section in chapter.Sections)
                         foreach (var article in section.Articles)
                             if (article.Id >= id)
                                 article.Id += 1;
+            }
+            else {
+                int baseId = (int)Math.Floor(id); // например 110
+
+                foreach (var chapter in laws.Chapters) {
+                    foreach (var section in chapter.Sections) {
+                        foreach (var article in section.Articles) {
+                            int articleBase = (int)Math.Floor(article.Id);
+
+                            // берём только подстатьи этого блока (110.x)
+                            if (articleBase == baseId && article.Id >= id) {
+                                article.Id += 0.1m;
+                            }
+                        }
+                    }
+                }
             }
 
             var newArticle = new Article(id, title);
@@ -58,6 +74,7 @@ namespace LawEditor.Models.ChangableData
 
             Articles.Add(newArticle);
 
+            // сортировка
             var sortedList = Articles.OrderBy(a => a.Id).ToList();
             Articles.Clear();
             foreach (var a in sortedList)
@@ -83,12 +100,30 @@ namespace LawEditor.Models.ChangableData
             Articles.Remove(article);
 
             bool isSubArticle = id % 1 != 0;
+
             if (!isSubArticle) {
+                //для целых
                 foreach (var chapter in laws.Chapters)
                     foreach (var section in chapter.Sections)
                         foreach (var a in section.Articles)
                             if (a.Id > id)
                                 a.Id -= 1;
+            }
+            else {
+                int baseId = (int)Math.Floor(id);
+
+                foreach (var chapter in laws.Chapters) {
+                    foreach (var section in chapter.Sections) {
+                        foreach (var a in section.Articles) {
+                            int articleBase = (int)Math.Floor(a.Id);
+
+                            // только 110.x и только те, что после удаляемого
+                            if (articleBase == baseId && a.Id > id) {
+                                a.Id -= 0.1m;
+                            }
+                        }
+                    }
+                }
             }
         }
 
