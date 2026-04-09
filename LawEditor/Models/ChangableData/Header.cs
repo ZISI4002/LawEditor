@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 namespace LawEditor.Models.ChangableData {
     public class Header {
         public int Id { get; set; }
-        public string HeaderName { get; set; }
         public string FullText { get; set; }
     }
 }

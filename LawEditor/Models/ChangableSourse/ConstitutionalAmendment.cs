@@ -9,7 +9,7 @@ namespace LawEditor.Models.ChangableSourse {
     public class ConstitutionalAmendment {
         public string Id { get; set; }
         public string Title { get; set; }
-        public string? LinkText { get; set; }
+        public string? LinkText { get; set; } // тоже содержится в тайтле
         public string? Url { get; set; }
         public ConstitutionalAmendment() { }
         public ConstitutionalAmendment(string id, string title, string? linkText = null, string? url = null) {

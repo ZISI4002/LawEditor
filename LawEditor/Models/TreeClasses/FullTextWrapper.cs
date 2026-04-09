@@ -2,6 +2,7 @@
 using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
 using System;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -25,6 +26,7 @@ namespace LawEditor.Models.TreeClasses
                 TransitionalProvisions tp => tp.Title ?? "",
                 SourceDocumentsList sd => sd.Title ?? "",
                 ConstitutionalAmendment ca => ca.Title ?? "",
+                SourceData sd => GetFullSourceData(sd),
                 _ => ""
             };
         }
@@ -35,19 +37,15 @@ namespace LawEditor.Models.TreeClasses
         }
 
         // ==================== GET ====================
-        
+
         private static string GetFullUpperObject(UpperObject upperObject)
         {
             var sb = new StringBuilder();
             sb.AppendLine(upperObject.ObjectName);
             sb.AppendLine();
             if (upperObject.Headers != null)
-            {
                 foreach (var header in upperObject.Headers)
-                {
-                    sb.AppendLine($"{header.FullText}");
-                }
-            }
+                    sb.AppendLine(header.FullText);
             return sb.ToString();
         }
 
@@ -124,6 +122,31 @@ namespace LawEditor.Models.TreeClasses
             return sb.ToString();
         }
 
+        private static string GetFullSourceData(SourceData sourceData)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(sourceData.Type);
+            sb.AppendLine();
+
+            foreach (var item in sourceData.Source)
+            {
+                switch (item)
+                {
+                    case TransitionalProvisions tp:
+                        sb.AppendLine($"  {tp.Id}) {tp.Title}");
+                        break;
+                    case SourceDocumentsList sd:
+                        sb.AppendLine($"  {sd.Id}) {sd.Title}");
+                        break;
+                    case ConstitutionalAmendment ca:
+                        sb.AppendLine($"  {ca.Id}) {ca.Title}");
+                        break;
+                }
+            }
+
+            return sb.ToString();
+        }
+
         // ==================== SET ====================
 
         public static void SetText(object item, string value)
@@ -137,6 +160,7 @@ namespace LawEditor.Models.TreeClasses
                 case Clause cl: ParseClause(cl, value); break;
                 case SubClause sc: sc.Text = value; break;
                 case Header h: h.FullText = value; break;
+                case SourceData sd: ParseSourceData(sd, value); break;
                 case TransitionalProvisions tp: tp.Title = value; break;
                 case SourceDocumentsList sd: sd.Title = value; break;
                 case ConstitutionalAmendment ca: ca.Title = value; break;
@@ -149,19 +173,18 @@ namespace LawEditor.Models.TreeClasses
         {
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
+
             upperObject.ObjectName = lines[0].Trim();
+
+            if (upperObject.Headers == null)
+                upperObject.Headers = new ObservableCollection<Header>();
+
             upperObject.Headers.Clear();
-            for (int i = 1; i < lines.Length; i++)
-            {
-                var rawLine = lines[i];
-                if (string.IsNullOrWhiteSpace(rawLine)) continue;
-                int indent = GetIndent(rawLine);
-                var line = rawLine.Trim();
-                if (indent >= 2)
-                {
-                    upperObject.Headers.Add(new Header { FullText = line });
-                }
-            }
+
+            // всё остальное — один Header
+            var rest = string.Join("\n", lines.Skip(1)).Trim();
+            if (!string.IsNullOrEmpty(rest))
+                upperObject.Headers.Add(new Header { FullText = rest });
         }
         private static void ParseChapter(Chapter chapter, string text)
         {
@@ -391,5 +414,54 @@ namespace LawEditor.Models.TreeClasses
                 }
             }
         }
+
+
+        private static void ParseSourceData(SourceData sourceData, string text)
+{
+    var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+    if (lines.Length == 0) return;
+
+    sourceData.Type = lines[0].Trim();
+    sourceData.Source.Clear();
+
+    for (int i = 1; i < lines.Length; i++)
+    {
+        var rawLine = lines[i];
+        if (string.IsNullOrWhiteSpace(rawLine)) continue;
+
+        var line = rawLine.Trim();
+
+        switch (sourceData.Id)
+        {
+            case 1: // KEÇİD MÜDDƏALARI
+            {
+                var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+                if (match.Success)
+                    sourceData.AddTransitionalProvision(match.Groups[2].Value);
+                else
+                    sourceData.AddTransitionalProvision(line);
+                break;
+            }
+            case 2: // İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI
+            {
+                var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+                if (match.Success)
+                    sourceData.AddSourceDocument(match.Groups[2].Value);
+                else
+                    sourceData.AddSourceDocument(line);
+                break;
+            }
+            case 3: // KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI
+            {
+                var match = Regex.Match(line, @"^([^\s]+)\)\s+(.*)$");
+                if (match.Success)
+                    sourceData.AddConstitutionalAmendment(match.Groups[1].Value, match.Groups[2].Value);
+                else
+                    sourceData.AddConstitutionalAmendment(i.ToString(), line);
+                break;
+            }
+        }
+    }
+}
     }
 }

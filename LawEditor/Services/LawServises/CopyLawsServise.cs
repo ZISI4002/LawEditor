@@ -31,7 +31,6 @@ namespace LawEditor.Services.LawServises
                     newUpperObject.Headers.Add(new Header 
                     { 
                         Id = header.Id, 
-                        HeaderName = header.HeaderName, 
                         FullText = header.FullText 
                     });
                 }

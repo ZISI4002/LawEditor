@@ -106,6 +106,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "Aşağıda altbənd əlavə et":
                     anchor.Clause.AddSubClause("Yeni Altbənd", anchor.SubClause.Number);
                     break;
+                    
                 case "Bölmə əlavə et":
                         _viewModel.EditedLaws.AddChapter("Yeni Bölmə");
                     _viewModel.BuildTreeRoots();

@@ -7,6 +7,7 @@ namespace LawEditor.Models.ChangableData
     {
         public int Id { get; set; }
         public string ObjectName { get; set; }
-        public ObservableCollection<Header> Headers { get; set; }
+        public ObservableCollection<Header> Headers { get; set; }= new();
+         public UpperObject() { }
     }
 }

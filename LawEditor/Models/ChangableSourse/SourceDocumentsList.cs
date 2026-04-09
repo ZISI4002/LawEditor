@@ -12,7 +12,7 @@ namespace LawEditor.Models.ChangableSourse {
 
         public int Id { get; set; }
         public string Title { get; set; }
-        public string? LinkText { get; set; } 
+        public string? LinkText { get; set; } //содержится в тайтл
         public string? Url { get; set; }
 
         public SourceDocumentsList() { }

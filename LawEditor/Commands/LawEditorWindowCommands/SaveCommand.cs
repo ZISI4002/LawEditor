@@ -38,10 +38,11 @@ namespace LawEditor.Commands.LawEditorWindowCommands
             // Очищаем оригинальный Laws
             _viewModel.Laws.Chapters.Clear();
             _viewModel.Laws.SourceData.Clear();
-            
-          
+            _viewModel.Laws.UpperObjects.Clear();
+
+
             // Копируем EditedLaws обратно в Laws
-           CopyLawsServise.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);
+            CopyLawsServise.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);
 
             // Обновляем ссылку в MainWindowModel
             _viewModel.MainWindowModel.Laws = _viewModel.Laws;

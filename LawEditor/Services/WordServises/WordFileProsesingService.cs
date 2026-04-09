@@ -178,9 +178,8 @@ namespace LawEditor.Services.WordServises
                     if (IsChapterLine(line))
                     {
                           header.Id = 1;
-                          header.HeaderName = "HEADER";
                           header.FullText = headerBuilder.ToString().Trim();
-                             headers.Add(header);
+                          headers.Add(header);
                         mode = Mode.Chapters;
                         expectChapterTitle = true;
                         continue;
