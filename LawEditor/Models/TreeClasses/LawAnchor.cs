@@ -9,6 +9,9 @@ namespace LawEditor.Models.TreeClasses
         // Корень документа
         public Laws? Laws { get; set; }
 
+        //Хидр
+        public UpperObject? UpperObject { get; set; }
+
         // Иерархия
         public Chapter? Chapter { get; set; }
         public Section? Section { get; set; }

@@ -20,9 +20,9 @@ namespace LawEditor.Services.WordServises
             var body = mainPart.Document.AppendChild(new Body());
 
             // Header
-            if (!string.IsNullOrWhiteSpace(laws.Header))
+            if (!string.IsNullOrWhiteSpace(laws.UpperObjects[0].Headers[0].FullText))
             {
-                var headerLines = laws.Header.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                var headerLines = laws.UpperObjects[0].Headers[0].FullText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var line in headerLines)
                 {
                     body.AppendChild(CreateParagraph(line));
@@ -75,10 +75,10 @@ namespace LawEditor.Services.WordServises
 
             // Transitional Provisions
             var transitionalProvisions = laws.SourceData[0] as dynamic;
-            if (transitionalProvisions.Any())
+            if (transitionalProvisions?.Source.Count > 0)
             {
                 body.AppendChild(CreateParagraph("Keçİd müddəaları", true));
-                foreach (var tp in transitionalProvisions)
+                foreach (var tp in transitionalProvisions.Source)
                 {
                     body.AppendChild(CreateParagraph(tp.Title));
                 }
@@ -86,10 +86,10 @@ namespace LawEditor.Services.WordServises
 
             // Source Documents
             var sourceDocumentsLists = laws.SourceData[1] as dynamic;
-            if (sourceDocumentsLists.Any())
+            if (sourceDocumentsLists.Source.Count > 0)
             {
                 body.AppendChild(CreateParagraph("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI", true));
-                foreach (var sd in sourceDocumentsLists)
+                foreach (var sd in sourceDocumentsLists.Source)
                 {
                     body.AppendChild(CreateParagraph(sd.Title));
                 }
@@ -97,10 +97,10 @@ namespace LawEditor.Services.WordServises
 
             // Constitutional Amendments
             var constitutionalAmendments = laws.SourceData[2] as dynamic;
-            if (constitutionalAmendments.Any())
+            if (constitutionalAmendments.Source.Count > 0)
             {
                 body.AppendChild(CreateParagraph("KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI", true));
-                foreach (var ca in constitutionalAmendments)
+                foreach (var ca in constitutionalAmendments.Source)
                 {
                     body.AppendChild(CreateParagraph(ca.Title));
                 }

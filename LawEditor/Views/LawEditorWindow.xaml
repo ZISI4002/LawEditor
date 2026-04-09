@@ -31,12 +31,18 @@
                       SelectedItemChanged="TreeView_SelectedItemChanged">
                 <TreeView.Resources>
 
-                    <!-- Laws (Header) -->
-                    <DataTemplate DataType="{x:Type root:Laws}">
-                        <TextBlock Text="{Binding Header}"
-                                   FontWeight="Bold"
-                                   Foreground="DarkSlateBlue"/>
-                    </DataTemplate>
+                    
+                        <HierarchicalDataTemplate DataType="{x:Type local:UpperObject}"
+                                              ItemsSource="{Binding Headers}">
+                        <TextBlock Text="{Binding ObjectName}"
+                                   FontWeight="Bold"/>
+                         </HierarchicalDataTemplate>
+
+                             <DataTemplate DataType="{x:Type local:Header}">
+                            <TextBlock Text="{Binding FullText}"
+                             Foreground="DarkSlateBlue"/>
+                          </DataTemplate>
+
 
                     <!-- Chapter -->
                     <HierarchicalDataTemplate DataType="{x:Type local:Chapter}"
@@ -70,7 +76,8 @@
                     <!-- SorseData -->
                     <HierarchicalDataTemplate DataType="{x:Type src:SourceData}"
                           ItemsSource="{Binding Source}">
-                        <TextBlock Text="{Binding Type}" />
+                        <TextBlock Text="{Binding Type}" 
+                                   FontWeight="Bold"/>
                     </HierarchicalDataTemplate>
                     <!-- TransitionalProvisions -->
                     <DataTemplate DataType="{x:Type src:TransitionalProvisions}">
