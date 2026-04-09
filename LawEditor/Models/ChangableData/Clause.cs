@@ -10,15 +10,17 @@ namespace LawEditor.Models.ChangableData
         public string? EndnoteId { get; set; }
         public ObservableCollection<SubClause> SubClauses { get; set; } = new();
         public Clause() { }
-        public Clause(int number, string text) {
+        public Clause(int number, string text, string? endnoteId = null) {
             Number = number;
             Text = text;
+            EndnoteId = endnoteId;
         }
-        public Clause(string text) {
+        public Clause(string text, string? endnoteId = null) {
             Text = text;
+            EndnoteId = endnoteId;
         }
         public SubClause AddSubClause(string text, int? position = null, string? endnoteId = null) {
-            var newSub = new SubClause { Text = text, EndnoteId = endnoteId };
+            var newSub = new SubClause(0, text, endnoteId);
 
             if (position == null || position >= SubClauses.Count) {
                 newSub.Number = SubClauses.Count + 1;

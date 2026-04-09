@@ -238,8 +238,7 @@ namespace LawEditor.Services.WordServises
 
                         string? endnoteRefId = ExtractEndnoteRefId(para);
 
-                        currentArticle = new Article(id, title);
-                        currentArticle.EndnoteId = endnoteRefId;
+                        currentArticle = new Article(id, title,endnoteRefId);
                         currentSection?.Articles.Add(currentArticle);
                         currentClause = null;
                         continue;

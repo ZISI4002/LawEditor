@@ -69,8 +69,7 @@ namespace LawEditor.Models.ChangableData
                 }
             }
 
-            var newArticle = new Article(id, title);
-            newArticle.EndnoteId = endnoteId;
+            var newArticle = new Article(id, title, endnoteId);
 
             Articles.Add(newArticle);
 
@@ -87,8 +86,7 @@ namespace LawEditor.Models.ChangableData
                 ? (decimal)Math.Floor(Articles.Max(a => a.Id)) + 1
                 : 1;
 
-            var newArticle = new Article(newId, title);
-            newArticle.EndnoteId = endnoteId;
+            var newArticle = new Article(newId, title, endnoteId);
             Articles.Add(newArticle);
             return newArticle;
         }

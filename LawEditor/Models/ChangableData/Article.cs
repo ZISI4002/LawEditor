@@ -11,13 +11,13 @@ namespace LawEditor.Models.ChangableData
         public string? EndnoteId { get; set; }
         public ObservableCollection<Clause> Clauses { get; set; } = new();
         public Article() { }
-        public Article(decimal id, string title) {
+        public Article(decimal id, string title, string? endnoteId = null) {
             Id = id;
             Title = title;
+            EndnoteId = endnoteId;
         }
         public Clause AddClause(string text, int? position = null, string? endnoteId = null) {
-            var newClause = new Clause(text);
-            newClause.EndnoteId = endnoteId;
+            var newClause = new Clause(text, endnoteId);
 
             if (position == null || position >= Clauses.Count) {
                 newClause.Number = Clauses.Count + 1;
