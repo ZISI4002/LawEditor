@@ -193,7 +193,7 @@ namespace LawEditor.Services.WordServises {
 
                         decimal id = 0;
                         if (idStr.Length == 4 && idStr.All(char.IsDigit))
-                            id = int.Parse(idStr) / 10;
+                            id = int.Parse(idStr) / 10m;
                         else
                             decimal.TryParse(idStr, out id);
 
