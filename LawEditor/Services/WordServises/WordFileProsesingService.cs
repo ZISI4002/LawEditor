@@ -69,19 +69,30 @@ namespace LawEditor.Services.WordServises
         }
 
         // ── Получить полный текст параграфа ───────────────────────────────────
-        private string GetParagraphText(Paragraph para)
-        {
+        private string GetParagraphText(Paragraph para) {
             var sb = new StringBuilder();
+            string? prevText = null;
 
-            foreach (var run in para.Elements<Run>())
-            {
+            foreach (var run in para.Elements<Run>()) {
                 if (run.Descendants<EndnoteReference>().Any())
                     continue;
-                sb.Append(run.GetFirstChild<Text>()?.Text ?? "");
+
+                var rPr = run.GetFirstChild<RunProperties>();
+                var vertAlign = rPr?.GetFirstChild<VerticalTextAlignment>();
+                bool isSuperscript = vertAlign?.Val?.Value == VerticalPositionValues.Superscript;
+
+                string text = run.GetFirstChild<Text>()?.Text ?? "";
+
+                // Если суперскрипт и предыдущий текст был числом — вставляем точку
+                if (isSuperscript && prevText != null && prevText.TrimEnd().Last() is >= '0' and <= '9')
+                    sb.Append('.');
+
+                sb.Append(text);
+                if (!string.IsNullOrEmpty(text))
+                    prevText = text;
             }
 
-            foreach (var hl in para.Elements<Hyperlink>())
-            {
+            foreach (var hl in para.Elements<Hyperlink>()) {
                 foreach (var run in hl.Elements<Run>())
                     sb.Append(run.GetFirstChild<Text>()?.Text ?? "");
             }
@@ -215,16 +226,15 @@ namespace LawEditor.Services.WordServises
 
                     // ARTICLE
                     var artMatch = Regex.Match(line, @"^Maddə\s+([\d\.]+)\.\s*(.*)");
-                    if (artMatch.Success)
-                    {
+                    if (artMatch.Success) {
                         string idStr = artMatch.Groups[1].Value;
                         string title = artMatch.Groups[2].Value;
 
                         decimal id = 0;
-                        if (idStr.Length == 4 && idStr.All(char.IsDigit))
-                            id = int.Parse(idStr) / 10m;
-                        else
-                            decimal.TryParse(idStr, out id);
+                        decimal.TryParse(idStr,
+                            System.Globalization.NumberStyles.Number,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out id);
 
                         string? endnoteRefId = ExtractEndnoteRefId(para);
 
