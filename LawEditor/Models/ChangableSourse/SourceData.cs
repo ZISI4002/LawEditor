@@ -76,11 +76,11 @@ namespace LawEditor.Models.ChangableSourse {
 
         // ConstitutionalAmendment
         public ConstitutionalAmendment AddConstitutionalAmendment(
-        string id, string title, string? linkText = null, string? url = null, int? position = null) {
+         string title, string id = null, string? linkText = null, string? url = null, int? position = null) {
             var list = Source.Cast<ConstitutionalAmendment>().ToList();
             var newItem = new ConstitutionalAmendment(id, title, linkText, url);
 
-            if (position == null || position >= list.Count) {
+            if ((position == null && id == null) || position >= list.Count) {
                 Source.Add(newItem);
                 return newItem;
             }
