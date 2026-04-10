@@ -10,7 +10,6 @@ namespace LawEditor.Models.ChangableSourse {
         private static int counter = 1;
         public int Id { get; set; }
         public string? Title { get; set; }
-        public  string Date { get; set; } //Это финальный текст 
         public string? LinkText { get; set; }// null но добавь
         public string? Url { get; set; }// null но добавь
         public TransitionalProvisions() { }

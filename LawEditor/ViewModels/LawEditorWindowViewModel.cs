@@ -86,12 +86,12 @@ namespace LawEditor.ViewModels
                 Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et", "İçəridə bənd əlavə et", "Yuxarıda hissə əlavə et", "Aşağıda hissə əlavə et"),
                 Clause => ("Yuxarıda bənd əlavə et", "Aşağıda bənd əlavə et", "İçəridə altbənd əlavə et", null, null, null),
                 SubClause => ("Yuxarıda altbənd əlavə et", "Aşağıda altbənd əlavə et", null, null, null, null),
-                SourceData sr when sr.Type== "KEÇİD MÜDDƏALARI" => ("İçəridə yeni Keçid Müddəası əlavə elə ", null, null, null, null, null),
-                SourceData sr when sr.Type== "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI" => ("İçəridə yeni İstifadə olunmuş mənbə əlavə elə ", null, null, null, null, null),
-                SourceData sr when sr.Type == "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI" => ("İçəridə yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə ", null, null, null, null, null),
-                TransitionalProvisions => ("Yuxarıda Keçid Müddəası əlavə elə", "Aşağıda Keçid Müddəası əlavə elə", null, null, null, null),
-                SourceDocumentsList => ("Yuxarıda İstifadə olunmuş mənbə əlavə elə", "Aşağıda İstifadə olunmuş mənbə əlavə elə", null, null, null, null),
-                ConstitutionalAmendment => ("Yuxarıda Konstitusiyaya edilmiş dəyişiklik yada əlavə əlavə elə", "Aşağıda Konstitusiyaya edilmiş dəyişiklik yada əlavə əlavə elə", null, null, null, null),
+                SourceData sr when sr.Type== "KEÇİD MÜDDƏALARI" => ("İçəridə yeni Keçid Müddəası əlavə elə", null, null, null, null, null),
+                SourceData sr when sr.Type== "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI" => ("İçəridə yeni İstifadə olunmuş mənbə əlavə elə", null, null, null, null, null),
+                SourceData sr when sr.Type == "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI" => ("İçəridə yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", null, null, null, null, null),
+                TransitionalProvisions => ("Yuxarıda yeni Keçid Müddəası əlavə elə", "Aşağıda yeni Keçid Müddəası əlavə elə", null, null, null, null),
+                SourceDocumentsList => ("Yuxarıda yeni İstifadə olunmuş mənbə əlavə elə", "Aşağıda yeni İstifadə olunmuş mənbə əlavə elə", null, null, null, null),
+                ConstitutionalAmendment => ("Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", "Aşağıda Konstitusiyaya edilmiş dəyişiklik yada əlavə əlavə elə", null, null, null, null),
                 Models.RootClasses. Laws => ("Bölmə əlavə et", null, null, null, null, null),
                 _ => ("Bölmə əlavə et", null, null, null, null, null),
             };
@@ -207,17 +207,23 @@ namespace LawEditor.ViewModels
                                         CurrentAnchor.SubClause = sc;
                                     }
                     break;
+                    case SourceData sd:
+                        CurrentAnchor.SourceData = sd;
+                        break;
 
                 case TransitionalProvisions tp:
                     CurrentAnchor.TransitionalProvision = tp;
+                    CurrentAnchor.SourceData = EditedLaws.SourceData.FirstOrDefault(s => s.Source.Contains(tp));
                     break;
 
                 case SourceDocumentsList sd:
                     CurrentAnchor.SourceDocument = sd;
+                    CurrentAnchor.SourceData = EditedLaws.SourceData.FirstOrDefault(s => s.Source.Contains(sd));
                     break;
 
                 case ConstitutionalAmendment ca:
                     CurrentAnchor.ConstitutionalAmendment = ca;
+                    CurrentAnchor.SourceData = EditedLaws.SourceData.FirstOrDefault(s => s.Source.Contains(ca));
                     break;
             }
         }

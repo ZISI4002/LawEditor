@@ -84,7 +84,7 @@ namespace LawEditor.Services.LawServises
                         {
                             Id = tp.Id,
                             Title = tp.Title,
-                            Date = tp.Date,
+                           
                             LinkText= tp.LinkText,
                             Url = tp.Url
                         },

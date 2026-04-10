@@ -20,6 +20,7 @@ namespace LawEditor.Models.TreeClasses
         public SubClause? SubClause { get; set; }
 
         // Дополнительные разделы Laws
+        public SourceData? SourceData { get; set; }
         public TransitionalProvisions? TransitionalProvision { get; set; }
         public SourceDocumentsList? SourceDocument { get; set; }
         public ConstitutionalAmendment? ConstitutionalAmendment { get; set; }
@@ -31,6 +32,7 @@ namespace LawEditor.Models.TreeClasses
             if (Article != null) return Article;
             if (Section != null) return Section;
             if (Chapter != null) return Chapter;
+            if(SourceData != null) return SourceData;
             if (TransitionalProvision != null) return TransitionalProvision;
             if (SourceDocument != null) return SourceDocument;
             if (ConstitutionalAmendment != null) return ConstitutionalAmendment;
@@ -45,9 +47,10 @@ namespace LawEditor.Models.TreeClasses
             if (Article != null) return 3;
             if (Section != null) return 2;
             if (Chapter != null) return 1;
-            if (TransitionalProvision != null) return 0;
-            if (SourceDocument != null) return 0;
-            if (ConstitutionalAmendment != null) return 0;
+            if (SourceData != null) return 1;
+            if (TransitionalProvision != null) return 2;
+            if (SourceDocument != null) return 2;
+            if (ConstitutionalAmendment != null) return 2;
             if (Laws != null) return 0;
             return -1;
         }
@@ -55,9 +58,10 @@ namespace LawEditor.Models.TreeClasses
         public bool IsValid()
         {
             if (Laws != null) return true;
-            if (TransitionalProvision != null) return true;
-            if (SourceDocument != null) return true;
-            if (ConstitutionalAmendment != null) return true;
+            if (SourceData != null) return true;
+            if (SourceData==null && TransitionalProvision != null) return false;
+            if (SourceData==null && SourceDocument != null) return true;
+            if (SourceData == null && ConstitutionalAmendment != null) return true;
             if (Chapter == null) return false;
             if (Article != null && (Section == null || Chapter == null)) return false;
             if (Clause != null && (Article == null || Section == null || Chapter == null)) return false;

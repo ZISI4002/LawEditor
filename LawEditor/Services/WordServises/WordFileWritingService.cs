@@ -20,39 +20,37 @@ namespace LawEditor.Services.WordServises
             var body = mainPart.Document.AppendChild(new Body());
 
             // Header
-            if (!string.IsNullOrWhiteSpace(laws.UpperObjects[0].Headers[0].FullText))
+            if (laws.UpperObjects.Count > 0 && laws.UpperObjects[0].Headers.Count > 0)
             {
-                var headerLines = laws.UpperObjects[0].Headers[0].FullText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in headerLines)
+                var headerText = laws.UpperObjects[0].Headers[0].FullText;
+                if (!string.IsNullOrWhiteSpace(headerText))
                 {
-                    body.AppendChild(CreateParagraph(line));
+                    var headerLines = headerText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var line in headerLines)
+                        body.AppendChild(CreateParagraph(line));
                 }
             }
 
             // Chapters
             foreach (var chapter in laws.Chapters)
             {
-                // Азербайджанские порядковые числительные для BÖLMƏ
                 string chapterOrdinal = ToAzerbaijaniOrdinal(chapter.Id);
                 body.AppendChild(CreateParagraph($"{chapterOrdinal} BÖLMƏ", true));
                 body.AppendChild(CreateParagraph(chapter.Title, true));
 
                 foreach (var section in chapter.Sections)
                 {
-                    // Roman numerals для Section (I fəsil, II fəsil)
                     string sectionRoman = ToRoman(section.Id);
                     body.AppendChild(CreateParagraph($"{sectionRoman} fəsil"));
                     body.AppendChild(CreateParagraph(section.Title));
 
                     foreach (var article in section.Articles)
                     {
-                        // Article с форматированием Id
                         string articleId = FormatArticleId(article.Id);
                         body.AppendChild(CreateParagraph($"Maddə {articleId}. {article.Title}", true));
 
                         foreach (var clause in article.Clauses)
                         {
-                            // Clause с римскими цифрами если есть Number
                             if (clause.Number > 0)
                             {
                                 string clauseRoman = ToRoman(clause.Number);
@@ -63,47 +61,48 @@ namespace LawEditor.Services.WordServises
                                 body.AppendChild(CreateParagraph(clause.Text));
                             }
 
-                            // SubClauses с арабскими цифрами и скобкой
                             foreach (var subClause in clause.SubClauses)
-                            {
                                 body.AppendChild(CreateParagraph($"{subClause.Number}) {subClause.Text}"));
-                            }
                         }
                     }
                 }
             }
 
             // Transitional Provisions
-            var transitionalProvisions = laws.SourceData[0] as dynamic;
-            if (transitionalProvisions?.Source.Count > 0)
+            // Reader ищет "Keçİd müddəaları" (OrdinalIgnoreCase)
+            var transitionalData = laws.SourceData.FirstOrDefault(s => s.Id == 1);
+            if (transitionalData?.Source.Count > 0)
             {
                 body.AppendChild(CreateParagraph("Keçİd müddəaları", true));
-                foreach (var tp in transitionalProvisions.Source)
+                foreach (var item in transitionalData.Source)
                 {
-                    body.AppendChild(CreateParagraph(tp.Title));
+                    if (item is TransitionalProvisions tp)
+                        body.AppendChild(CreateParagraph(tp.Title ?? ""));
                 }
             }
 
             // Source Documents
-            var sourceDocumentsLists = laws.SourceData[1] as dynamic;
-            if (sourceDocumentsLists.Source.Count > 0)
+            // Reader ищет "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI" (OrdinalIgnoreCase)
+            var sourceData = laws.SourceData.FirstOrDefault(s => s.Id == 2);
+            if (sourceData?.Source.Count > 0)
             {
                 body.AppendChild(CreateParagraph("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI", true));
-                foreach (var sd in sourceDocumentsLists.Source)
+                foreach (var item in sourceData.Source)
                 {
-                    body.AppendChild(CreateParagraph(sd.Title));
+                    if (item is SourceDocumentsList sd)
+                        body.AppendChild(CreateParagraph(sd.Title ?? ""));
                 }
             }
 
             // Constitutional Amendments
-            var constitutionalAmendments = laws.SourceData[2] as dynamic;
-            if (constitutionalAmendments.Source.Count > 0)
+            // Reader пропускает эту строку (continue), amendments читаются из endnotes
+            // Поэтому просто пишем заголовок — amendments не пишем в body
+            var amendmentsData = laws.SourceData.FirstOrDefault(s => s.Id == 3);
+            if (amendmentsData?.Source.Count > 0)
             {
                 body.AppendChild(CreateParagraph("KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI", true));
-                foreach (var ca in constitutionalAmendments.Source)
-                {
-                    body.AppendChild(CreateParagraph(ca.Title));
-                }
+                // Reader читает amendments из endnotes, не из body
+                // Поэтому здесь ничего не пишем
             }
 
             mainPart.Document.Save();
@@ -115,9 +114,7 @@ namespace LawEditor.Services.WordServises
             var run = new Run();
 
             if (bold)
-            {
                 run.RunProperties = new RunProperties(new Bold());
-            }
 
             run.AppendChild(new Text(text));
             para.AppendChild(run);
@@ -127,13 +124,8 @@ namespace LawEditor.Services.WordServises
 
         private string FormatArticleId(decimal id)
         {
-            // Если целое число, выводим без десятичной части
             if (id == (int)id)
-            {
                 return ((int)id).ToString();
-            }
-
-            // Если дробное, показываем с точкой
             return id.ToString("0.0");
         }
 
@@ -149,7 +141,6 @@ namespace LawEditor.Services.WordServises
             if (number > 0 && number < ordinals.Length)
                 return ordinals[number].ToUpper();
 
-            // Если число больше массива, возвращаем как есть
             return number.ToString();
         }
 

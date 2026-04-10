@@ -29,6 +29,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
             switch (menuText)
             {
+                // Bölüm əlavə etməklə bağlı əmrlər
                 case "Yuxarıda bölmə əlavə et":
 
                     _viewModel.EditedLaws.AddChapter("Yeni Bölmə",anchor.Chapter.Id-1);
@@ -40,7 +41,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                         _viewModel.EditedLaws.AddChapter("Yeni Bölmə", anchor.Chapter.Id);
                     _viewModel.BuildTreeRoots();
                     break;
-
+                // Fəsil əlavə etməklə bağlı əmrlər
                 case "İçəridə fəsil əlavə et":
                     anchor.Chapter.AddSection("Yeni Fəsil");
                     break;
@@ -50,6 +51,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "Aşağıda fəsil əlavə et":
                     anchor.Chapter.AddSection("Yeni Fəsil", anchor.Section.Id );
                     break;
+                // Maddə əlavə etməklə bağlı əmrlər
                 case "İçəridə maddə əlavə et":
                     anchor.Section.AddArticle("Yeni Maddə",_viewModel.EditedLaws);
 
@@ -64,7 +66,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "Aşağıda maddə əlavə et":
                     anchor.Section.AddArticle((anchor.Article.Id) - ((anchor.Article.Id) % 1)+1, "Yeni Maddə", _viewModel.EditedLaws);
                     break;
-
+                // Hissə əlavə etməklə bağlı əmrlər
                 case "Yuxarıda hissə əlavə et":
                     if(anchor.Article.Id % 1 != 0) { 
                     anchor.Section.AddArticle(anchor.Article.Id, "Yeni Maddə", _viewModel.EditedLaws);
@@ -88,6 +90,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     anchor.Section.AddArticle(cout, "Yeni Maddə", _viewModel.EditedLaws);
 
                     break;
+                // Bənd əlavə etməklə bağlı əmrlər
                 case "İçəridə bənd əlavə et":
                     anchor.Article.AddClause("Yeni Bənd");
                     break;
@@ -97,6 +100,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "Aşağıda bənd əlavə et":
                         anchor.Article.AddClause("Yeni Bənd", anchor.Clause.Number);
                     break;
+                // Altbənd əlavə etməklə bağlı əmrlər
                 case "İçəridə altbənd əlavə et":
                     anchor.Clause.AddSubClause("Yeni Altbənd");
                     break;
@@ -106,7 +110,29 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "Aşağıda altbənd əlavə et":
                     anchor.Clause.AddSubClause("Yeni Altbənd", anchor.SubClause.Number);
                     break;
+                // Keçid müddəası əlavə etməklə bağlı əmrlər
+                case "İçəridə yeni Keçid Müddəası əlavə elə":
+                    break;
+                case "Yuxarıda yeni Keçid Müddəası əlavə elə":
+                    break;
+                    case "Aşağıda yeni Keçid Müddəası əlavə elə":
+                        break;
+                // Yeni Konstitusiya dəyişikliyi yada əlavəsi əlavə etməklə bağlı əmrlər
+                case "İçəridə yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
                     
+                    break;
+                    case "Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
+                        break;
+                    case "Aşağıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
+                        break;
+                // Yeni İstifadə olunmuş mənbə əlavə etməklə bağlı əmrlər
+                case "İçəridə yeni İstifadə olunmuş mənbə əlavə elə":
+                                        break;
+                    case "Yuxarıda yeni İstifadə olunmuş mənbə əlavə elə":
+                        break;
+                    case "Aşağıda yeni İstifadə olunmuş mənbə əlavə elə":
+                        break;
+                // Yeni qanun əlavə etməklə bağlı əmrlər
                 case "Bölmə əlavə et":
                         _viewModel.EditedLaws.AddChapter("Yeni Bölmə");
                     _viewModel.BuildTreeRoots();
