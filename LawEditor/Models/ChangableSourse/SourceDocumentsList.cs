@@ -27,5 +27,10 @@ namespace LawEditor.Models.ChangableSourse {
             if (counter > 1)
                 counter--;
         }
+        public static void DecreaseCounterToOne()
+        {
+           while (counter > 1)
+                counter--;
+        }
     }
 }

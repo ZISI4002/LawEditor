@@ -1,36 +1,11 @@
-﻿using LawEditor.Services.XMLSErvises;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-
-namespace LawEditor.Commands.MainWindowCommands
+public async void Execute(object? parameter)
 {
-    public class GenerateCommand : ICommand
+    if (_viewModel.FileIsAdded == true || 
+        (_viewModel.Laws.Chapters.Count > 0 && 
+         _viewModel.Laws.UpperObjects.Count > 0 && 
+         _viewModel.Laws.SourceData.Count > 0))
     {
-        private readonly MainWindowViewModel _viewModel;
-
-        public GenerateCommand(MainWindowViewModel viewModel)
-        {
-            _viewModel = viewModel;
-        }
-
-        public event EventHandler? CanExecuteChanged;
-
-        public bool CanExecute(object? parameter)=> true;
-
-        public async void Execute(object? parameter)
-{
-            if (_viewModel.FileIsAdded == true ||
-                 (_viewModel.Laws.Chapters.Count > 0 &&
-                  _viewModel.Laws.UpperObjects.Count > 0 &&
-                  _viewModel.Laws.SourceData.Count > 0))
-            {
-                _viewModel.IsDisplayRightVisible = true;
+        _viewModel.IsDisplayRightVisible = true;
         _viewModel.IsLoading = true;
 
         try
@@ -42,13 +17,13 @@ namespace LawEditor.Commands.MainWindowCommands
 
                 string folderPath = System.IO.Path.GetDirectoryName(_viewModel.FilePath);
                 string fileName = _viewModel.FileNameRight;
+                Task.Delay(2000).Wait(); 
                 xmlTranslator.Translate(_viewModel.Laws, folderPath, fileName);
                 var xmlLaw = xmlFileProcessingService.ReadXmlFile(folderPath, fileName);
 
                 return xmlLaw;
             });
-            
-             Task.Delay(2000).Wait(); 
+
             _viewModel.XML = result;
         }
         finally
@@ -63,7 +38,5 @@ namespace LawEditor.Commands.MainWindowCommands
         WarningException warning = new WarningException("Fayl əlavə edilməyib");
         MessageBox.Show(warning.Message, "Xəbərdarlıq",
             MessageBoxButton.OK, MessageBoxImage.Warning);
-    }
-}
     }
 }

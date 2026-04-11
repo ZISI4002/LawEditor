@@ -1,4 +1,5 @@
-﻿using LawEditor.Models.RootClasses;
+﻿using LawEditor.Models.ChangableSourse;
+using LawEditor.Models.RootClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,8 @@ namespace LawEditor.Commands.MainWindowCommands
             _viewModel.Laws.ResetCounter();
             _viewModel.Laws.Chapters.Clear();
             _viewModel.Laws.SourceData.Clear();
-
+            SourceDocumentsList.DecreaseCounterToOne();
+            TransitionalProvisions.Date = string.Empty;
             // Сбрасываем все свойства, связанные с отображением и данными
             _viewModel.IsDisplayLeftVisible = false;
                 _viewModel.IsDisplayButtonsVisible = true;

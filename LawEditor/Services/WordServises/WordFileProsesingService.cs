@@ -351,7 +351,7 @@ namespace LawEditor.Services.WordServises
                 Type = "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI",
                 Source = new ObservableCollection<object>(amendments.Cast<object>())
             });
-
+            
             return law;
         }
 
