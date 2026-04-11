@@ -40,7 +40,7 @@ namespace LawEditor.Models.ChangableSourse {
             foreach (var t in Source.Cast<TransitionalProvisions>().Where(t => t.Id > id))
                 t.Id--;
 
-            TransitionalProvisions.DecreaseCounter();
+            //TransitionalProvisions.DecreaseCounter();
         }
 
         // SourceDocumentsList

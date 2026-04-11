@@ -37,11 +37,11 @@ namespace LawEditor.Services.WordServises
             return false;
         }
 
-        enum Mode
-        {
+        enum Mode {
             Header,
             Chapters,
             Transitional,
+            TransitionalDone,
             Sources
         }
 
@@ -127,6 +127,7 @@ namespace LawEditor.Services.WordServises
             Section currentSection = null;
             Article currentArticle = null;
             Clause currentClause = null;
+            TransitionalProvisions currentTransitional = null;
 
 
             Mode mode = Mode.Header;
@@ -145,7 +146,7 @@ namespace LawEditor.Services.WordServises
             {
                 var line = GetParagraphText(para);
 
-                if (string.IsNullOrWhiteSpace(line))
+                if (string.IsNullOrWhiteSpace(line) && mode != Mode.Transitional)
                     continue;
 
                 if (line.Contains("INCLUDEPICTURE") ||
@@ -274,10 +275,34 @@ namespace LawEditor.Services.WordServises
                 }
 
                 // TRANSITIONAL
-                if (mode == Mode.Transitional)
-                {
-                    transitional.Add(new TransitionalProvisions(line));
+                if (mode == Mode.Transitional) {
+                    var provMatch = Regex.Match(line, @"^(\d+)\.\s+(.+)");
+                    if (provMatch.Success) {
+                        string idStr = provMatch.Groups[1].Value;
+                        string title = provMatch.Groups[2].Value;
+
+                        int.TryParse(idStr,
+                            System.Globalization.NumberStyles.Number,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out int id);
+
+                        currentTransitional = new TransitionalProvisions(title) {
+                            Id = id
+                        };
+                        transitional.Add(currentTransitional);
+                    }
+                    //если строка пустая и массив не пустой, то меняем мод на TransitionalDone,
+                    //чтобы дальше не добавлять пустые строки к последнему пункту
+                    else if (string.IsNullOrWhiteSpace(line) && transitional.Count > 0) {
+                        mode = Mode.TransitionalDone;
+                    }
+                    else if (currentTransitional != null) {
+                        currentTransitional.Title += "\n" + line;
+                    }                                        
                     continue;
+                }
+                if (mode == Mode.TransitionalDone) {
+                    TransitionalProvisions.Date = line;
                 }
 
                 // SOURCES
