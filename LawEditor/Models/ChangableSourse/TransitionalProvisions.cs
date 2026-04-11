@@ -11,7 +11,7 @@ namespace LawEditor.Models.ChangableSourse {
         public string? Title { get; set; }
         public string? LinkText { get; set; }
         public string? Url { get; set; }
-        public static string Date { get; set; } = "12 noyabr 1995-ci il\r\n    № 00.\r\n";
+        public static string Date { get; set; }
         public TransitionalProvisions() { }
         public TransitionalProvisions(string title, string? linkText = null, string? url = null) {
             Title = title;

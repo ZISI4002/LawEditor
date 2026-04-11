@@ -302,7 +302,8 @@ namespace LawEditor.Services.WordServises
                     continue;
                 }
                 if (mode == Mode.TransitionalDone) {
-                    TransitionalProvisions.Date = line;
+                    TransitionalProvisions.Date = TransitionalProvisions.Date += line + "\n";
+                     continue;
                 }
 
                 // SOURCES
