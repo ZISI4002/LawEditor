@@ -119,10 +119,10 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                         break;
                 // Yeni Konstitusiya dəyişikliyi yada əlavəsi əlavə etməklə bağlı əmrlər
                 case "İçəridə yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
-                    
+                    anchor.SourceData.AddConstitutionalAmendment("Yeni Konstitusiya Dəyişikliyi");
                     break;
                     case "Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
-                        break;
+                    break;
                     case "Aşağıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
                         break;
                 // Yeni İstifadə olunmuş mənbə əlavə etməklə bağlı əmrlər

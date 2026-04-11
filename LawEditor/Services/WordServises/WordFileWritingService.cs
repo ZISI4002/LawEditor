@@ -18,6 +18,7 @@ namespace LawEditor.Services.WordServises
             var mainPart = doc.AddMainDocumentPart();
             mainPart.Document = new Document();
             var body = mainPart.Document.AppendChild(new Body());
+            var endnotePart = mainPart.AddNewPart<EndnotesPart>();
 
             // Header
             if (laws.UpperObjects.Count > 0 && laws.UpperObjects[0].Headers.Count > 0)
@@ -36,13 +37,15 @@ namespace LawEditor.Services.WordServises
             {
                 string chapterOrdinal = ToAzerbaijaniOrdinal(chapter.Id);
                 body.AppendChild(CreateParagraph($"{chapterOrdinal} BÖLMƏ", true));
-                body.AppendChild(CreateParagraph(chapter.Title, true));
+                if (!string.IsNullOrEmpty(chapter.Title))
+                    body.AppendChild(CreateParagraph(chapter.Title, true));
 
                 foreach (var section in chapter.Sections)
                 {
                     string sectionRoman = ToRoman(section.Id);
                     body.AppendChild(CreateParagraph($"{sectionRoman} fəsil"));
-                    body.AppendChild(CreateParagraph(section.Title));
+                    if (!string.IsNullOrEmpty(section.Title))
+                        body.AppendChild(CreateParagraph(section.Title));
 
                     foreach (var article in section.Articles)
                     {
@@ -56,7 +59,7 @@ namespace LawEditor.Services.WordServises
                                 string clauseRoman = ToRoman(clause.Number);
                                 body.AppendChild(CreateParagraph($"{clauseRoman}. {clause.Text}"));
                             }
-                            else
+                            else if (!string.IsNullOrEmpty(clause.Text))
                             {
                                 body.AppendChild(CreateParagraph(clause.Text));
                             }
@@ -94,15 +97,25 @@ namespace LawEditor.Services.WordServises
                 }
             }
 
-            // Constitutional Amendments
-            // Reader пропускает эту строку (continue), amendments читаются из endnotes
-            // Поэтому просто пишем заголовок — amendments не пишем в body
             var amendmentsData = laws.SourceData.FirstOrDefault(s => s.Id == 3);
             if (amendmentsData?.Source.Count > 0)
             {
-                body.AppendChild(CreateParagraph("KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI", true));
-                // Reader читает amendments из endnotes, не из body
-                // Поэтому здесь ничего не пишем
+                endnotePart.Endnotes = new Endnotes(
+                    new Endnote(
+                        new Paragraph(
+                            new Run(
+                                new RunProperties(new Bold()),
+                                new Text("KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI")
+                            )
+                        )
+                    )
+                );
+
+                foreach (var item in amendmentsData.Source)
+                {
+                    if (item is ConstitutionalAmendment ca && !string.IsNullOrEmpty(ca.Title))
+                        endnotePart.Endnotes.AppendChild(CreateParagraph(ca.Title));
+                }
             }
 
             mainPart.Document.Save();

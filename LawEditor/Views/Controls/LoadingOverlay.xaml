@@ -1,0 +1,59 @@
+﻿<UserControl x:Class="LawEditor.Views.Controls.LoadingOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="120" d:DesignWidth="220">
+
+    <UserControl.Resources>
+        <Storyboard x:Key="OnLoaded">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                             From="0" To="1" Duration="0:0:0.3"/>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard Storyboard="{StaticResource OnLoaded}"/>
+        </EventTrigger>
+    </UserControl.Triggers>
+
+    <Grid>
+        <Border Background="#45000000" CornerRadius="12"/>
+
+        <Border Background="White" 
+                CornerRadius="12" 
+                Padding="30,25" 
+                MinWidth="200"
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center">
+
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="30" ShadowDepth="4" Direction="270" Opacity="0.1"/>
+            </Border.Effect>
+
+            <StackPanel>
+                <TextBlock Text="Yüklənir..." 
+                           Foreground="#2C3E50" 
+                           FontWeight="SemiBold" 
+                           FontSize="16" 
+                           HorizontalAlignment="Center"
+                           FontFamily="Segoe UI Semibold"/>
+
+                <ProgressBar IsIndeterminate="True" 
+                             Height="3" 
+                             Margin="0,20,0,0"
+                             BorderThickness="0"
+                             Background="#F0F3F4"
+                             Foreground="#3498DB">
+                    <ProgressBar.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="1.5"/>
+                        </Style>
+                    </ProgressBar.Resources>
+                </ProgressBar>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

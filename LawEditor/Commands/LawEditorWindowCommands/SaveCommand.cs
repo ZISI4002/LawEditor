@@ -34,34 +34,40 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 .Warning, MessageBoxResult.No);
 
             if (result != MessageBoxResult.Yes) return;
-
-            // Очищаем оригинальный Laws
-            _viewModel.Laws.Chapters.Clear();
-            _viewModel.Laws.SourceData.Clear();
-            _viewModel.Laws.UpperObjects.Clear();
-
-
-            // Копируем EditedLaws обратно в Laws
-            CopyLawsServise.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);
-
-            // Обновляем ссылку в MainWindowModel
-            _viewModel.MainWindowModel.Laws = _viewModel.Laws;
-            if (_viewModel.MainWindowModel.FileIsAdded)
+            try
             {
-                var wordWriter = new WordFileWritingService();
-                wordWriter.WriteWordFile(_viewModel.MainWindowModel.FilePath, _viewModel.MainWindowModel.Laws);
+                // Очищаем оригинальный Laws
+                _viewModel.Laws.Chapters.Clear();
+                _viewModel.Laws.SourceData.Clear();
+                _viewModel.Laws.UpperObjects.Clear();
 
 
-            }
-            if (_viewModel.MainWindowModel.Window is MainWindow mainWindow)
-            {
-                mainWindow.DisplayLaws(_viewModel.Laws);
+                // Копируем EditedLaws обратно в Laws
+                CopyLawsServise.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);
+
+                // Обновляем ссылку в MainWindowModel
+                _viewModel.MainWindowModel.Laws = _viewModel.Laws;
                 if (_viewModel.MainWindowModel.FileIsAdded)
                 {
-                    mainWindow.DisplayChangedXML(_viewModel.MainWindowModel);
+                    var wordWriter = new WordFileWritingService();
+                    wordWriter.WriteWordFile(_viewModel.MainWindowModel.FilePath, _viewModel.MainWindowModel.Laws);
+
+
+                }
+                if (_viewModel.MainWindowModel.Window is MainWindow mainWindow)
+                {
+                    mainWindow.DisplayLaws(_viewModel.Laws);
+                    if (_viewModel.MainWindowModel.FileIsAdded)
+                    {
+                        mainWindow.DisplayChangedXML(_viewModel.MainWindowModel);
+                    }
                 }
             }
-
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while saving the file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             // Закрываем окно
             _viewModel.Window.Close();
 

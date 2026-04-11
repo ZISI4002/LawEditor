@@ -79,7 +79,12 @@ public class MainWindowViewModel : BaseViewModel
         set => Set(ref _isDisplayRightVisible, value);
     }
 
-   
 
-   
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+       set => Set(ref _isLoading, value);
+    }
+
 }
