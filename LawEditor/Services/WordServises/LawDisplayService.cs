@@ -1,5 +1,6 @@
-﻿using LawEditor.Models.RootClasses;
+﻿using DocumentFormat.OpenXml.Bibliography;
 using LawEditor.Models.ChangableSourse;
+using LawEditor.Models.RootClasses;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -159,7 +160,7 @@ namespace LawEditor.Services.WordServises
 
                 foreach (var tp in transitionalProvisions.Source)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run(tp.Title))
+                    doc.Blocks.Add(new Paragraph(new Run($" {tp.Id}. {tp.Title}"))
                     {
                         FontSize = 13,
                         Foreground = Brushes.Black,
@@ -168,7 +169,7 @@ namespace LawEditor.Services.WordServises
                 }
 
                 // Дата подписания
-                doc.Blocks.Add(new Paragraph(new Run("12 noyabr 1995-ci il"))
+                doc.Blocks.Add(new Paragraph(new Run($"{TransitionalProvisions.Date}"))
                 {
                     FontSize = 13,
                     FontWeight = FontWeights.Bold,
@@ -193,7 +194,7 @@ namespace LawEditor.Services.WordServises
 
                 foreach (var source in sourceDocumentsLists.Source)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run($" {source.Id} {source.Title}"))
+                    doc.Blocks.Add(new Paragraph(new Run($" {source.Id}. {source.Title}"))
                     {
                         FontSize = 13,
                         Foreground = Brushes.Black,

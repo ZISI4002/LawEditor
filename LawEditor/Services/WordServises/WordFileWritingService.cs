@@ -72,7 +72,6 @@ namespace LawEditor.Services.WordServises
             }
 
             // Transitional Provisions
-            // Reader ищет "Keçİd müddəaları" (OrdinalIgnoreCase)
             var transitionalData = laws.SourceData.FirstOrDefault(s => s.Id == 1);
             if (transitionalData?.Source.Count > 0)
             {
@@ -82,10 +81,10 @@ namespace LawEditor.Services.WordServises
                     if (item is TransitionalProvisions tp)
                         body.AppendChild(CreateParagraph(tp.Title ?? ""));
                 }
+                //#   Добавь пустую строку после пунктов(перед датой) (от Алсу)
             }
 
             // Source Documents
-            // Reader ищет "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI" (OrdinalIgnoreCase)
             var sourceData = laws.SourceData.FirstOrDefault(s => s.Id == 2);
             if (sourceData?.Source.Count > 0)
             {

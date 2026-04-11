@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Drawing;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -12,35 +13,44 @@ namespace LawEditor.Models.ChangableSourse {
 
         public ObservableCollection<object> Source { get; set; } = new();
 
-        // TransitionalProvision
+        // TransitionalProvision      
         public TransitionalProvisions AddTransitionalProvision(
         string title, string? linkText = null, string? url = null, int? position = null) {
-            var list = Source.Cast<TransitionalProvisions>().ToList();
+            var list = Source.Cast<TransitionalProvisions>().OrderBy(x => x.Id).ToList();
+
             var newItem = new TransitionalProvisions(title, linkText, url);
 
+            // если добавляем в конец
             if (position == null || position >= list.Count) {
+                newItem.Id = list.Any() ? list.Max(x => x.Id) + 1 : 1;
                 Source.Add(newItem);
                 return newItem;
             }
 
             int insertId = list[position.Value].Id;
+
+            // сдвигаем все Id >= insertId
             foreach (var item in list.Where(t => t.Id >= insertId))
                 item.Id++;
 
             newItem.Id = insertId;
+
             Source.Insert(position.Value, newItem);
+
             return newItem;
         }
 
         public void DeleteTransitionalProvision(int id) {
-            var item = Source.Cast<TransitionalProvisions>().FirstOrDefault(t => t.Id == id);
+            var list = Source.Cast<TransitionalProvisions>().ToList();
+
+            var item = list.FirstOrDefault(t => t.Id == id);
             if (item == null) return;
 
             Source.Remove(item);
+
+            // сдвигаем Id вниз
             foreach (var t in Source.Cast<TransitionalProvisions>().Where(t => t.Id > id))
                 t.Id--;
-
-            TransitionalProvisions.DecreaseCounter();
         }
 
         // SourceDocumentsList
