@@ -9,8 +9,14 @@ namespace LawEditor.Models.ChangableData
         private static int counter = 1;
 
         public int Id { get; set; }
-        public string? Title { get; set; }
+        private string? title;
 
+        public string? Title {
+            get { return title; }
+            set { 
+                title = value?.ToUpper(); 
+            }
+        }
         public ObservableCollection<Section> Sections { get; set; } = new();
 
         public Chapter() { }  

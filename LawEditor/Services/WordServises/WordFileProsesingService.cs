@@ -123,11 +123,11 @@ namespace LawEditor.Services.WordServises
             ObservableCollection<ConstitutionalAmendment> amendments = new ObservableCollection<ConstitutionalAmendment>();
             ObservableCollection<Models.ChangableData.Header> headers = new ObservableCollection<Models.ChangableData.Header>();
 
-            Chapter currentChapter = null;
-            Section currentSection = null;
-            Article currentArticle = null;
-            Clause currentClause = null;
-            TransitionalProvisions currentTransitional = null;
+            Chapter? currentChapter = null;
+            Section? currentSection = null;
+            Article? currentArticle = null;
+            Clause? currentClause = null;
+            TransitionalProvisions? currentTransitional = null;
 
 
             Mode mode = Mode.Header;
