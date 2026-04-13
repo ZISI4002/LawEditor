@@ -1,4 +1,5 @@
-﻿using LawEditor.ViewModels;
+﻿using LawEditor.Models.ChangableSourse;
+using LawEditor.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -112,26 +113,47 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     break;
                 // Keçid müddəası əlavə etməklə bağlı əmrlər
                 case "İçəridə yeni Keçid Müddəası əlavə elə":
+                    anchor.SourceData.AddTransitionalProvision("Yeni Keçid Müddəası");
                     break;
                 case "Yuxarıda yeni Keçid Müddəası əlavə elə":
+                    anchor.SourceData.AddTransitionalProvision("Yeni Keçid Müddəası", position: anchor.SourceData.Source.IndexOf(anchor.TransitionalProvision));
                     break;
                     case "Aşağıda yeni Keçid Müddəası əlavə elə":
+                    anchor.SourceData.AddTransitionalProvision("Yeni Keçid Müddəası", position: anchor.SourceData.Source.IndexOf(anchor.TransitionalProvision)+1);
                         break;
                 // Yeni Konstitusiya dəyişikliyi yada əlavəsi əlavə etməklə bağlı əmrlər
                 case "İçəridə yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
                     anchor.SourceData.AddConstitutionalAmendment("Yeni Konstitusiya Dəyişikliyi");
                     break;
-                    case "Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
-                    break;
-                    case "Aşağıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
+                case "Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
+                    {
+                        var list = anchor.SourceData.Source.Cast<ConstitutionalAmendment>().ToList();
+                        int pos = list.IndexOf(anchor.ConstitutionalAmendment);
+                        anchor.SourceData.AddConstitutionalAmendment(
+                            "Yeni Konstitusiya Dəyişikliyi",
+                            position: pos > 0 ? pos : 0);
                         break;
+                    }
+
+                case "Aşağıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
+                    {
+                        var list1 = anchor.SourceData.Source.Cast<ConstitutionalAmendment>().ToList();
+                        int pos = list1.IndexOf(anchor.ConstitutionalAmendment);
+                        anchor.SourceData.AddConstitutionalAmendment(
+                            "Yeni Konstitusiya Dəyişikliyi",
+                            position: pos + 1);
+                        break;
+                    }
                 // Yeni İstifadə olunmuş mənbə əlavə etməklə bağlı əmrlər
                 case "İçəridə yeni İstifadə olunmuş mənbə əlavə elə":
-                                        break;
+                    anchor.SourceData.AddSourceDocument("Yeni İstifadə Olunmuş Mənbə");
+                    break;
                     case "Yuxarıda yeni İstifadə olunmuş mənbə əlavə elə":
+                    anchor.SourceData.AddSourceDocument("Yeni İstifadə Olunmuş Mənbə", position: anchor.SourceData.Source.IndexOf(anchor.SourceDocument));
                         break;
                     case "Aşağıda yeni İstifadə olunmuş mənbə əlavə elə":
-                        break;
+                    anchor.SourceData.AddSourceDocument("Yeni İstifadə Olunmuş Mənbə", position: anchor.SourceData.Source.IndexOf(anchor.SourceDocument)+1);
+                    break;
                 // Yeni qanun əlavə etməklə bağlı əmrlər
                 case "Bölmə əlavə et":
                         _viewModel.EditedLaws.AddChapter("Yeni Bölmə");

@@ -10,46 +10,46 @@ namespace LawEditor.Models.ChangableSourse {
     public class SourceData {
         public int Id { get; set; }
         public string Type { get; set; }
-
+       
         public ObservableCollection<object> Source { get; set; } = new();
 
         // TransitionalProvision      
         public TransitionalProvisions AddTransitionalProvision(
-        string title, string? linkText = null, string? url = null, int? position = null) {
-            var list = Source.Cast<TransitionalProvisions>().OrderBy(x => x.Id).ToList();
-
+ string title, string? linkText = null, string? url = null, int? position = null)
+        {
+            var list = Source.OfType<TransitionalProvisions>().OrderBy(x => x.Id).ToList();
             var newItem = new TransitionalProvisions(title, linkText, url);
+            var dateNode = Source.OfType<TransitionalProvisionsDateNote>().FirstOrDefault();
 
-            // если добавляем в конец
-            if (position == null || position >= list.Count) {
+            if (position == null || position >= list.Count)
+            {
                 newItem.Id = list.Any() ? list.Max(x => x.Id) + 1 : 1;
-                Source.Add(newItem);
+                if (dateNode != null)
+                    Source.Insert(Source.IndexOf(dateNode), newItem);
+                else
+                    Source.Add(newItem);
                 return newItem;
             }
 
             int insertId = list[position.Value].Id;
-
-            // сдвигаем все Id >= insertId
             foreach (var item in list.Where(t => t.Id >= insertId))
                 item.Id++;
 
             newItem.Id = insertId;
-
             Source.Insert(position.Value, newItem);
-
             return newItem;
         }
 
-        public void DeleteTransitionalProvision(int id) {
-            var list = Source.Cast<TransitionalProvisions>().ToList();
+        public void DeleteTransitionalProvision(int id)
+        {
+            var list = Source.OfType<TransitionalProvisions>().ToList();
 
             var item = list.FirstOrDefault(t => t.Id == id);
             if (item == null) return;
 
             Source.Remove(item);
 
-            // сдвигаем Id вниз
-            foreach (var t in Source.Cast<TransitionalProvisions>().Where(t => t.Id > id))
+            foreach (var t in Source.OfType<TransitionalProvisions>().Where(t => t.Id > id))
                 t.Id--;
         }
 

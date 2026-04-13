@@ -30,6 +30,7 @@ namespace LawEditor.Commands.MainWindowCommands
             _viewModel.Laws.SourceData.Clear();
             SourceDocumentsList.DecreaseCounterToOne();
             TransitionalProvisions.Date = string.Empty;
+            TransitionalProvisions.Date=DateOnly.FromDateTime(DateTime.Now).ToString("dd.MM.yyyy");
             // Сбрасываем все свойства, связанные с отображением и данными
             _viewModel.IsDisplayLeftVisible = false;
                 _viewModel.IsDisplayButtonsVisible = true;

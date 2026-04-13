@@ -122,12 +122,13 @@ namespace LawEditor.Services.WordServises
             ObservableCollection<SourceDocumentsList> sources = new ObservableCollection<SourceDocumentsList>();
             ObservableCollection<ConstitutionalAmendment> amendments = new ObservableCollection<ConstitutionalAmendment>();
             ObservableCollection<Models.ChangableData.Header> headers = new ObservableCollection<Models.ChangableData.Header>();
-
-            Chapter? currentChapter = null;
-            Section? currentSection = null;
-            Article? currentArticle = null;
-            Clause? currentClause = null;
-            TransitionalProvisions? currentTransitional = null;
+            
+            Chapter currentChapter = null;
+            Section currentSection = null;
+            Article currentArticle = null;
+            Clause currentClause = null;
+            TransitionalProvisions currentTransitional = null;
+            TransitionalProvisions.Date = null;
 
 
             Mode mode = Mode.Header;
@@ -337,6 +338,7 @@ namespace LawEditor.Services.WordServises
                 Type = "KEÇİD MÜDDƏALARI",
                 Source = new ObservableCollection<object>(transitional.Cast<object>())
             });
+            law.SourceData[0].Source.Add(new TransitionalProvisionsDateNote());
 
             law.SourceData.Add(new SourceData
             {

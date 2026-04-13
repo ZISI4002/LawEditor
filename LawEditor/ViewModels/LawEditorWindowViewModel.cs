@@ -90,8 +90,9 @@ namespace LawEditor.ViewModels
                 SourceData sr when sr.Type== "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI" => ("İçəridə yeni İstifadə olunmuş mənbə əlavə elə", null, null, null, null, null),
                 SourceData sr when sr.Type == "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI" => ("İçəridə yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", null, null, null, null, null),
                 TransitionalProvisions => ("Yuxarıda yeni Keçid Müddəası əlavə elə", "Aşağıda yeni Keçid Müddəası əlavə elə", null, null, null, null),
+               TransitionalProvisionsDateNote=> (null, null, null, null, null, null),
                 SourceDocumentsList => ("Yuxarıda yeni İstifadə olunmuş mənbə əlavə elə", "Aşağıda yeni İstifadə olunmuş mənbə əlavə elə", null, null, null, null),
-                ConstitutionalAmendment => ("Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", "Aşağıda Konstitusiyaya edilmiş dəyişiklik yada əlavə əlavə elə", null, null, null, null),
+                ConstitutionalAmendment => ("Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", "Aşağıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", null, null, null, null),
                 Models.RootClasses. Laws => ("Bölmə əlavə et", null, null, null, null, null),
                 _ => ("Bölmə əlavə et", null, null, null, null, null),
             };

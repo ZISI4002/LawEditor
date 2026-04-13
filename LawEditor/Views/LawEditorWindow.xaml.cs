@@ -1,4 +1,5 @@
-﻿using LawEditor.Models.RootClasses;
+﻿using LawEditor.Models.ChangableSourse;
+using LawEditor.Models.RootClasses;
 using LawEditor.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,6 @@ namespace LawEditor.Views
         public LawEditorWindow()
         {
             InitializeComponent();
-            
         }
 
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)

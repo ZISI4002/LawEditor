@@ -10,8 +10,19 @@ namespace LawEditor.Services.WordServises
     public class LawDisplayService
     {
         private static readonly string[] RomanNumerals = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV" ,};
-        private static readonly string[] Ordinals = { "Birinci", "İkinci", "Üçüncü", "Dördüncü", "Beşinci", "Altıncı", "Yeddinci", "Səkkizinci", "Doqquzuncu", "Onuncu" };
-
+        private static readonly string[] Ordinals =
+        {
+    "BIRINCI",
+    "IKINCI",
+    "ÜÇÜNCÜ",
+    "DÖRDÜNCÜ",
+    "BEŞINCI",
+    "ALTINCI",
+    "YEDDINCI",
+    "SƏKKIZINCI",
+    "DOQQUZUNCU",
+    "ONUNCU"
+};
         public FlowDocument BuildDocument(Laws laws)
         {
             var doc = new FlowDocument();
@@ -160,6 +171,9 @@ namespace LawEditor.Services.WordServises
 
                 foreach (var tp in transitionalProvisions.Source)
                 {
+                    if (tp is TransitionalProvisionsDateNote)
+                        continue;
+
                     doc.Blocks.Add(new Paragraph(new Run($" {tp.Id}. {tp.Title}"))
                     {
                         FontSize = 13,

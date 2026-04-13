@@ -22,6 +22,7 @@ namespace LawEditor.Models.TreeClasses
         // Дополнительные разделы Laws
         public SourceData? SourceData { get; set; }
         public TransitionalProvisions? TransitionalProvision { get; set; }
+        public TransitionalProvisionsDateNote? TransitionalProvisionsDateNote { get; set; }
         public SourceDocumentsList? SourceDocument { get; set; }
         public ConstitutionalAmendment? ConstitutionalAmendment { get; set; }
 

@@ -24,6 +24,7 @@ namespace LawEditor.Models.TreeClasses
                 Clause cl => GetFullClause(cl),
                 SubClause sc => sc.Text ?? "",
                 TransitionalProvisions tp => tp.Title ?? "",
+                TransitionalProvisionsDateNote tpDate => tpDate.DisplayText,
                 SourceDocumentsList sd => sd.Title ?? "",
                 ConstitutionalAmendment ca => ca.Title ?? "",
                 SourceData sd => GetFullSourceData(sd),
@@ -135,6 +136,9 @@ namespace LawEditor.Models.TreeClasses
                     case TransitionalProvisions tp:
                         sb.AppendLine($"  {tp.Id}) {tp.Title}");
                         break;
+                    case TransitionalProvisionsDateNote tpDate:
+                        sb.AppendLine($"  {tpDate.DisplayText}");
+                        break;
                     case SourceDocumentsList sd:
                         sb.AppendLine($"  {sd.Id}) {sd.Title}");
                         break;
@@ -162,6 +166,7 @@ namespace LawEditor.Models.TreeClasses
                 case Header h: h.FullText = value; break;
                 case SourceData sd: ParseSourceData(sd, value); break;
                 case TransitionalProvisions tp: tp.Title = value; break;
+                case TransitionalProvisionsDateNote tpDate: tpDate.DisplayText = value; break;   
                 case SourceDocumentsList sd: sd.Title = value; break;
                 case ConstitutionalAmendment ca: ca.Title = value; break;
             }
@@ -418,50 +423,55 @@ namespace LawEditor.Models.TreeClasses
 
         private static void ParseSourceData(SourceData sourceData, string text)
 {
-    var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-    if (lines.Length == 0) return;
+             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+             if (lines.Length == 0) return;
 
-    sourceData.Type = lines[0].Trim();
-    sourceData.Source.Clear();
+             sourceData.Type = lines[0].Trim();
+             sourceData.Source.Clear();
 
-    for (int i = 1; i < lines.Length; i++)
+             for (int i = 1; i < lines.Length; i++)
     {
-        var rawLine = lines[i];
-        if (string.IsNullOrWhiteSpace(rawLine)) continue;
+                 var rawLine = lines[i];
+                  if (string.IsNullOrWhiteSpace(rawLine)) continue;
+ 
+                    var line = rawLine.Trim();
 
-        var line = rawLine.Trim();
+                   switch (sourceData.Id)
+                   {
+                     case 1: // KEÇİD MÜDDƏALARI
+                     {
+                            var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+                            if (match.Success)
+                                sourceData.AddTransitionalProvision(match.Groups[2].Value);
+                            else if (line.StartsWith("Qüvvəyə minmə tarixi:"))
+                                TransitionalProvisions.Date = line.Replace("Qüvvəyə minmə tarixi:", "").Trim();
+                            else
+                                sourceData.AddTransitionalProvision(line);
+                            break;
 
-        switch (sourceData.Id)
-        {
-            case 1: // KEÇİD MÜDDƏALARI
-            {
-                var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                if (match.Success)
-                    sourceData.AddTransitionalProvision(match.Groups[2].Value);
-                else
-                    sourceData.AddTransitionalProvision(line);
-                break;
-            }
-            case 2: // İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI
-            {
-                var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                if (match.Success)
-                    sourceData.AddSourceDocument(match.Groups[2].Value);
-                else
-                    sourceData.AddSourceDocument(line);
-                break;
-            }
-            case 3: // KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI
-            {
-                var match = Regex.Match(line, @"^([^\s]+)\)\s+(.*)$");
-                if (match.Success)
-                    sourceData.AddConstitutionalAmendment(match.Groups[1].Value, match.Groups[2].Value);
-                else
-                    sourceData.AddConstitutionalAmendment(i.ToString(), line);
-                break;
-            }
+                     } 
+                     case 2: // İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI
+                     {
+                       var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+                       if (match.Success)
+                       sourceData.AddSourceDocument(match.Groups[2].Value);
+                       else
+                       sourceData.AddSourceDocument(line);
+                        break;
+                     }
+                     case 3: // KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI
+                     {
+                      var match = Regex.Match(line, @"^([^\s]+)\)\s+(.*)$");
+                      if (match.Success)
+                      sourceData.AddConstitutionalAmendment(match.Groups[1].Value, match.Groups[2].Value);
+                      else
+                      sourceData.AddConstitutionalAmendment(i.ToString(), line);
+                      break;
+                     }
+                   }
+             }
+                if (sourceData.Id == 1)
+                sourceData.Source.Add(new TransitionalProvisionsDateNote());
         }
-    }
-}
     }
 }

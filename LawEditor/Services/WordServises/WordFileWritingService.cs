@@ -190,12 +190,12 @@ namespace LawEditor.Services.WordServises
 
         private string ToAzerbaijaniOrdinal(int number)
         {
-            string[] ordinals = {
-                "", "Birinci", "İkinci", "Üçüncü", "Dördüncü",
-                "Beşinci", "Altıncı", "Yeddinci", "Səkkizinci",
-                "Doqquzuncu", "Onuncu", "On birinci", "On ikinci",
-                "On üçüncü", "On dördüncü", "On beşinci"
-            };
+           string[] ordinals = {
+    "", "BIRINCI", "IKINCI", "ÜÇÜNCÜ", "DÖRDÜNCÜ",
+    "BEŞINCI", "ALTINCI", "YEDDINCI", "SƏKKIZINCI",
+    "DOQQUZUNCU", "ONUNCU", "ON BIRINCI", "ON IKINCI",
+    "ON ÜÇÜNCÜ", "ON DÖRDÜNCÜ", "ON BEŞINCI"
+};
 
             if (number > 0 && number < ordinals.Length)
                 return ordinals[number].ToUpper();

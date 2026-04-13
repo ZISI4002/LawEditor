@@ -27,7 +27,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TreeView Grid.Row="0" ItemsSource="{Binding TreeRoots}"
+            <TreeView  x:Name="treeView" Grid.Row="0" ItemsSource="{Binding TreeRoots}"
                       SelectedItemChanged="TreeView_SelectedItemChanged">
                 <TreeView.Resources>
 
@@ -79,16 +79,25 @@
                         <TextBlock Text="{Binding Type}" 
                                    FontWeight="Bold"/>
                     </HierarchicalDataTemplate>
+
+                   
+
                     <!-- TransitionalProvisions -->
                     <DataTemplate DataType="{x:Type src:TransitionalProvisions}">
                         <TextBlock Text="{Binding Title}" Foreground="DarkBlue" FontWeight="Bold"/>
                     </DataTemplate>
-
+                    
+                      <!-- TransitionalProvisionsDateNote -->
+                    <HierarchicalDataTemplate DataType="{x:Type src:TransitionalProvisionsDateNote}"
+                          ItemsSource="{x:Null}">
+                        <TextBlock Text="{Binding DisplayText}" Foreground="DarkBlue" FontWeight="Bold"/>
+                    </HierarchicalDataTemplate>
                     <!-- SourceDocumentsList -->
                     <DataTemplate DataType="{x:Type src:SourceDocumentsList}">
                         <TextBlock Text="{Binding Title}" Foreground="DarkGreen" FontWeight="Bold"/>
                     </DataTemplate>
-
+                    
+                   
                     <!-- ConstitutionalAmendment -->
                     <DataTemplate DataType="{x:Type src:ConstitutionalAmendment}">
                         <TextBlock Text="{Binding Title}" Foreground="DarkRed" FontWeight="Bold"/>

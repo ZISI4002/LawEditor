@@ -12,6 +12,7 @@ namespace LawEditor.Models.RootClasses
     [XmlInclude(typeof(TransitionalProvisions))]
     [XmlInclude(typeof(SourceDocumentsList))]
     [XmlInclude(typeof(ConstitutionalAmendment))]
+    [XmlInclude(typeof(TransitionalProvisionsDateNote))]
     public partial class Laws 
     {       
         public ObservableCollection<UpperObject> UpperObjects { get; set; } = new();

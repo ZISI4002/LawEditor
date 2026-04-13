@@ -102,6 +102,7 @@ namespace LawEditor.Services.LawServises
                             LinkText= sd.LinkText,
                             Url = sd.Url
                         },
+                        TransitionalProvisionsDateNote => new TransitionalProvisionsDateNote(),
                         _ => null
                     };
 
