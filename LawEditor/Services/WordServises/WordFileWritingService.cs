@@ -102,50 +102,79 @@ namespace LawEditor.Services.WordServises
 
                 // Constitutional Amendments
                 var amendmentsData = laws.SourceData.FirstOrDefault(s => s.Id == 3);
-                if (amendmentsData?.Source.Count > 0)
-                {
+                if (amendmentsData?.Source.Count > 0) {
                     endnotePart.Endnotes = new Endnotes();
 
                     endnotePart.Endnotes.AppendChild(new Endnote(
-                        new Paragraph(new Run(new SeparatorMark())))
-                    { Type = FootnoteEndnoteValues.Separator, Id = -1 });
+                        new Paragraph(new Run(new SeparatorMark()))) { Type = FootnoteEndnoteValues.Separator, Id = -1 });
 
                     endnotePart.Endnotes.AppendChild(new Endnote(
-                        new Paragraph(new Run(new ContinuationSeparatorMark())))
-                    { Type = FootnoteEndnoteValues.ContinuationSeparator, Id = 0 });
+                        new Paragraph(new Run(new ContinuationSeparatorMark()))) { Type = FootnoteEndnoteValues.ContinuationSeparator, Id = 0 });
 
-                    foreach (var item in amendmentsData.Source)
-                    {
+                    foreach (var item in amendmentsData.Source) {
                         if (item is not ConstitutionalAmendment ca || string.IsNullOrEmpty(ca.Title))
                             continue;
 
                         bool isNumeric = int.TryParse(ca.Id, out int endnoteId);
 
-                        if (isNumeric)
-                        {
-                            var endnoteParagraph = new Paragraph();
+                        var endnoteParagraph = new Paragraph();
 
-                            var superRun = new Run(new EndnoteReferenceMark());
-                            superRun.RunProperties = new RunProperties(
-                                new VerticalTextAlignment { Val = VerticalPositionValues.Superscript }
-                            );
+                        // Маркер сноски
+                        var superRun = new Run(new EndnoteReferenceMark());
+                        superRun.RunProperties = new RunProperties(
+                            new VerticalTextAlignment { Val = VerticalPositionValues.Superscript }
+                        );
+
+                        // Для не-числовых (KM1, KQ1 и т.д.) — пишем id прямо в текст
+                        // При чтении ReadAmendmentsFromEndnotes распознает их через specialIdMatch
+                        string textContent = isNumeric
+                            ? " " + ca.Title
+                            : " " + ca.Id + " " + ca.Title;
+
+                        if (!string.IsNullOrWhiteSpace(ca.Url)) {
+                            // ── Запись с гиперссылкой ──────────────────────────────────────
+                            // При чтении ExtractHyperlink ищет Hyperlink внутри параграфа эндноты,
+                            // берёт его текст как LinkText и rId → URL через relationships
+
                             endnoteParagraph.AppendChild(superRun);
 
-                            endnoteParagraph.AppendChild(
-                                new Run(new Text(" " + ca.Title) { Space = SpaceProcessingModeValues.Preserve })
-                            );
+                            // Текст до ссылки (всё что не является LinkText)
+                            string beforeLink = textContent;
+                            if (!string.IsNullOrWhiteSpace(ca.LinkText) && textContent.Contains(ca.LinkText))
+                                beforeLink = textContent[..textContent.IndexOf(ca.LinkText)];
 
-                            endnotePart.Endnotes.AppendChild(
-                                new Endnote(endnoteParagraph) { Id = endnoteId }
+                            if (!string.IsNullOrWhiteSpace(beforeLink))
+                                endnoteParagraph.AppendChild(
+                                    new Run(new Text(beforeLink) { Space = SpaceProcessingModeValues.Preserve })
+                                );
+
+                            // Добавляем relationship в endnotePart
+                            var hyperlinkRel = endnotePart.AddHyperlinkRelationship(new Uri(ca.Url), true);
+
+                            var hyperlink = new Hyperlink(
+                                new Run(
+                                    new RunProperties(new RunStyle { Val = "aa" }),
+                                    new Text(ca.LinkText ?? ca.Url) { Space = SpaceProcessingModeValues.Preserve }
+                                )
+                            ) {
+                                Id = hyperlinkRel.Id,
+                                History = true
+                            };
+
+                            endnoteParagraph.AppendChild(hyperlink);
+                        }
+                        else {
+                            // ── Запись без гиперссылки ─────────────────────────────────────
+                            endnoteParagraph.AppendChild(superRun);
+                            endnoteParagraph.AppendChild(
+                                new Run(new Text(textContent) { Space = SpaceProcessingModeValues.Preserve })
                             );
                         }
-                        else
-                        {
-                            
-                               
-                                body.AppendChild(CreateParagraph($"{ca.Id.Trim()} {ca.Title}"));
-                            
-                        }
+
+                        int finalId = isNumeric ? endnoteId : (endnotePart.Endnotes.Elements<Endnote>().Count());
+                        endnotePart.Endnotes.AppendChild(
+                            new Endnote(endnoteParagraph) { Id = finalId }
+                        );
                     }
                 }
 
