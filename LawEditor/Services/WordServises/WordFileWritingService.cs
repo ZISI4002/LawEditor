@@ -9,14 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 
-namespace LawEditor.Services.WordServises
-{
-    public class WordFileWritingService
-    {
-        public void WriteWordFile(string filePath, Laws laws)
-        {
-            try
-            {
+namespace LawEditor.Services.WordServises {
+    public class WordFileWritingService {
+        public void WriteWordFile(string filePath, Laws laws) {
+            try {
                 using var doc = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document);
 
                 var mainPart = doc.AddMainDocumentPart();
@@ -24,62 +20,77 @@ namespace LawEditor.Services.WordServises
                 var body = mainPart.Document.AppendChild(new Body());
                 var endnotePart = mainPart.AddNewPart<EndnotesPart>();
 
-                if (laws.UpperObjects.Count > 0 && laws.UpperObjects[0].Headers.Count > 0)
-                {
+                // ── Header ────────────────────────────────────────────────────
+                if (laws.UpperObjects.Count > 0 && laws.UpperObjects[0].Headers.Count > 0) {
                     var headerText = laws.UpperObjects[0].Headers[0].FullText;
-                    if (!string.IsNullOrWhiteSpace(headerText))
-                    {
+                    if (!string.IsNullOrWhiteSpace(headerText)) {
                         var headerLines = headerText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                         foreach (var line in headerLines)
                             body.AppendChild(CreateParagraph(line));
                     }
                 }
 
-                foreach (var chapter in laws.Chapters)
-                {
+                // ── Chapters / Sections / Articles ────────────────────────────
+                foreach (var chapter in laws.Chapters) {
                     string chapterOrdinal = ToAzerbaijaniOrdinal(chapter.Id);
-                    body.AppendChild(CreateParagraph($"{chapterOrdinal} BÖLMƏ", true));
+                    body.AppendChild(CreateParagraph($"{chapterOrdinal} BÖLMƏ", bold: true));
                     if (!string.IsNullOrEmpty(chapter.Title))
-                        body.AppendChild(CreateParagraph(chapter.Title, true));
+                        body.AppendChild(CreateParagraph(chapter.Title, bold: true));
 
-                    foreach (var section in chapter.Sections)
-                    {
+                    foreach (var section in chapter.Sections) {
                         string sectionRoman = ToRoman(section.Id);
                         body.AppendChild(CreateParagraph($"{sectionRoman} fəsil"));
                         if (!string.IsNullOrEmpty(section.Title))
                             body.AppendChild(CreateParagraph(section.Title));
 
-                        foreach (var article in section.Articles)
-                        {
+                        foreach (var article in section.Articles) {
                             string articleId = FormatArticleId(article.Id);
-                            body.AppendChild(CreateParagraph($"Maddə {articleId}. {article.Title}", true));
 
-                            foreach (var clause in article.Clauses)
-                            {
-                                if (clause.Number > 0)
-                                {
+                            // Article: текст + superscript маркер эндноты если есть
+                            var articlePara = new Paragraph();
+                            var articleRun = new Run(new Text($"Maddə {articleId}. {article.Title}"));
+                            articleRun.RunProperties = new RunProperties(new Bold());
+                            articlePara.AppendChild(articleRun);
+                            AppendEndnoteRef(articlePara, article.EndnoteId);
+                            body.AppendChild(articlePara);
+
+                            foreach (var clause in article.Clauses) {
+                                Paragraph clausePara;
+
+                                if (clause.Number > 0) {
                                     string clauseRoman = ToRoman(clause.Number);
-                                    body.AppendChild(CreateParagraph($"{clauseRoman}. {clause.Text}"));
+                                    clausePara = CreateParagraphWithEndnote(
+                                        $"{clauseRoman}. {clause.Text}",
+                                        clause.EndnoteId
+                                    );
                                 }
-                                else if (!string.IsNullOrEmpty(clause.Text))
-                                {
-                                    body.AppendChild(CreateParagraph(clause.Text));
+                                else if (!string.IsNullOrEmpty(clause.Text)) {
+                                    clausePara = CreateParagraphWithEndnote(
+                                        clause.Text,
+                                        clause.EndnoteId
+                                    );
                                 }
+                                else continue;
 
-                                foreach (var subClause in clause.SubClauses)
-                                    body.AppendChild(CreateParagraph($"{subClause.Number}) {subClause.Text}"));
+                                body.AppendChild(clausePara);
+
+                                foreach (var subClause in clause.SubClauses) {
+                                    var subPara = CreateParagraphWithEndnote(
+                                        $"{subClause.Number}) {subClause.Text}",
+                                        subClause.EndnoteId
+                                    );
+                                    body.AppendChild(subPara);
+                                }
                             }
                         }
                     }
                 }
 
-                // Transitional Provisions
+                // ── Transitional Provisions ───────────────────────────────────
                 var transitionalData = laws.SourceData.FirstOrDefault(s => s.Id == 1);
-                if (transitionalData?.Source.Count > 0)
-                {
-                    body.AppendChild(CreateParagraph("Keçİd müddəaları", true));
-                    foreach (var item in transitionalData.Source)
-                    {
+                if (transitionalData?.Source.Count > 0) {
+                    body.AppendChild(CreateParagraph("Keçİd müddəaları", bold: true));
+                    foreach (var item in transitionalData.Source) {
                         if (item is TransitionalProvisions tp)
                             body.AppendChild(CreateParagraph($"{tp.Id}. {tp.Title}"));
                     }
@@ -88,23 +99,22 @@ namespace LawEditor.Services.WordServises
                         body.AppendChild(CreateParagraph(TransitionalProvisions.Date));
                 }
 
-                // Source Documents
+                // ── Source Documents ──────────────────────────────────────────
                 var sourceData = laws.SourceData.FirstOrDefault(s => s.Id == 2);
-                if (sourceData?.Source.Count > 0)
-                {
-                    body.AppendChild(CreateParagraph("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI", true));
-                    foreach (var item in sourceData.Source)
-                    {
+                if (sourceData?.Source.Count > 0) {
+                    body.AppendChild(CreateParagraph("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI", bold: true));
+                    foreach (var item in sourceData.Source) {
                         if (item is SourceDocumentsList sd)
                             body.AppendChild(CreateParagraph($"{sd.Id}. {sd.Title}"));
                     }
                 }
 
-                // Constitutional Amendments
+                // ── Constitutional Amendments (endnotes) ──────────────────────
                 var amendmentsData = laws.SourceData.FirstOrDefault(s => s.Id == 3);
                 if (amendmentsData?.Source.Count > 0) {
                     endnotePart.Endnotes = new Endnotes();
 
+                    // Обязательные служебные эндноты
                     endnotePart.Endnotes.AppendChild(new Endnote(
                         new Paragraph(new Run(new SeparatorMark()))) { Type = FootnoteEndnoteValues.Separator, Id = -1 });
 
@@ -117,61 +127,66 @@ namespace LawEditor.Services.WordServises
 
                         bool isNumeric = int.TryParse(ca.Id, out int endnoteId);
 
+                        // Для не-числовых (KM1, KQ1) — id пишем в начало текста,
+                        // чтобы ReadAmendmentsFromEndnotes распознал через specialIdMatch ^([A-Z]+\d+)\s+(.+)
+                        string fullText = isNumeric
+                            ? ca.Title
+                            : ca.Id + " " + ca.Title;
+
                         var endnoteParagraph = new Paragraph();
 
-                        // Маркер сноски
+                        // Superscript маркер (EndnoteReferenceMark)
                         var superRun = new Run(new EndnoteReferenceMark());
                         superRun.RunProperties = new RunProperties(
                             new VerticalTextAlignment { Val = VerticalPositionValues.Superscript }
                         );
+                        endnoteParagraph.AppendChild(superRun);
 
-                        // Для не-числовых (KM1, KQ1 и т.д.) — пишем id прямо в текст
-                        // При чтении ReadAmendmentsFromEndnotes распознает их через specialIdMatch
-                        string textContent = isNumeric
-                            ? " " + ca.Title
-                            : " " + ca.Id + " " + ca.Title;
+                        // Если есть URL и LinkText — разбиваем Title на три части:
+                        // [текст до ссылки] [hyperlink с LinkText] [текст после ссылки]
+                        if (!string.IsNullOrWhiteSpace(ca.Url) &&
+                            !string.IsNullOrWhiteSpace(ca.LinkText) &&
+                            fullText.Contains(ca.LinkText)) {
+                            int linkIdx = fullText.IndexOf(ca.LinkText);
+                            string before = fullText[..linkIdx];
+                            string after = fullText[(linkIdx + ca.LinkText.Length)..];
 
-                        if (!string.IsNullOrWhiteSpace(ca.Url)) {
-                            // ── Запись с гиперссылкой ──────────────────────────────────────
-                            // При чтении ExtractHyperlink ищет Hyperlink внутри параграфа эндноты,
-                            // берёт его текст как LinkText и rId → URL через relationships
-
-                            endnoteParagraph.AppendChild(superRun);
-
-                            // Текст до ссылки (всё что не является LinkText)
-                            string beforeLink = textContent;
-                            if (!string.IsNullOrWhiteSpace(ca.LinkText) && textContent.Contains(ca.LinkText))
-                                beforeLink = textContent[..textContent.IndexOf(ca.LinkText)];
-
-                            if (!string.IsNullOrWhiteSpace(beforeLink))
+                            // Текст до ссылки
+                            if (!string.IsNullOrEmpty(before))
                                 endnoteParagraph.AppendChild(
-                                    new Run(new Text(beforeLink) { Space = SpaceProcessingModeValues.Preserve })
+                                    new Run(new Text(" " + before) { Space = SpaceProcessingModeValues.Preserve })
                                 );
 
-                            // Добавляем relationship в endnotePart
+                            // Гиперссылка
                             var hyperlinkRel = endnotePart.AddHyperlinkRelationship(new Uri(ca.Url), true);
-
                             var hyperlink = new Hyperlink(
                                 new Run(
                                     new RunProperties(new RunStyle { Val = "aa" }),
-                                    new Text(ca.LinkText ?? ca.Url) { Space = SpaceProcessingModeValues.Preserve }
-                                )
-                            ) {
+                                    new Text(ca.LinkText) { Space = SpaceProcessingModeValues.Preserve }
+                                )) {
                                 Id = hyperlinkRel.Id,
                                 History = true
                             };
-
                             endnoteParagraph.AppendChild(hyperlink);
+
+                            // Текст после ссылки
+                            if (!string.IsNullOrEmpty(after))
+                                endnoteParagraph.AppendChild(
+                                    new Run(new Text(after) { Space = SpaceProcessingModeValues.Preserve })
+                                );
                         }
                         else {
-                            // ── Запись без гиперссылки ─────────────────────────────────────
-                            endnoteParagraph.AppendChild(superRun);
+                            // Нет ссылки — просто весь текст
                             endnoteParagraph.AppendChild(
-                                new Run(new Text(textContent) { Space = SpaceProcessingModeValues.Preserve })
+                                new Run(new Text(" " + fullText) { Space = SpaceProcessingModeValues.Preserve })
                             );
                         }
 
-                        int finalId = isNumeric ? endnoteId : (endnotePart.Endnotes.Elements<Endnote>().Count());
+                        // Id для не-числовых берём как текущий count чтобы не было коллизий
+                        int finalId = isNumeric
+                            ? endnoteId
+                            : endnotePart.Endnotes.Elements<Endnote>().Count();
+
                         endnotePart.Endnotes.AppendChild(
                             new Endnote(endnoteParagraph) { Id = finalId }
                         );
@@ -180,15 +195,13 @@ namespace LawEditor.Services.WordServises
 
                 mainPart.Document.Save();
             }
-            catch (IOException ex)
-            {
+            catch (IOException ex) {
                 MessageBox.Show($"Fayl yazılarkən xəta baş verdi: {ex.Message}",
                                 "Fayl xətası",
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Error);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 MessageBox.Show($"Xəta baş verdi: {ex.Message}",
                                 "Xəta",
                                 MessageBoxButton.OK,
@@ -196,35 +209,64 @@ namespace LawEditor.Services.WordServises
             }
         }
 
-        private Paragraph CreateParagraph(string text, bool bold = false)
-        {
+        // ── Вспомогательные методы ────────────────────────────────────────────
+
+        /// <summary>
+        /// Создаёт параграф с текстом. Опционально bold.
+        /// </summary>
+        private Paragraph CreateParagraph(string text, bool bold = false) {
             var para = new Paragraph();
             var run = new Run();
-
             if (bold)
                 run.RunProperties = new RunProperties(new Bold());
-
             run.AppendChild(new Text(text));
             para.AppendChild(run);
-
             return para;
         }
 
-        private string FormatArticleId(decimal id)
-        {
+        /// <summary>
+        /// Создаёт параграф с текстом и superscript маркером эндноты (если endnoteId не null).
+        /// </summary>
+        private Paragraph CreateParagraphWithEndnote(string text, string? endnoteId, bool bold = false) {
+            var para = new Paragraph();
+            var run = new Run();
+            if (bold)
+                run.RunProperties = new RunProperties(new Bold());
+            run.AppendChild(new Text(text));
+            para.AppendChild(run);
+            AppendEndnoteRef(para, endnoteId);
+            return para;
+        }
+
+        /// <summary>
+        /// Добавляет superscript EndnoteReference в конец параграфа, если endnoteId числовой.
+        /// </summary>
+        private void AppendEndnoteRef(Paragraph para, string? endnoteId) {
+            if (string.IsNullOrWhiteSpace(endnoteId))
+                return;
+            if (!int.TryParse(endnoteId, out int refId))
+                return;
+
+            var refRun = new Run(new EndnoteReference { Id = refId });
+            refRun.RunProperties = new RunProperties(
+                new VerticalTextAlignment { Val = VerticalPositionValues.Superscript }
+            );
+            para.AppendChild(refRun);
+        }
+
+        private string FormatArticleId(decimal id) {
             if (id == (int)id)
                 return ((int)id).ToString();
             return id.ToString("0.0");
         }
 
-        private string ToAzerbaijaniOrdinal(int number)
-        {
-           string[] ordinals = {
-    "", "BIRINCI", "IKINCI", "ÜÇÜNCÜ", "DÖRDÜNCÜ",
-    "BEŞINCI", "ALTINCI", "YEDDINCI", "SƏKKIZINCI",
-    "DOQQUZUNCU", "ONUNCU", "ON BIRINCI", "ON IKINCI",
-    "ON ÜÇÜNCÜ", "ON DÖRDÜNCÜ", "ON BEŞINCI"
-};
+        private string ToAzerbaijaniOrdinal(int number) {
+            string[] ordinals = {
+                "", "BIRINCI", "IKINCI", "ÜÇÜNCÜ", "DÖRDÜNCÜ",
+                "BEŞINCI", "ALTINCI", "YEDDINCI", "SƏKKIZINCI",
+                "DOQQUZUNCU", "ONUNCU", "ON BIRINCI", "ON IKINCI",
+                "ON ÜÇÜNCÜ", "ON DÖRDÜNCÜ", "ON BEŞINCI"
+            };
 
             if (number > 0 && number < ordinals.Length)
                 return ordinals[number].ToUpper();
@@ -232,23 +274,19 @@ namespace LawEditor.Services.WordServises
             return number.ToString();
         }
 
-        private string ToRoman(int number)
-        {
+        private string ToRoman(int number) {
             if (number < 1) return "";
 
             string[] romanNumerals = { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
             int[] values = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
 
             var result = "";
-            for (int i = 0; i < values.Length; i++)
-            {
-                while (number >= values[i])
-                {
+            for (int i = 0; i < values.Length; i++) {
+                while (number >= values[i]) {
                     number -= values[i];
                     result += romanNumerals[i];
                 }
             }
-
             return result;
         }
     }
