@@ -100,31 +100,31 @@
                           SelectedItemChanged="TreeView_SelectedItemChanged">
                     <TreeView.Resources>
                         <HierarchicalDataTemplate DataType="{x:Type local:UpperObject}" ItemsSource="{Binding Headers}">
-                            <TextBlock Text="{Binding ObjectName}" FontWeight="Bold" Margin="0,2"/>
+                            <TextBlock Text="{Binding ObjectName}" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,2"/>
                         </HierarchicalDataTemplate>
 
                         <DataTemplate DataType="{x:Type local:Header}">
-                            <TextBlock Text="{Binding FullText}" Foreground="#A594F9"/>
+                            <TextBlock Text="{Binding FullText}" Foreground="#B2BEC3"/>
                         </DataTemplate>
 
                         <HierarchicalDataTemplate DataType="{x:Type local:Chapter}" ItemsSource="{Binding Sections}">
-                            <TextBlock Text="{Binding Title}" FontWeight="Bold" Foreground="#3498DB"/>
+                            <TextBlock Text="{Binding Title}" FontWeight="Bold" Foreground="#FF9F43"/>
                         </HierarchicalDataTemplate>
 
                         <HierarchicalDataTemplate DataType="{x:Type local:Section}" ItemsSource="{Binding Articles}">
-                            <TextBlock Text="{Binding Title}" Foreground="#D4AF37"/>
+                            <TextBlock Text="{Binding Title}" Foreground="#FFEAA7" FontWeight="SemiBold"/>
                         </HierarchicalDataTemplate>
 
                         <HierarchicalDataTemplate DataType="{x:Type local:Article}" ItemsSource="{Binding Clauses}">
-                            <TextBlock Text="{Binding Title}"/>
+                            <TextBlock Text="{Binding Title}" Foreground="#DFE6E9"/>
                         </HierarchicalDataTemplate>
 
                         <HierarchicalDataTemplate DataType="{x:Type local:Clause}" ItemsSource="{Binding SubClauses}">
-                            <TextBlock Text="{Binding Text}" TextWrapping="NoWrap" MaxWidth="250"/>
+                            <TextBlock Text="{Binding Text}" Foreground="#BDC3C7" TextWrapping="NoWrap" MaxWidth="250"/>
                         </HierarchicalDataTemplate>
 
                         <DataTemplate DataType="{x:Type local:SubClause}">
-                            <TextBlock Text="{Binding Text}" Opacity="0.8"/>
+                            <TextBlock Text="{Binding Text}" Foreground="#95A5A6" Opacity="0.8"/>
                         </DataTemplate>
 
                         <HierarchicalDataTemplate DataType="{x:Type src:SourceData}" ItemsSource="{Binding Source}">
@@ -144,7 +144,7 @@
                         </DataTemplate>
 
                         <DataTemplate DataType="{x:Type src:ConstitutionalAmendment}">
-                            <TextBlock Text="{Binding Title}" Foreground="#27AE60"    FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Title}" Foreground="#27AE60" FontWeight="Bold"/>
                         </DataTemplate>
                     </TreeView.Resources>
                 </TreeView>
