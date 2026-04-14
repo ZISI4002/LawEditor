@@ -287,19 +287,24 @@ namespace LawEditor.Services.WordServises
                             System.Globalization.CultureInfo.InvariantCulture,
                             out int id);
 
+                        // ── Извлекаем гиперссылку, если есть ──
+                        var (linkText, rId) = ExtractHyperlink(para);
+                        string? url = rId != null && docRelationships.TryGetValue(rId, out var u)
+                            ? u : null;
+
                         currentTransitional = new TransitionalProvisions(title) {
-                            Id = id
+                            Id = id,
+                            LinkText = linkText,   // добавь свойство, если ещё нет
+                            Url = url              // добавь свойство, если ещё нет
                         };
                         transitional.Add(currentTransitional);
                     }
-                    //если строка пустая и массив не пустой, то меняем мод на TransitionalDone,
-                    //чтобы дальше не добавлять пустые строки к последнему пункту
                     else if (string.IsNullOrWhiteSpace(line) && transitional.Count > 0) {
                         mode = Mode.TransitionalDone;
                     }
                     else if (currentTransitional != null) {
                         currentTransitional.Title += "\n" + line;
-                    }                                        
+                    }
                     continue;
                 }
                 if (mode == Mode.TransitionalDone) {
