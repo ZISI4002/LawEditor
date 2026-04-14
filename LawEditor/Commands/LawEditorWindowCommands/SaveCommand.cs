@@ -50,7 +50,12 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 if (_viewModel.MainWindowModel.FileIsAdded)
                 {
                     var wordWriter = new WordFileWritingService();
-                    wordWriter.WriteWordFile(_viewModel.MainWindowModel.FilePath, _viewModel.MainWindowModel.Laws);
+                    var dateTime = DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss");
+                    var fileNameExtension= System.IO.Path.GetExtension(_viewModel.MainWindowModel.FilePath);
+                    var fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(_viewModel.MainWindowModel.FilePath);
+                    var directory = System.IO.Path.GetDirectoryName(_viewModel.MainWindowModel.FilePath);
+                    var clonpath = System.IO.Path.Combine(directory, fileNameWithoutExtension + "_editedIn_" + dateTime + fileNameExtension);
+                    wordWriter.WriteWordFile(clonpath, _viewModel.MainWindowModel.Laws);
 
 
                 }
