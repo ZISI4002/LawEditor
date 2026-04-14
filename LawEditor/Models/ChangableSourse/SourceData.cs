@@ -91,6 +91,7 @@ namespace LawEditor.Models.ChangableSourse {
             var newItem = new ConstitutionalAmendment(id, title, linkText, url);
 
             if ((position == null && id == null) || position >= list.Count) {
+                newItem.Id = id ?? (list.Any() ? list.Max(c => int.TryParse(c.Id, out int numId) ? numId : 0) + 1 : 1).ToString();
                 Source.Add(newItem);
                 return newItem;
             }

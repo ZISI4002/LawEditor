@@ -5,180 +5,206 @@
         xmlns:src="clr-namespace:LawEditor.Models.ChangableSourse"
         xmlns:root="clr-namespace:LawEditor.Models.RootClasses"
         Title="Law Editor"
-        Height="700" Width="1100"
-        MinWidth="600" MinHeight="400"
+        Height="800" Width="1300"
+        MinWidth="800" MinHeight="500"
         WindowStartupLocation="CenterScreen"
+        Background="#121212"
         Icon="/Assets/Writing_laws2.ico">
+
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.7"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#333333"/>
+                                <Setter Property="Foreground" Value="#666666"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernToggleButtonStyle" TargetType="ToggleButton">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#3498DB"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2980B9"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SaveButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#27AE60"/>
+        </Style>
+
+        <Style x:Key="DeleteButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#C0392B"/>
+        </Style>
+
+        <Style TargetType="TreeView">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+        </Style>
     </Window.Resources>
 
-    <Grid>
+    <Grid Margin="20">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="320" MinWidth="200"/>
+            <ColumnDefinition Width="350" MinWidth="250"/>
             <ColumnDefinition Width="5"/>
-            <ColumnDefinition Width="*" MinWidth="300"/>
+            <ColumnDefinition Width="*" MinWidth="400"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Левая панель: дерево -->
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TreeView  x:Name="treeView" Grid.Row="0" ItemsSource="{Binding TreeRoots}"
-                      SelectedItemChanged="TreeView_SelectedItemChanged">
-                <TreeView.Resources>
+            <Border Background="#1E1E1E" CornerRadius="12" Padding="10">
+                <TreeView x:Name="treeView" ItemsSource="{Binding TreeRoots}"
+                          SelectedItemChanged="TreeView_SelectedItemChanged">
+                    <TreeView.Resources>
+                        <HierarchicalDataTemplate DataType="{x:Type local:UpperObject}" ItemsSource="{Binding Headers}">
+                            <TextBlock Text="{Binding ObjectName}" FontWeight="Bold" Margin="0,2"/>
+                        </HierarchicalDataTemplate>
 
-                    
-                        <HierarchicalDataTemplate DataType="{x:Type local:UpperObject}"
-                                              ItemsSource="{Binding Headers}">
-                        <TextBlock Text="{Binding ObjectName}"
-                                   FontWeight="Bold"/>
-                         </HierarchicalDataTemplate>
+                        <DataTemplate DataType="{x:Type local:Header}">
+                            <TextBlock Text="{Binding FullText}" Foreground="#A594F9"/>
+                        </DataTemplate>
 
-                             <DataTemplate DataType="{x:Type local:Header}">
-                            <TextBlock Text="{Binding FullText}"
-                             Foreground="DarkSlateBlue"/>
-                          </DataTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type local:Chapter}" ItemsSource="{Binding Sections}">
+                            <TextBlock Text="{Binding Title}" FontWeight="Bold" Foreground="#3498DB"/>
+                        </HierarchicalDataTemplate>
 
+                        <HierarchicalDataTemplate DataType="{x:Type local:Section}" ItemsSource="{Binding Articles}">
+                            <TextBlock Text="{Binding Title}" Foreground="#D4AF37"/>
+                        </HierarchicalDataTemplate>
 
-                    <!-- Chapter -->
-                    <HierarchicalDataTemplate DataType="{x:Type local:Chapter}"
-                                              ItemsSource="{Binding Sections}">
-                        <TextBlock Text="{Binding Title}" FontWeight="Bold"/>
-                    </HierarchicalDataTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type local:Article}" ItemsSource="{Binding Clauses}">
+                            <TextBlock Text="{Binding Title}"/>
+                        </HierarchicalDataTemplate>
 
-                    <!-- Section -->
-                    <HierarchicalDataTemplate DataType="{x:Type local:Section}"
-                                              ItemsSource="{Binding Articles}">
-                        <TextBlock Text="{Binding Title}"/>
-                    </HierarchicalDataTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type local:Clause}" ItemsSource="{Binding SubClauses}">
+                            <TextBlock Text="{Binding Text}" TextWrapping="NoWrap" MaxWidth="250"/>
+                        </HierarchicalDataTemplate>
 
-                    <!-- Article -->
-                    <HierarchicalDataTemplate DataType="{x:Type local:Article}"
-                                              ItemsSource="{Binding Clauses}">
-                        <TextBlock Text="{Binding Title}"/>
-                    </HierarchicalDataTemplate>
+                        <DataTemplate DataType="{x:Type local:SubClause}">
+                            <TextBlock Text="{Binding Text}" Opacity="0.8"/>
+                        </DataTemplate>
 
-                    <!-- Clause -->
-                    <HierarchicalDataTemplate DataType="{x:Type local:Clause}"
-                                              ItemsSource="{Binding SubClauses}">
-                        <TextBlock Text="{Binding Text}"/>
-                    </HierarchicalDataTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type src:SourceData}" ItemsSource="{Binding Source}">
+                            <TextBlock Text="{Binding Type}" FontWeight="Bold" Foreground="#27AE60"/>
+                        </HierarchicalDataTemplate>
 
-                    <!-- SubClause -->
-                    <DataTemplate DataType="{x:Type local:SubClause}">
-                        <TextBlock Text="{Binding Text}"/>
-                    </DataTemplate>
+                        <DataTemplate DataType="{x:Type src:TransitionalProvisions}">
+                            <TextBlock Text="{Binding Title}" Foreground="#5DADE2" FontWeight="Bold"/>
+                        </DataTemplate>
 
-                    <!-- SorseData -->
-                    <HierarchicalDataTemplate DataType="{x:Type src:SourceData}"
-                          ItemsSource="{Binding Source}">
-                        <TextBlock Text="{Binding Type}" 
-                                   FontWeight="Bold"/>
-                    </HierarchicalDataTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type src:TransitionalProvisionsDateNote}" ItemsSource="{x:Null}">
+                            <TextBlock Text="{Binding DisplayText}" Foreground="#5DADE2"/>
+                        </HierarchicalDataTemplate>
 
-                   
+                        <DataTemplate DataType="{x:Type src:SourceDocumentsList}">
+                            <TextBlock Text="{Binding Title}" Foreground="#58D68D" FontWeight="Bold"/>
+                        </DataTemplate>
 
-                    <!-- TransitionalProvisions -->
-                    <DataTemplate DataType="{x:Type src:TransitionalProvisions}">
-                        <TextBlock Text="{Binding Title}" Foreground="DarkBlue" FontWeight="Bold"/>
-                    </DataTemplate>
-                    
-                      <!-- TransitionalProvisionsDateNote -->
-                    <HierarchicalDataTemplate DataType="{x:Type src:TransitionalProvisionsDateNote}"
-                          ItemsSource="{x:Null}">
-                        <TextBlock Text="{Binding DisplayText}" Foreground="DarkBlue" FontWeight="Bold"/>
-                    </HierarchicalDataTemplate>
-                    <!-- SourceDocumentsList -->
-                    <DataTemplate DataType="{x:Type src:SourceDocumentsList}">
-                        <TextBlock Text="{Binding Title}" Foreground="DarkGreen" FontWeight="Bold"/>
-                    </DataTemplate>
-                    
-                   
-                    <!-- ConstitutionalAmendment -->
-                    <DataTemplate DataType="{x:Type src:ConstitutionalAmendment}">
-                        <TextBlock Text="{Binding Title}" Foreground="DarkRed" FontWeight="Bold"/>
-                    </DataTemplate>
-                </TreeView.Resources>
-            </TreeView>
+                        <DataTemplate DataType="{x:Type src:ConstitutionalAmendment}">
+                            <TextBlock Text="{Binding Title}" Foreground="#EC7063" FontWeight="Bold"/>
+                        </DataTemplate>
+                    </TreeView.Resources>
+                </TreeView>
+            </Border>
 
-            <!-- Кнопки Add / Delete -->
-            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4">
-                <ToggleButton Content="Add" Width="80" Margin="2"
-                              IsChecked="{Binding IsAddMenuOpen, Mode=TwoWay}"/>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Center">
+                <Grid>
+                    <ToggleButton x:Name="BtnAdd" Content="✚ Add" Width="100" Height="35" Margin="0,0,10,0"
+                                  Style="{StaticResource ModernToggleButtonStyle}"
+                                  IsChecked="{Binding IsAddMenuOpen, Mode=TwoWay}"/>
 
-                <Popup IsOpen="{Binding IsAddMenuOpen, Mode=TwoWay}"
-                       Placement="Bottom"
-                       StaysOpen="False">
-                    <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1" Padding="2">
-                        <StackPanel>
-                            <MenuItem Header="{Binding MenuItem1Text}"
-                                      Command="{Binding AddItemCommand}"
-                                      CommandParameter="{Binding MenuItem1Text}"
-                                      Visibility="{Binding MenuItem1Visible,
-                                                   Converter={StaticResource BoolToVisibility}}"/>
-                            <MenuItem Header="{Binding MenuItem2Text}"
-                                      Command="{Binding AddItemCommand}"
-                                      CommandParameter="{Binding MenuItem2Text}"
-                                      Visibility="{Binding MenuItem2Visible,
-                                                   Converter={StaticResource BoolToVisibility}}"/>
-                            <MenuItem Header="{Binding MenuItem3Text}"
-                                      Command="{Binding AddItemCommand}"
-                                      CommandParameter="{Binding MenuItem3Text}"
-                                      Visibility="{Binding MenuItem3Visible,
-                                                   Converter={StaticResource BoolToVisibility}}"/>
-                            <MenuItem Header="{Binding MenuItem4Text}"
-                                      Command="{Binding AddItemCommand}"
-                                      CommandParameter="{Binding MenuItem4Text}"
-                                      Visibility="{Binding MenuItem4Visible,
-                                                   Converter={StaticResource BoolToVisibility}}"/>
-                            <MenuItem Header="{Binding MenuItem5Text}"
-                               Command="{Binding AddItemCommand}"
-                               CommandParameter="{Binding MenuItem5Text}"
-                               Visibility="{Binding MenuItem5Visible,
-                               Converter={StaticResource BoolToVisibility}}"/>
-                            
-                               <MenuItem Header="{Binding MenuItem6Text}"
-                               Command="{Binding AddItemCommand}"
-                               CommandParameter="{Binding MenuItem6Text}"
-                               Visibility="{Binding MenuItem6Visible,
-                               Converter={StaticResource BoolToVisibility}}"/>
-                        </StackPanel>
-                    </Border>
-                </Popup>
+                    <Popup IsOpen="{Binding IsAddMenuOpen, Mode=TwoWay}"
+                           PlacementTarget="{Binding ElementName=BtnAdd}"
+                           Placement="Top" StaysOpen="False">
+                        <Border Background="#2D2D2D" BorderBrush="#444444" BorderThickness="1" CornerRadius="8" Padding="5">
+                            <StackPanel>
+                                <MenuItem Header="{Binding MenuItem1Text}" Command="{Binding AddItemCommand}" CommandParameter="{Binding MenuItem1Text}" Foreground="White" Visibility="{Binding MenuItem1Visible, Converter={StaticResource BoolToVisibility}}"/>
+                                <MenuItem Header="{Binding MenuItem2Text}" Command="{Binding AddItemCommand}" CommandParameter="{Binding MenuItem2Text}" Foreground="White" Visibility="{Binding MenuItem2Visible, Converter={StaticResource BoolToVisibility}}"/>
+                                <MenuItem Header="{Binding MenuItem3Text}" Command="{Binding AddItemCommand}" CommandParameter="{Binding MenuItem3Text}" Foreground="White" Visibility="{Binding MenuItem3Visible, Converter={StaticResource BoolToVisibility}}"/>
+                                <MenuItem Header="{Binding MenuItem4Text}" Command="{Binding AddItemCommand}" CommandParameter="{Binding MenuItem4Text}" Foreground="White" Visibility="{Binding MenuItem4Visible, Converter={StaticResource BoolToVisibility}}"/>
+                                <MenuItem Header="{Binding MenuItem5Text}" Command="{Binding AddItemCommand}" CommandParameter="{Binding MenuItem5Text}" Foreground="White" Visibility="{Binding MenuItem5Visible, Converter={StaticResource BoolToVisibility}}"/>
+                                <MenuItem Header="{Binding MenuItem6Text}" Command="{Binding AddItemCommand}" CommandParameter="{Binding MenuItem6Text}" Foreground="White" Visibility="{Binding MenuItem6Visible, Converter={StaticResource BoolToVisibility}}"/>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                </Grid>
 
-                <Button Content="Delete" Width="80" Margin="2"
+                <Button Content="🗑 Delete" Width="100" Height="35"
+                        Style="{StaticResource DeleteButtonStyle}"
                         Command="{Binding DeleteCommand}"/>
             </StackPanel>
         </Grid>
 
-        <!-- Разделитель -->
-        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
+        <GridSplitter Grid.Column="1" Background="Transparent" Width="5" HorizontalAlignment="Stretch"/>
 
-        <!-- Правая панель: редактор -->
-        <Grid Grid.Column="2" Margin="8">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <Border Grid.Column="2" Background="#1E1E1E" CornerRadius="12" Padding="15" Margin="10,0,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="{Binding SelectedTypeName}"
-                       FontSize="13" FontWeight="Bold" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="0" Text="{Binding SelectedTypeName}"
+                           Foreground="#3498DB" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
 
-            <TextBox Grid.Row="1"
-                     Text="{Binding SelectedText, UpdateSourceTrigger=PropertyChanged}"
-                     AcceptsReturn="True" TextWrapping="Wrap"
-                     VerticalScrollBarVisibility="Auto"
-                     IsEnabled="{Binding HasSelection}"
-                     TextChanged="TextBox_TextChanged"/>
+                <Border Grid.Row="1" Background="#FFFFFF" CornerRadius="8" Padding="5">
+                    <TextBox Text="{Binding SelectedText, UpdateSourceTrigger=PropertyChanged}"
+                             Background="Transparent" Foreground="#1A1A1A" BorderThickness="0"
+                             AcceptsReturn="True" TextWrapping="Wrap" FontSize="14"
+                             VerticalScrollBarVisibility="Auto"
+                             IsEnabled="{Binding HasSelection}"
+                             TextChanged="TextBox_TextChanged"/>
+                </Border>
 
-            <Button Grid.Row="2" Content="Save" Width="100"
-                    HorizontalAlignment="Right" Margin="0,8,0,0"
-                    Command="{Binding SaveCommand}"/>
-        </Grid>
+                <Button Grid.Row="2" Content="✔ Save Changes" Width="140" Height="40"
+                        Style="{StaticResource SaveButtonStyle}"
+                        HorizontalAlignment="Right" Margin="0,15,0,0"
+                        Command="{Binding SaveCommand}"/>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
