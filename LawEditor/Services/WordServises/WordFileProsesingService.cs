@@ -308,13 +308,17 @@ namespace LawEditor.Services.WordServises
                 }
 
                 // SOURCES
-                if (mode == Mode.Sources)
-                {
+                if (mode == Mode.Sources) {
                     var (linkText, rId) = ExtractHyperlink(para);
                     string? url = rId != null && docRelationships.TryGetValue(rId, out var u)
                         ? u : null;
 
-                    sources.Add(new SourceDocumentsList(line, linkText, url));
+                    // Убираем ведущий номер "1. " или "1) " — он может быть в тексте
+                    // (когда друг сохраняет как plain text вместо Word numbering)
+                    string cleanedLine = Regex.Replace(line, @"^\d+[\.\)]\s*", "");
+
+                    if (!string.IsNullOrWhiteSpace(cleanedLine))
+                        sources.Add(new SourceDocumentsList(cleanedLine, linkText, url));
                     continue;
                 }
             }
