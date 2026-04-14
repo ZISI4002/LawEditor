@@ -128,11 +128,11 @@
                         </DataTemplate>
 
                         <HierarchicalDataTemplate DataType="{x:Type src:SourceData}" ItemsSource="{Binding Source}">
-                            <TextBlock Text="{Binding Type}" FontWeight="Bold" Foreground="#27AE60"/>
+                            <TextBlock Text="{Binding Type}" FontWeight="Bold" Foreground="#D4AF37"/>
                         </HierarchicalDataTemplate>
 
                         <DataTemplate DataType="{x:Type src:TransitionalProvisions}">
-                            <TextBlock Text="{Binding Title}" Foreground="#5DADE2" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Title}" Foreground="#2E86AB" FontWeight="Bold"/>
                         </DataTemplate>
 
                         <HierarchicalDataTemplate DataType="{x:Type src:TransitionalProvisionsDateNote}" ItemsSource="{x:Null}">
@@ -140,11 +140,11 @@
                         </HierarchicalDataTemplate>
 
                         <DataTemplate DataType="{x:Type src:SourceDocumentsList}">
-                            <TextBlock Text="{Binding Title}" Foreground="#58D68D" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Title}" Foreground= "#C0392B" FontWeight="Bold"/>
                         </DataTemplate>
 
                         <DataTemplate DataType="{x:Type src:ConstitutionalAmendment}">
-                            <TextBlock Text="{Binding Title}" Foreground="#EC7063" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Title}" Foreground="#27AE60"    FontWeight="Bold"/>
                         </DataTemplate>
                     </TreeView.Resources>
                 </TreeView>
