@@ -292,10 +292,8 @@ namespace LawEditor.Services.WordServises
                         string? url = rId != null && docRelationships.TryGetValue(rId, out var u)
                             ? u : null;
 
-                        currentTransitional = new TransitionalProvisions(title) {
-                            Id = id,
-                            LinkText = linkText,   // добавь свойство, если ещё нет
-                            Url = url              // добавь свойство, если ещё нет
+                        currentTransitional = new TransitionalProvisions(title, linkText, url) {
+                            Id = id,            
                         };
                         transitional.Add(currentTransitional);
                     }
