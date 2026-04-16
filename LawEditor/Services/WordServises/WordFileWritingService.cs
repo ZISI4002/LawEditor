@@ -17,6 +17,22 @@ namespace LawEditor.Services.WordServises {
                 using var doc = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document);
 
                 var mainPart = doc.AddMainDocumentPart();
+
+                var numberingPart = mainPart.AddNewPart<NumberingDefinitionsPart>();
+
+                numberingPart.Numbering = new Numbering(
+                    new AbstractNum(
+                        new Level(
+                            new NumberingFormat() { Val = NumberFormatValues.Decimal },
+                            new LevelText() { Val = "%1." },
+                            new StartNumberingValue() { Val = 1 }
+                        ) { LevelIndex = 0 }
+                    ) { AbstractNumberId = 1 },
+                    new NumberingInstance(
+                        new AbstractNumId() { Val = 1 }
+                    ) { NumberID = 1 }
+                );
+
                 mainPart.Document = new Document();
                 var body = mainPart.Document.AppendChild(new Body());
 
@@ -36,9 +52,12 @@ namespace LawEditor.Services.WordServises {
                             body.Append(CreateParagraph(line, align: JustificationValues.Center, indent: false));
                         }
                     }
+                    // Пустая строка 
+                    body.Append(CreateEmptyParagraph());
                 }
 
                 foreach (var chapter in laws.Chapters) {
+
                     string chapterOrdinal = ToAzerbaijaniOrdinal(chapter.Id);
 
                     body.Append(CreateParagraph($"{chapterOrdinal} BÖLMƏ",
@@ -52,7 +71,11 @@ namespace LawEditor.Services.WordServises {
                             align: JustificationValues.Center,
                             indent: false));
 
+                    // Пустая строка 
+                    body.Append(CreateEmptyParagraph());
+
                     foreach (var section in chapter.Sections) {
+
                         string sectionRoman = ToRoman(section.Id);
 
                         body.Append(CreateParagraph($"{sectionRoman} fəsil",
@@ -63,6 +86,9 @@ namespace LawEditor.Services.WordServises {
                             body.Append(CreateParagraph(section.Title,
                                 align: JustificationValues.Center,
                                 indent: false));
+
+                        // Пустая строка 
+                        body.Append(CreateEmptyParagraph());
 
                         foreach (var article in section.Articles) {                            
 
@@ -78,7 +104,7 @@ namespace LawEditor.Services.WordServises {
                             AppendEndnoteRef(articlePara, article.EndnoteId);
                             body.Append(articlePara);
 
-                            // 🔥 ПУСТАЯ СТРОКА ПЕРЕД Maddə
+                            // Пустая строка 
                             body.Append(CreateEmptyParagraph());
 
                             foreach (var clause in article.Clauses) {
@@ -108,7 +134,7 @@ namespace LawEditor.Services.WordServises {
                                 }
                             }
 
-                            // 🔥 ПУСТАЯ СТРОКА ПОСЛЕ Maddə
+                            // Пустая строка
                             body.Append(CreateEmptyParagraph());
                         }
 
@@ -119,10 +145,13 @@ namespace LawEditor.Services.WordServises {
                 var transitional = laws.SourceData.FirstOrDefault(s => s.Id == 1);
 
                 if (transitional?.Source.Count > 0) {
-                    body.Append(CreateParagraph("Keçİd müddəaları",
+                    body.Append(CreateParagraph("KEÇİD MÜDDƏALARI",
                         bold: true,
                         align: JustificationValues.Center,
                         indent: false));
+
+                    // Пустая строка
+                    body.Append(CreateEmptyParagraph());
 
                     foreach (var item in transitional.Source.OfType<TransitionalProvisions>()) {
                         body.Append(CreateParagraph($"{item.Id}. {item.Title}",
@@ -131,11 +160,36 @@ namespace LawEditor.Services.WordServises {
 
                     body.Append(new Paragraph(new Run(new Text(""))));
 
+                    // 🔥 ДАТА (фикс)
                     if (!string.IsNullOrWhiteSpace(TransitionalProvisions.Date)) {
-                        body.Append(CreateParagraph(TransitionalProvisions.Date,
+
+                        // берём ТВОЙ же стиль (лево + жирный)
+                        var para = CreateParagraph("",
+                            bold: true,
                             align: JustificationValues.Start,
-                            indent: false));
+                            indent: false);
+
+                        var run = para.GetFirstChild<Run>();
+
+                        // чистим пустой текст, который создался
+                        run.RemoveAllChildren<Text>();
+
+                        var lines = TransitionalProvisions.Date.Split('\n');
+
+                        for (int i = 0; i < lines.Length; i++) {
+                            run.Append(new Text(lines[i]) {
+                                Space = SpaceProcessingModeValues.Preserve
+                            });
+
+                            if (i < lines.Length - 1)
+                                run.Append(new Break()); // перенос строки
+                        }
+
+                        body.Append(para);
                     }
+
+                    // Пустая строка
+                    body.Append(CreateEmptyParagraph());
                 }
 
                 // SOURCES
@@ -146,12 +200,84 @@ namespace LawEditor.Services.WordServises {
                         "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI",
                         bold: true,
                         align: JustificationValues.Center,
-                        indent: false));
+                        indent: false,
+                        fontSize: "20"
+                    ));
+
+                    body.Append(CreateEmptyParagraph());
 
                     foreach (var item in sources.Source.OfType<SourceDocumentsList>()) {
-                        body.Append(CreateParagraph($"{item.Id}. {item.Title}",
-                            align: JustificationValues.Both));
+
+                        var para = new Paragraph();
+
+                        // 🔥 как в Word (отступ + numbering)
+                        var pPr = new ParagraphProperties(
+                            new NumberingProperties(
+                                new NumberingLevelReference() { Val = 0 },
+                                new NumberingId() { Val = 1 }
+                            ),
+                            new Indentation() {
+                                Left = "720",        // отступ слева
+                                Hanging = "360"      // висячий отступ (очень важно!)
+                            },
+                            new Justification() { Val = JustificationValues.Both }
+                        );
+
+                        para.Append(pPr);
+
+                        // 🔥 базовый стиль (10pt)
+                        RunProperties baseProps = new RunProperties(
+                            new RunFonts() {
+                                Ascii = "Palatino Linotype",
+                                HighAnsi = "Palatino Linotype",
+                                ComplexScript = "Palatino Linotype"
+                            },
+                            new FontSize() { Val = "20" }
+                        );
+
+                        if (!string.IsNullOrEmpty(item.LinkText) && !string.IsNullOrEmpty(item.Url)) {
+                            var rel = mainPart.AddHyperlinkRelationship(new Uri(item.Url), true);
+
+                            // 🔥 ссылка
+                            var hyperlink = new Hyperlink() { Id = rel.Id };
+
+                            hyperlink.Append(new Run(
+                                new RunProperties(
+                                    new Underline() { Val = UnderlineValues.Single },
+                                    new Color() { Val = "0000FF" },
+                                    new FontSize() { Val = "20" }
+                                ),
+                                new Text(item.LinkText) {
+                                    Space = SpaceProcessingModeValues.Preserve
+                                }
+                            ));
+
+                            para.Append(hyperlink);
+
+                            // 🔥 ВАЖНО: пробел с preserve
+                            para.Append(new Run(new Text(" ") {
+                                Space = SpaceProcessingModeValues.Preserve
+                            }));
+
+                            // 🔥 остальной текст
+                            string rest = item.Title.Replace(item.LinkText, "").Trim();
+
+                            if (!string.IsNullOrEmpty(rest)) {
+                                para.Append(new Run(baseProps.CloneNode(true), new Text(rest) {
+                                    Space = SpaceProcessingModeValues.Preserve
+                                }));
+                            }
+                        }
+                        else {
+                            para.Append(new Run(baseProps, new Text(item.Title) {
+                                Space = SpaceProcessingModeValues.Preserve
+                            }));
+                        }
+
+                        body.Append(para);
                     }
+
+                    body.Append(CreateEmptyParagraph());
                 }
 
                 // ENDNOTES
@@ -205,23 +331,25 @@ namespace LawEditor.Services.WordServises {
 
         // ── MAGIC FORMATTING ──
         private Paragraph CreateParagraph(
-            string text,
-            bool bold = false,
-            JustificationValues? align = null,
-            bool indent = true) {
+    string text,
+    bool bold = false,
+    JustificationValues? align = null,
+    bool indent = true,
+    string fontSize = "24") // 🔥 добавили
+{
             var para = new Paragraph();
 
             var justification = align ?? JustificationValues.Start;
 
             var spacing = new SpacingBetweenLines() {
-                Line = "240",   // 1.5 интервал (240 = 1.0)
+                Line = "240",
                 LineRule = LineSpacingRuleValues.Auto,
                 Before = "0",
-                After = "0"   // отступ после
+                After = "0"
             };
 
             var indentProps = indent
-                ? new Indentation() { FirstLine = "720" } // ~1.25 см
+                ? new Indentation() { FirstLine = "720" }
                 : null;
 
             var pPr = new ParagraphProperties();
@@ -241,7 +369,7 @@ namespace LawEditor.Services.WordServises {
                     HighAnsi = "Palatino Linotype",
                     ComplexScript = "Palatino Linotype"
                 },
-                new FontSize() { Val = "24" }
+                new FontSize() { Val = fontSize } // 🔥 используем
             );
 
             if (bold)
@@ -254,6 +382,57 @@ namespace LawEditor.Services.WordServises {
             });
 
             para.Append(run);
+
+            return para;
+        }
+        private Paragraph CreateHyperlinkParagraph(
+            MainDocumentPart mainPart,
+            string fullText,
+            string linkText,
+            string url,
+            string fontSize = "20") // 🔥 10pt
+            {
+            var para = CreateParagraph("", align: JustificationValues.Both, indent: false, fontSize: fontSize);
+
+            var run = para.GetFirstChild<Run>();
+            run.RemoveAllChildren<Text>();
+
+            int index = fullText.IndexOf(linkText);
+
+            if (index < 0) {
+                run.Append(new Text(fullText));
+                return para;
+            }
+
+            string before = fullText.Substring(0, index);
+            string after = fullText.Substring(index + linkText.Length);
+
+            // текст ДО ссылки
+            if (!string.IsNullOrEmpty(before))
+                para.Append(new Run(new Text(before)));
+
+            // 🔥 создаём relationship
+            var rel = mainPart.AddHyperlinkRelationship(new Uri(url), true);
+
+            var hyperlink = new Hyperlink() {
+                Id = rel.Id
+            };
+
+            var linkRun = new Run(
+                new RunProperties(
+                    new Underline() { Val = UnderlineValues.Single },
+                    new Color() { Val = "0000FF" },
+                    new FontSize() { Val = fontSize }
+                ),
+                new Text(linkText)
+            );
+
+            hyperlink.Append(linkRun);
+            para.Append(hyperlink);
+
+            // текст ПОСЛЕ
+            if (!string.IsNullOrEmpty(after))
+                para.Append(new Run(new Text(after)));
 
             return para;
         }
