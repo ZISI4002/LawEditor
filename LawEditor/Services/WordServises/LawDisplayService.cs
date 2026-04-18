@@ -116,8 +116,9 @@ namespace LawEditor.Services.WordServises
 
                         // Article title
                         if (!string.IsNullOrWhiteSpace(article.Title))
-                        {
-                            doc.Blocks.Add(new Paragraph(new Run($"{article.Title}"+$"{article.EndnoteId}"))
+                        { // Если есть заголовок, отображаем его вместе с EndnoteId
+                            string titleWithEndnote = string.IsNullOrWhiteSpace(article.EndnoteId) ? article.Title : $"{article.Title} [{article.EndnoteId}]";
+                            doc.Blocks.Add(new Paragraph(new Run(titleWithEndnote))
                             {
                                 FontSize = 14,
                                 FontWeight = FontWeights.Bold,
@@ -131,8 +132,8 @@ namespace LawEditor.Services.WordServises
                         foreach (var clause in article.Clauses)
                         {
                             string roman = clauseIndex < RomanNumerals.Length ? RomanNumerals[clauseIndex] : (clauseIndex + 1).ToString();
-
-                            doc.Blocks.Add(new Paragraph(new Run($"{roman}. {clause.Text}  {clause.EndnoteId}"))
+                            string clauseTextWithEndnote = string.IsNullOrWhiteSpace(clause.EndnoteId) ? clause.Text : $"{clause.Text} [{clause.EndnoteId}]";
+                            doc.Blocks.Add(new Paragraph(new Run($"{roman}. {clauseTextWithEndnote}"))
                             {
                                 FontSize = 13,
                                 Foreground = Brushes.Black,
@@ -143,7 +144,8 @@ namespace LawEditor.Services.WordServises
 
                             foreach (var sub in clause.SubClauses)
                             {
-                                doc.Blocks.Add(new Paragraph(new Run($"{sub.Number}) {sub.Text}  {sub.EndnoteId}"))
+                                string subTextWithEndnote = string.IsNullOrWhiteSpace(sub.EndnoteId) ? sub.Text : $"{sub.Text} [{sub.EndnoteId}]";
+                                doc.Blocks.Add(new Paragraph(new Run($"{sub.Number}) {subTextWithEndnote}"))
                                 {
                                     FontSize = 13,
                                     Foreground = Brushes.Black,

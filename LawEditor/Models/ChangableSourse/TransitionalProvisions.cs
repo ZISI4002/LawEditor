@@ -9,14 +9,11 @@ namespace LawEditor.Models.ChangableSourse {
     public class TransitionalProvisions {
         public int Id { get; set; }
         public string? Title { get; set; }
-        public string? LinkText { get; set; }
-        public string? Url { get; set; }
         public static string? Date { get; set; } = DateTime.Now.ToString("dd.MM.yyyy");
         public TransitionalProvisions() { }
-        public TransitionalProvisions(string title, string? linkText = null, string? url = null) {
+        public TransitionalProvisions(string title) {
             Title = title;
-            LinkText = linkText;
-            Url = url;
+           
         }
         
     }

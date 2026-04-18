@@ -123,7 +123,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                         break;
                 // Yeni Konstitusiya dəyişikliyi yada əlavəsi əlavə etməklə bağlı əmrlər
                 case "İçəridə yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
-                    anchor.SourceData.AddConstitutionalAmendment("Yeni Konstitusiya Dəyişikliyi");
+                    anchor.SourceData.AddConstitutionalAmendment("Yeni Konstitusiya Dəyişikliyi",linkText:"New Link Text",url: "https://*");
                     break;
                 case "Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
                     {
@@ -131,7 +131,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                         int pos = list.IndexOf(anchor.ConstitutionalAmendment);
                         anchor.SourceData.AddConstitutionalAmendment(
                             "Yeni Konstitusiya Dəyişikliyi",
-                            position: pos > 0 ? pos : 0);
+                            position: pos > 0 ? pos : 0, linkText: "New Link Text", url: "https://*");
                         break;
                     }
 
@@ -141,7 +141,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                         int pos = list1.IndexOf(anchor.ConstitutionalAmendment);
                         anchor.SourceData.AddConstitutionalAmendment(
                             "Yeni Konstitusiya Dəyişikliyi",
-                            position: pos + 1);
+                            position: pos + 1, linkText: "New Link Text", url: "https://*");
                         break;
                     }
                 // Yeni İstifadə olunmuş mənbə əlavə etməklə bağlı əmrlər

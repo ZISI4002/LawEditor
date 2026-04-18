@@ -22,11 +22,11 @@ namespace LawEditor.Models.TreeClasses
                 Section s => GetFullSection(s),
                 Article a => GetFullArticle(a),
                 Clause cl => GetFullClause(cl),
-                SubClause sc => sc.Text ?? "",
+                SubClause sc => GetFullSubClause(sc),
                 TransitionalProvisions tp => tp.Title ?? "",
                 TransitionalProvisionsDateNote tpDate => tpDate.DisplayText,
-                SourceDocumentsList sd => sd.Title ?? "",
-                ConstitutionalAmendment ca => ca.Title ?? "",
+                SourceDocumentsList sd => GetFullSourseDocumentList(sd),
+                ConstitutionalAmendment ca => GetFullConstitutionalAmendment(ca),
                 SourceData sd => GetFullSourceData(sd),
                 _ => ""
             };
@@ -100,6 +100,8 @@ namespace LawEditor.Models.TreeClasses
         {
             var sb = new StringBuilder();
             sb.AppendLine($"[{article.Id.ToString(CultureInfo.InvariantCulture)}] {article.Title}");
+            if (!string.IsNullOrEmpty(article.EndnoteId))
+                sb.AppendLine($"EndnoteId: {article.EndnoteId}");
             sb.AppendLine();
 
             foreach (var clause in article.Clauses)
@@ -116,10 +118,42 @@ namespace LawEditor.Models.TreeClasses
         {
             var sb = new StringBuilder();
             sb.AppendLine($"{clause.Number}. {clause.Text}");
+            if (!string.IsNullOrEmpty(clause.EndnoteId))
+                sb.AppendLine($"EndnoteId: {clause.EndnoteId}");
+            sb.AppendLine();
 
             foreach (var sub in clause.SubClauses)
                 sb.AppendLine($"  {sub.Number}) {sub.Text}");
 
+            return sb.ToString();
+        }
+
+        private static string GetFullSubClause(SubClause sub)
+        {
+            string endnotePart = string.IsNullOrEmpty(sub.EndnoteId) ? "" : $"  (EndnoteId: {sub.EndnoteId})";
+            return $"{sub.Number}) {sub.Text}{endnotePart}";
+        }
+
+        private static string GetFullSourseDocumentList(SourceDocumentsList sd)
+        {
+            var sb = new StringBuilder();
+            var titleWithoutLinkText = string.IsNullOrEmpty(sd.LinkText) ? sd.Title : sd.Title.Replace(sd.LinkText, "").Trim();
+            sb.AppendLine($"  {sd.Id}) [{sd.LinkText}] {titleWithoutLinkText}");
+            sb.AppendLine();
+            if (!string.IsNullOrEmpty(titleWithoutLinkText))
+                sb.AppendLine($"🔗 Source URL: {sd.Url}");
+
+            return sb.ToString();
+        }
+
+        private static string GetFullConstitutionalAmendment(ConstitutionalAmendment ca)
+        {
+            var sb = new StringBuilder();
+            var titleWhitoutLinkText = string.IsNullOrEmpty(ca.LinkText) ? ca.Title : ca.Title.Replace(ca.LinkText, "").Trim();
+            sb.AppendLine($"{ca.Id}) [{ca.LinkText}] {titleWhitoutLinkText}");
+            sb.AppendLine();
+            if (!string.IsNullOrEmpty(ca.Url))
+                sb.AppendLine($"🔗 Source URL: {ca.Url}");
             return sb.ToString();
         }
 
@@ -157,17 +191,17 @@ namespace LawEditor.Models.TreeClasses
         {
             switch (item)
             {
-                case UpperObject u: ParseUpperObyect(u,value); break;
+                case UpperObject u: ParseUpperObyect(u, value); break;
                 case Chapter c: ParseChapter(c, value); break;
                 case Section s: ParseSection(s, value); break;
                 case Article a: ParseArticle(a, value); break;
                 case Clause cl: ParseClause(cl, value); break;
-                case SubClause sc: sc.Text = value; break;
+                case SubClause sc: ParseSubClause(sc, value); break;
                 case Header h: h.FullText = value; break;
                 case SourceData sd: ParseSourceData(sd, value); break;
                 case TransitionalProvisions tp: tp.Title = value; break;
-                case TransitionalProvisionsDateNote tpDate: tpDate.DisplayText = value; break;   
-                case SourceDocumentsList sd: sd.Title = value; break;
+                case TransitionalProvisionsDateNote tpDate: tpDate.DisplayText = value; break;
+                case SourceDocumentsList sd: ParseSourceDocumentsList(sd, value); break;
                 case ConstitutionalAmendment ca: ca.Title = value; break;
             }
         }
@@ -186,11 +220,11 @@ namespace LawEditor.Models.TreeClasses
 
             upperObject.Headers.Clear();
 
-            // всё остальное — один Header
             var rest = string.Join("\n", lines.Skip(1)).Trim();
             if (!string.IsNullOrEmpty(rest))
                 upperObject.Headers.Add(new Header { FullText = rest });
         }
+
         private static void ParseChapter(Chapter chapter, string text)
         {
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
@@ -351,6 +385,7 @@ namespace LawEditor.Models.TreeClasses
             }
 
             article.Clauses.Clear();
+            article.EndnoteId = null;
             Clause currentClause = null;
 
             for (int i = 1; i < lines.Length; i++)
@@ -360,6 +395,12 @@ namespace LawEditor.Models.TreeClasses
 
                 int indent = GetIndent(rawLine);
                 var line = rawLine.Trim();
+
+                if (line.StartsWith("EndnoteId:"))
+                {
+                    article.EndnoteId = line.Replace("EndnoteId:", "").Trim();
+                    continue;
+                }
 
                 if (indent >= 2 && indent < 4)
                 {
@@ -402,13 +443,22 @@ namespace LawEditor.Models.TreeClasses
             }
 
             clause.SubClauses.Clear();
+            clause.EndnoteId = null;
 
             for (int i = 1; i < lines.Length; i++)
             {
                 var rawLine = lines[i];
                 if (string.IsNullOrWhiteSpace(rawLine)) continue;
 
-                var subMatch = Regex.Match(rawLine.Trim(), @"^(\d+)\)\s+(.*)$");
+                var line = rawLine.Trim();
+
+                if (line.StartsWith("EndnoteId:"))
+                {
+                    clause.EndnoteId = line.Replace("EndnoteId:", "").Trim();
+                    continue;
+                }
+
+                var subMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                 if (subMatch.Success)
                 {
                     clause.SubClauses.Add(new SubClause
@@ -420,26 +470,101 @@ namespace LawEditor.Models.TreeClasses
             }
         }
 
+        private static void ParseSubClause(SubClause sub, string text)
+        {
+            // Формат GET: "N) текст  (EndnoteId: xxx)"
+            var trimmed = text.Trim();
+            var endnoteMatch = Regex.Match(trimmed, @"\(EndnoteId:\s*([^)]+)\)\s*$");
+            if (endnoteMatch.Success)
+            {
+                sub.EndnoteId = endnoteMatch.Groups[1].Value.Trim();
+                trimmed = trimmed.Substring(0, endnoteMatch.Index).Trim();
+            }
+            else
+            {
+                sub.EndnoteId = null;
+            }
+
+            var match = Regex.Match(trimmed, @"^(\d+)\)\s+(.*)$");
+            if (match.Success)
+            {
+                sub.Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+                sub.Text = match.Groups[2].Value;
+            }
+            else
+            {
+                sub.Text = trimmed;
+            }
+        }
+
+        private static void ParseSourceDocumentsList(SourceDocumentsList sd, string text)
+        {
+            // Формат GET:
+            //   {sd.Id}) [{sd.LinkText}] titleWithoutLinkText
+            //
+            //   🔗 Source URL: url
+
+            var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            if (lines.Length == 0) return;
+
+            sd.Url = null;
+            sd.LinkText = null;
+
+            var firstLine = lines[0].Trim();
+
+            // Пробуем: N) [LinkText] RestOfTitle
+            var fullMatch = Regex.Match(firstLine, @"^(\d+)\)\s+\[([^\]]*)\]\s+(.*)$");
+            if (fullMatch.Success)
+            {
+                sd.Id = int.Parse(fullMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+                sd.LinkText = fullMatch.Groups[2].Value;
+                var rest = fullMatch.Groups[3].Value.Trim();
+                sd.Title = string.IsNullOrEmpty(rest)
+                    ? sd.LinkText
+                    : sd.LinkText + " " + rest;
+            }
+            else
+            {
+                // Нет LinkText
+                var simpleMatch = Regex.Match(firstLine, @"^(\d+)\)\s+(.*)$");
+                if (simpleMatch.Success)
+                {
+                    sd.Id = int.Parse(simpleMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+                    sd.Title = simpleMatch.Groups[2].Value;
+                }
+                else
+                {
+                    sd.Title = firstLine;
+                }
+            }
+
+            for (int i = 1; i < lines.Length; i++)
+            {
+                var line = lines[i].Trim();
+                if (line.StartsWith("🔗 Source URL:"))
+                    sd.Url = line.Replace("🔗 Source URL:", "").Trim();
+            }
+        }
 
         private static void ParseSourceData(SourceData sourceData, string text)
-{
-             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-             if (lines.Length == 0) return;
+        {
+            var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            if (lines.Length == 0) return;
 
-             sourceData.Type = lines[0].Trim();
-             sourceData.Source.Clear();
+            sourceData.Type = lines[0].Trim();
+            sourceData.Source.Clear();
 
-             for (int i = 1; i < lines.Length; i++)
-    {
-                 var rawLine = lines[i];
-                  if (string.IsNullOrWhiteSpace(rawLine)) continue;
- 
-                    var line = rawLine.Trim();
+            for (int i = 1; i < lines.Length; i++)
+            {
+                var rawLine = lines[i];
+                if (string.IsNullOrWhiteSpace(rawLine)) continue;
 
-                   switch (sourceData.Id)
-                   {
-                     case 1: // KEÇİD MÜDDƏALARI
-                     {
+                var line = rawLine.Trim();
+
+                switch (sourceData.Id)
+                {
+                    case 1: // KEÇİD MÜDDƏALARI
+                        {
                             var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                             if (match.Success)
                                 sourceData.AddTransitionalProvision(match.Groups[2].Value);
@@ -448,29 +573,48 @@ namespace LawEditor.Models.TreeClasses
                             else
                                 sourceData.AddTransitionalProvision(line);
                             break;
+                        }
+                    case 2: // İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI
+                        {
+                            var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+                            if (match.Success)
+                                sourceData.AddSourceDocument(match.Groups[2].Value);
+                            else
+                                sourceData.AddSourceDocument(line);
+                            break;
+                        }
+                    case 3: // KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI
+                        {
+                            if (line.StartsWith("🔗 Source URL:"))
+                            {
+                                var lastCa = sourceData.Source.OfType<ConstitutionalAmendment>().LastOrDefault();
+                                if (lastCa != null)
+                                    lastCa.Url = line.Replace("🔗 Source URL:", "").Trim();
+                                break;
+                            }
 
-                     } 
-                     case 2: // İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI
-                     {
-                       var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                       if (match.Success)
-                       sourceData.AddSourceDocument(match.Groups[2].Value);
-                       else
-                       sourceData.AddSourceDocument(line);
-                        break;
-                     }
-                     case 3: // KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI
-                     {
-                      var match = Regex.Match(line, @"^([^\s]+)\)\s+(.*)$");
-                      if (match.Success)
-                      sourceData.AddConstitutionalAmendment(match.Groups[1].Value, match.Groups[2].Value);
-                      else
-                      sourceData.AddConstitutionalAmendment(i.ToString(), line);
-                      break;
-                     }
-                   }
-             }
-                if (sourceData.Id == 1)
+                            var match = Regex.Match(line, @"^([^\s]+)\)\s+\[([^\]]*)\]\s+(.*)$");
+                            if (match.Success)
+                            {
+                                sourceData.AddConstitutionalAmendment(
+                                    title: match.Groups[2].Value + " " + match.Groups[3].Value,
+                                    id: match.Groups[1].Value,
+                                    linkText: match.Groups[2].Value);
+                            }
+                            else
+                            {
+                                var simpleMatch = Regex.Match(line, @"^([^\s]+)\)\s+(.*)$");
+                                if (simpleMatch.Success)
+                                    sourceData.AddConstitutionalAmendment(title: simpleMatch.Groups[2].Value, id: simpleMatch.Groups[1].Value);
+                                else
+                                    sourceData.AddConstitutionalAmendment(title: line, id: i.ToString());
+                            }
+                            break;
+                        }
+                }
+            }
+
+            if (sourceData.Id == 1)
                 sourceData.Source.Add(new TransitionalProvisionsDateNote());
         }
     }

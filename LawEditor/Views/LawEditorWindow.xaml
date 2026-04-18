@@ -100,7 +100,7 @@
                           SelectedItemChanged="TreeView_SelectedItemChanged">
                     <TreeView.Resources>
                         <HierarchicalDataTemplate DataType="{x:Type local:UpperObject}" ItemsSource="{Binding Headers}">
-                            <TextBlock Text="{Binding ObjectName}" FontWeight="Bold" Foreground="#FFFFFF" Margin="0,2"/>
+                            <TextBlock Text="{Binding ObjectName}" FontWeight="Bold" Foreground="#FF7700" Margin="0,2"/>
                         </HierarchicalDataTemplate>
 
                         <DataTemplate DataType="{x:Type local:Header}">

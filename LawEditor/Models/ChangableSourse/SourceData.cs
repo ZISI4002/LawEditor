@@ -18,7 +18,7 @@ namespace LawEditor.Models.ChangableSourse {
  string title, string? linkText = null, string? url = null, int? position = null)
         {
             var list = Source.OfType<TransitionalProvisions>().OrderBy(x => x.Id).ToList();
-            var newItem = new TransitionalProvisions(title, linkText, url);
+            var newItem = new TransitionalProvisions(title);
             var dateNode = Source.OfType<TransitionalProvisionsDateNote>().FirstOrDefault();
 
             if (position == null || position >= list.Count)

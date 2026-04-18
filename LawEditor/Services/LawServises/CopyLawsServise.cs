@@ -85,8 +85,7 @@ namespace LawEditor.Services.LawServises
                             Id = tp.Id,
                             Title = tp.Title,
                            
-                            LinkText= tp.LinkText,
-                            Url = tp.Url
+                           
                         },
                         ConstitutionalAmendment ca => new ConstitutionalAmendment
                         {

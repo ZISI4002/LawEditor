@@ -96,7 +96,8 @@
                                  FontSize="15"
                                  VerticalScrollBarVisibility="Auto"
                                  HorizontalScrollBarVisibility="Disabled"
-                                 Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"/>
+                                 Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"
+                                 IsReadOnly="True" />
                 </Grid>
             </Border>
         </Border>
@@ -111,7 +112,8 @@
                              FontSize="15"
                              VerticalScrollBarVisibility="Auto"
                              HorizontalScrollBarVisibility="Disabled"
-                             Visibility="{Binding IsDisplayRightVisible, Converter={StaticResource BoolToVis}}"/>
+                             Visibility="{Binding IsDisplayRightVisible, Converter={StaticResource BoolToVis}}"
+                             IsReadOnly="True" />
             </Border>
         </Border>
 
