@@ -47,12 +47,12 @@ namespace LawEditor.Services.LawServises
                     var newSection = new Section { Id = sec.Id, Title = sec.Title };
                     foreach (var art in sec.Articles)
                     {
-                        var newArticle = new Article { Id = art.Id, Title = art.Title };
+                        var newArticle = new Article { Id = art.Id, Title = art.Title , EndnoteId=art.EndnoteId};
                         foreach (var cl in art.Clauses)
                         {
-                            var newClause = new Clause { Number = cl.Number, Text = cl.Text };
+                            var newClause = new Clause { Number = cl.Number, Text = cl.Text , EndnoteId = cl.EndnoteId};
                             foreach (var sc in cl.SubClauses)
-                                newClause.SubClauses.Add(new SubClause { Number = sc.Number, Text = sc.Text });
+                                newClause.SubClauses.Add(new SubClause { Number = sc.Number, Text = sc.Text , EndnoteId = sc.EndnoteId});
                             newArticle.Clauses.Add(newClause);
                         }
                         newSection.Articles.Add(newArticle);
