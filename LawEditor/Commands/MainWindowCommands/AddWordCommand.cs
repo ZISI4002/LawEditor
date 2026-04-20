@@ -30,7 +30,7 @@ namespace LawEditor.Commands.MainWindowCommands
         public void Execute(object? parameter)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Word Files (*.docx)|*.docx| (*.doc)|*.doc";
+            openFileDialog.Filter = "Word Files (*.doc)|*.doc| (*.docx)|*.docx";
 
             if (openFileDialog.ShowDialog() == true)
             {
@@ -51,7 +51,7 @@ namespace LawEditor.Commands.MainWindowCommands
                     _viewModel.FilePath = fullPath;
                     _viewModel.FileNameLeft = _fileName;
 
-                    if (_fileName.EndsWith(".docx"))
+                    if (_fileName.EndsWith(".doc"))
                     {
                         _viewModel.FileNameRight = _fileName.Replace(".doc", ".xml");
 

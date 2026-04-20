@@ -59,6 +59,7 @@ namespace LawEditor.ViewModels
             get => _isMenuOpen;
             set => Set(ref _isMenuOpen, value);
         }
+        
         public bool HasUnsavedChanges { get; set; } = false;
         public bool IsMesageSaving { get; set; } = false;
         public bool CanClose()
