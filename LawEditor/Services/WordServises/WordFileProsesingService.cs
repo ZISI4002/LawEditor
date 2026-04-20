@@ -12,13 +12,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 
-namespace LawEditor.Services.WordServises
-{
-    public class WordFileProsesingService
-    {
+namespace LawEditor.Services.WordServises {
+    public class WordFileProsesingService {
         // ── Проверка строки-заголовка bölmə ───────────────────────────────────
-        private bool IsChapterLine(string line)
-        {
+        private bool IsChapterLine(string line) {
             if (string.IsNullOrWhiteSpace(line))
                 return false;
 
@@ -28,8 +25,7 @@ namespace LawEditor.Services.WordServises
 
             string lower = line.ToLower().Trim();
 
-            foreach (var prefix in chapterPrefixes)
-            {
+            foreach (var prefix in chapterPrefixes) {
                 if (Regex.IsMatch(lower, @"^" + prefix + @"\s+bölmə"))
                     return true;
             }
@@ -46,8 +42,7 @@ namespace LawEditor.Services.WordServises
         }
 
         // ── Получить текст гиперссылки из параграфа ───────────────────────────
-        private (string? linkText, string? rId) ExtractHyperlink(Paragraph para)
-        {
+        private (string? linkText, string? rId) ExtractHyperlink(Paragraph para) {
             var hyperlink = para.Elements<Hyperlink>().FirstOrDefault();
             if (hyperlink == null)
                 return (null, null);
@@ -61,11 +56,61 @@ namespace LawEditor.Services.WordServises
             return (string.IsNullOrWhiteSpace(linkText) ? null : linkText, rId);
         }
 
+        // ── Строим словарь xmlId → amendmentId из эндноутов ──────────────────
+        private Dictionary<string, string> BuildEndnoteIdMap(WordprocessingDocument doc) {
+            var map = new Dictionary<string, string>();
+            var endnotesPart = doc.MainDocumentPart?.EndnotesPart;
+            if (endnotesPart == null) return map;
+
+            int numericCounter = 1;
+            foreach (var endnote in endnotesPart.Endnotes.Elements<Endnote>()) {
+                var type = endnote.Type;
+                if (type != null &&
+                    (type.Value == FootnoteEndnoteValues.Separator ||
+                     type.Value == FootnoteEndnoteValues.ContinuationSeparator))
+                    continue;
+
+                var sb = new StringBuilder();
+                foreach (var run in endnote.Descendants<Run>()) {
+                    if (run.GetFirstChild<EndnoteReferenceMark>() != null) continue;
+                    sb.Append(run.InnerText);
+                }
+
+                string content = sb.ToString().Trim();
+                if (string.IsNullOrWhiteSpace(content)) continue;
+
+                string xmlId = endnote.Id?.Value.ToString() ?? "";
+                var specialIdMatch = Regex.Match(content, @"^([A-Z]+\d+)\s+(.+)");
+                string amendmentId = specialIdMatch.Success
+                    ? specialIdMatch.Groups[1].Value
+                    : numericCounter++.ToString();
+
+                if (!string.IsNullOrEmpty(xmlId))
+                    map[xmlId] = amendmentId;
+            }
+            return map;
+        }
+
         // ── Получить endnoteReference id из параграфа ─────────────────────────
-        private string? ExtractEndnoteRefId(Paragraph para)
-        {
-            var endRef = para.Descendants<EndnoteReference>().FirstOrDefault();
-            return endRef?.Id?.Value.ToString();
+        private string? ExtractEndnoteRefId(Paragraph para, Dictionary<string, string> endnoteIdMap) {
+            foreach (var run in para.Elements<Run>()) {
+                var endRef = run.GetFirstChild<EndnoteReference>();
+                if (endRef == null) continue;
+
+                // Если customMarkFollows="1" — кастомный маркер (KM1, KQ1...)
+                if (endRef.CustomMarkFollows != null && endRef.CustomMarkFollows.Value) {
+                    string customMark = string.Concat(
+                        run.Elements<Text>().Select(t => t.Text ?? "")
+                    ).Trim();
+                    if (!string.IsNullOrWhiteSpace(customMark))
+                        return customMark;
+                }
+
+                // Числовой — переводим xmlId в amendmentId через маппинг
+                string xmlId = endRef.Id?.Value.ToString() ?? "";
+                return endnoteIdMap.TryGetValue(xmlId, out var mappedId) ? mappedId : xmlId;
+            }
+            return null;
         }
 
         // ── Получить полный текст параграфа ───────────────────────────────────
@@ -102,11 +147,9 @@ namespace LawEditor.Services.WordServises
 
         // ── Строим словарь rId → URL из коллекции relationships ──────────────
         private Dictionary<string, string> BuildRelationshipMap(
-            IEnumerable<HyperlinkRelationship> relationships)
-        {
+            IEnumerable<HyperlinkRelationship> relationships) {
             var map = new Dictionary<string, string>();
-            foreach (var rel in relationships)
-            {
+            foreach (var rel in relationships) {
                 if (!map.ContainsKey(rel.Id))
                     map[rel.Id] = rel.Uri?.ToString() ?? "";
             }
@@ -114,22 +157,20 @@ namespace LawEditor.Services.WordServises
         }
 
         // ── Основной метод ────────────────────────────────────────────────────
-        public Laws ReadWordFile(string filePath)
-        {
+        public Laws ReadWordFile(string filePath) {
             var law = new Laws();
 
             ObservableCollection<TransitionalProvisions> transitional = new ObservableCollection<TransitionalProvisions>();
             ObservableCollection<SourceDocumentsList> sources = new ObservableCollection<SourceDocumentsList>();
             ObservableCollection<ConstitutionalAmendment> amendments = new ObservableCollection<ConstitutionalAmendment>();
             ObservableCollection<Models.ChangableData.Header> headers = new ObservableCollection<Models.ChangableData.Header>();
-            
+
             Chapter currentChapter = null;
             Section currentSection = null;
             Article currentArticle = null;
             Clause currentClause = null;
             TransitionalProvisions currentTransitional = null;
             TransitionalProvisions.Date = null;
-
 
             Mode mode = Mode.Header;
             var headerBuilder = new StringBuilder();
@@ -143,8 +184,10 @@ namespace LawEditor.Services.WordServises
             var docRelationships = BuildRelationshipMap(
                 doc.MainDocumentPart.HyperlinkRelationships);
 
-            foreach (var para in body.Elements<Paragraph>())
-            {
+            // ── Строим маппинг xmlId → amendmentId ДО парсинга параграфов ──
+            var endnoteIdMap = BuildEndnoteIdMap(doc);
+
+            foreach (var para in body.Elements<Paragraph>()) {
                 var line = GetParagraphText(para);
 
                 if (string.IsNullOrWhiteSpace(line) && mode != Mode.Transitional)
@@ -156,15 +199,14 @@ namespace LawEditor.Services.WordServises
                     line.Contains("\\*"))
                     continue;
 
-                if (line.Contains("Keçİd müddəaları", StringComparison.OrdinalIgnoreCase))
-                {
+                if (line.Contains("Keçİd müddəaları", StringComparison.OrdinalIgnoreCase) ||
+                    line.Contains("KEÇİD MÜDDƏALARI", StringComparison.OrdinalIgnoreCase)) {
                     mode = Mode.Transitional;
                     continue;
                 }
 
                 if (line.Contains("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI",
-                        StringComparison.OrdinalIgnoreCase))
-                {
+                        StringComparison.OrdinalIgnoreCase)) {
                     mode = Mode.Sources;
                     continue;
                 }
@@ -175,13 +217,11 @@ namespace LawEditor.Services.WordServises
 
                 // --- HEADER ---
                 var header = new Models.ChangableData.Header();
-                if (mode == Mode.Header)
-                {
-                    if (IsChapterLine(line))
-                    {
-                          header.Id = 1;
-                          header.FullText = headerBuilder.ToString().Trim();
-                          headers.Add(header);
+                if (mode == Mode.Header) {
+                    if (IsChapterLine(line)) {
+                        header.Id = 1;
+                        header.FullText = headerBuilder.ToString().Trim();
+                        headers.Add(header);
                         mode = Mode.Chapters;
                         expectChapterTitle = true;
                         continue;
@@ -191,8 +231,7 @@ namespace LawEditor.Services.WordServises
                 }
 
                 // --- ожидаем название Chapter ---
-                if (expectChapterTitle)
-                {
+                if (expectChapterTitle) {
                     currentChapter = new Chapter(line);
                     law.Chapters.Add(currentChapter);
                     expectChapterTitle = false;
@@ -200,27 +239,23 @@ namespace LawEditor.Services.WordServises
                 }
 
                 // --- ожидаем название Section ---
-                if (expectSectionTitle)
-                {
+                if (expectSectionTitle) {
                     currentSection = new Section(line);
                     currentChapter?.Sections.Add(currentSection);
                     expectSectionTitle = false;
                     continue;
                 }
 
-                if (mode == Mode.Chapters)
-                {
+                if (mode == Mode.Chapters) {
                     // BÖLMƏ
-                    if (IsChapterLine(line))
-                    {
+                    if (IsChapterLine(line)) {
                         expectChapterTitle = true;
                         currentSection = null;
                         continue;
                     }
 
                     // I fəsil
-                    if (Regex.IsMatch(line, @"^[IVX]+\s*fəsil", RegexOptions.IgnoreCase))
-                    {
+                    if (Regex.IsMatch(line, @"^[IVX]+\s*fəsil", RegexOptions.IgnoreCase)) {
                         expectSectionTitle = true;
                         continue;
                     }
@@ -237,36 +272,33 @@ namespace LawEditor.Services.WordServises
                             System.Globalization.CultureInfo.InvariantCulture,
                             out id);
 
-                        string? endnoteRefId = ExtractEndnoteRefId(para);
+                        string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
 
-                        currentArticle = new Article(id, title,endnoteRefId);
+                        currentArticle = new Article(id, title, endnoteRefId);
                         currentSection?.Articles.Add(currentArticle);
                         currentClause = null;
                         continue;
                     }
 
                     // CLAUSE (I. II.)
-                    if (Regex.IsMatch(line, @"^[IVX]+\.\s"))
-                    {
+                    if (Regex.IsMatch(line, @"^[IVX]+\.\s")) {
                         string text = Regex.Replace(line, @"^[IVX]+\.\s*", "");
-                        string? endnoteRefId = ExtractEndnoteRefId(para);
+                        string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId);
                         continue;
                     }
 
                     // SUBCLAUSE (1)
-                    if (Regex.IsMatch(line, @"^\d+\)"))
-                    {
+                    if (Regex.IsMatch(line, @"^\d+\)")) {
                         string text = Regex.Replace(line, @"^\d+\)\s*", "");
-                        string? endnoteRefId = ExtractEndnoteRefId(para);
+                        string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         currentClause?.AddSubClause(text, endnoteId: endnoteRefId);
                         continue;
                     }
 
                     // обычный текст — если уже есть Clause, то это SubClause
-                    if (currentArticle != null)
-                    {
-                        string? endnoteRefId = ExtractEndnoteRefId(para);
+                    if (currentArticle != null) {
+                        string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         if (currentClause == null)
                             currentClause = currentArticle.AddClause(line, endnoteId: endnoteRefId);
                         else
@@ -287,13 +319,8 @@ namespace LawEditor.Services.WordServises
                             System.Globalization.CultureInfo.InvariantCulture,
                             out int id);
 
-                        // ── Извлекаем гиперссылку, если есть ──
-                        var (linkText, rId) = ExtractHyperlink(para);
-                        string? url = rId != null && docRelationships.TryGetValue(rId, out var u)
-                            ? u : null;
-
                         currentTransitional = new TransitionalProvisions(title) {
-                            Id = id,            
+                            Id = id,
                         };
                         transitional.Add(currentTransitional);
                     }
@@ -307,7 +334,7 @@ namespace LawEditor.Services.WordServises
                 }
                 if (mode == Mode.TransitionalDone) {
                     TransitionalProvisions.Date = TransitionalProvisions.Date += line + "\n";
-                     continue;
+                    continue;
                 }
 
                 // SOURCES
@@ -316,8 +343,6 @@ namespace LawEditor.Services.WordServises
                     string? url = rId != null && docRelationships.TryGetValue(rId, out var u)
                         ? u : null;
 
-                    // Убираем ведущий номер "1. " или "1) " — он может быть в тексте
-                    // (когда друг сохраняет как plain text вместо Word numbering)
                     string cleanedLine = Regex.Replace(line, @"^\d+[\.\)]\s*", "");
 
                     if (!string.IsNullOrWhiteSpace(cleanedLine))
@@ -331,42 +356,37 @@ namespace LawEditor.Services.WordServises
 
             ReadAmendmentsFromEndnotes(doc, amendments);
             // Копируем коллекции в law.UpperObjects
-            law.UpperObjects.Add(new UpperObject
-            {
+            law.UpperObjects.Add(new UpperObject {
                 Id = 1,
                 ObjectName = "HEADER",
                 Headers = headers,
             });
 
             // Копируем коллекции в law.SourceData
-            law.SourceData.Add(new SourceData
-            {
+            law.SourceData.Add(new SourceData {
                 Id = 1,
                 Type = "KEÇİD MÜDDƏALARI",
                 Source = new ObservableCollection<object>(transitional.Cast<object>())
             });
             law.SourceData[0].Source.Add(new TransitionalProvisionsDateNote());
 
-            law.SourceData.Add(new SourceData
-            {
+            law.SourceData.Add(new SourceData {
                 Id = 2,
                 Type = "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI",
                 Source = new ObservableCollection<object>(sources.Cast<object>())
             });
 
-            law.SourceData.Add(new SourceData
-            {
+            law.SourceData.Add(new SourceData {
                 Id = 3,
                 Type = "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI",
                 Source = new ObservableCollection<object>(amendments.Cast<object>())
             });
-            
+
             return law;
         }
 
         // ── Читаем amendments из endnotes ─────────────────────────────────────
-        private void ReadAmendmentsFromEndnotes(WordprocessingDocument doc, ObservableCollection<ConstitutionalAmendment> amendments)
-        {
+        private void ReadAmendmentsFromEndnotes(WordprocessingDocument doc, ObservableCollection<ConstitutionalAmendment> amendments) {
             var endnotesPart = doc.MainDocumentPart?.EndnotesPart;
             if (endnotesPart == null)
                 return;
@@ -376,8 +396,7 @@ namespace LawEditor.Services.WordServises
 
             int numericCounter = 1;
 
-            foreach (var endnote in endnotesPart.Endnotes.Elements<Endnote>())
-            {
+            foreach (var endnote in endnotesPart.Endnotes.Elements<Endnote>()) {
                 var type = endnote.Type;
                 if (type != null &&
                     (type.Value == FootnoteEndnoteValues.Separator ||
@@ -385,8 +404,7 @@ namespace LawEditor.Services.WordServises
                     continue;
 
                 var sb = new StringBuilder();
-                foreach (var run in endnote.Descendants<Run>())
-                {
+                foreach (var run in endnote.Descendants<Run>()) {
                     if (run.GetFirstChild<EndnoteReferenceMark>() != null)
                         continue;
                     sb.Append(run.InnerText);
@@ -399,19 +417,13 @@ namespace LawEditor.Services.WordServises
                 string amendmentId;
                 string amendmentTitle;
 
-                // Проверяем начало: буквы + цифра + пробел → буквенный id
-                // Например "KM1 текст" или "KQ1 текст"
                 var specialIdMatch = Regex.Match(content, @"^([A-Z]+\d+)\s+(.+)");
 
-                if (specialIdMatch.Success)
-                {
-                    // Буквенный id — счётчик не трогаем
+                if (specialIdMatch.Success) {
                     amendmentId = specialIdMatch.Groups[1].Value;
                     amendmentTitle = specialIdMatch.Groups[2].Value.Trim();
                 }
-                else
-                {
-                    // Числовой id — берём счётчик и увеличиваем
+                else {
                     amendmentId = numericCounter.ToString();
                     amendmentTitle = content;
                     numericCounter++;
@@ -423,8 +435,7 @@ namespace LawEditor.Services.WordServises
                 var firstParaWithLink = endnote.Elements<Paragraph>()
                     .FirstOrDefault(p => p.Elements<Hyperlink>().Any());
 
-                if (firstParaWithLink != null)
-                {
+                if (firstParaWithLink != null) {
                     var hyperlink = firstParaWithLink.Elements<Hyperlink>().First();
                     string? rId = hyperlink.Id?.Value;
 
