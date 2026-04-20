@@ -23,9 +23,9 @@ namespace LawEditor.Services.XMLSErvises
             var law = new Laws();
 
             // Initialize SourceData containers
-            law.SourceData.Add(new SourceData { Type = "TransitionalProvisions", Source = new() });
-            law.SourceData.Add(new SourceData { Type = "ConstitutionalAmendment", Source = new() });
-            law.SourceData.Add(new SourceData { Type = "SourceDocumentsList", Source = new() });
+            law.SourcesData.Add(new SourceData { Type = "TransitionalProvisions", Source = new() });
+            law.SourcesData.Add(new SourceData { Type = "ConstitutionalAmendment", Source = new() });
+            law.SourcesData.Add(new SourceData { Type = "SourceDocumentsList", Source = new() });
 
             // Initialize UpperObjects if needed
             if (law.UpperObjects.Count == 0)
@@ -111,7 +111,7 @@ namespace LawEditor.Services.XMLSErvises
             }
 
             // TransitionalProvisions
-            var transitionalProvisions = law.SourceData[0] as dynamic;
+            var transitionalProvisions = law.SourcesData[0] as dynamic;
             var transitionalElement = root.Element("transitionalProvisions");
             if (transitionalElement != null)
             {
@@ -123,7 +123,7 @@ namespace LawEditor.Services.XMLSErvises
             }
 
             // ConstitutionalAmendments
-            var constitutionalAmendments = law.SourceData[1] as dynamic;
+            var constitutionalAmendments = law.SourcesData[1] as dynamic;
             var amendmentsElement = root.Element("constitutionalAmendments");
             if (amendmentsElement != null)
             {
@@ -136,7 +136,7 @@ namespace LawEditor.Services.XMLSErvises
             }
 
             // SourceDocuments
-            var sourceDocumentsLists = law.SourceData[2] as dynamic;
+            var sourceDocumentsLists = law.SourcesData[2] as dynamic;
             var sourcesElement = root.Element("sourceDocumentsLists");
             if (sourcesElement != null)
             {

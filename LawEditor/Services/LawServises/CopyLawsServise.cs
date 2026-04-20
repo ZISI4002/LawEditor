@@ -62,10 +62,10 @@ namespace LawEditor.Services.LawServises
                 target.Chapters.Add(newChapter);
             }
 
-            // Копируем SourceData
-            target.SourceData.Clear();
+            // Копируем SourcesData
+            target.SourcesData.Clear();
 
-            foreach (var sourceContainer in source.SourceData)
+            foreach (var sourceContainer in source.SourcesData)
             {
                 if (sourceContainer is not SourceData src) continue;
 
@@ -109,7 +109,7 @@ namespace LawEditor.Services.LawServises
                         newContainer.Source.Add(copy);
                 }
 
-                target.SourceData.Add(newContainer);
+                target.SourcesData.Add(newContainer);
             }
         }
     }

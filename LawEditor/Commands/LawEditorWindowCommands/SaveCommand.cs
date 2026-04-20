@@ -29,18 +29,27 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
         public void Execute(object? parameter)
         {
+            if (_viewModel.IsMesageSaving==false && _viewModel.HasUnsavedChanges==true)
+            {
+                MessageBoxResult result = MessageBox.Show("All your changes will be saved permanently", "Are you sure?", MessageBoxButton.YesNoCancel, MessageBoxImage
+                    .Warning, MessageBoxResult.No);
 
-            MessageBoxResult result = MessageBox.Show("All your changes will be saved permanently", "Are you sure?", MessageBoxButton.YesNoCancel, MessageBoxImage
-                .Warning, MessageBoxResult.No);
+                if (result != MessageBoxResult.Yes) return;
 
-            if (result != MessageBoxResult.Yes) return;
+            }
+            if(_viewModel.HasUnsavedChanges==false)
+            {
+                MessageBox.Show("There are no changes to save.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
             try
             {
                 // Очищаем оригинальный Laws
                 _viewModel.Laws.Chapters.Clear();
-                _viewModel.Laws.SourceData.Clear();
+                _viewModel.Laws.SourcesData.Clear();
                 _viewModel.Laws.UpperObjects.Clear();
-
+                _viewModel.HasUnsavedChanges = false;
+                
 
                 // Копируем EditedLaws обратно в Laws
                 CopyLawsServise.CopyLawsData(_viewModel.EditedLaws, _viewModel.Laws);
@@ -74,8 +83,13 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 return;
             }
             // Закрываем окно
-            _viewModel.Window.Close();
+            if (_viewModel.IsMesageSaving == false)
+            { 
+                _viewModel.Window.Close();
+            }
 
+
+            _viewModel.IsMesageSaving = false;
         }
     }
 }

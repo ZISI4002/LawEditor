@@ -67,7 +67,7 @@ namespace LawEditor.Commands.MainWindowCommands
             ObservableCollection<SourceDocumentsList> sources = new ObservableCollection<SourceDocumentsList>();
             ObservableCollection<ConstitutionalAmendment> amendments = new ObservableCollection<ConstitutionalAmendment>();
 
-            _viewModel.Laws.SourceData.Add(new SourceData
+            _viewModel.Laws.SourcesData.Add(new SourceData
             {
                 Id = 1,
                 Type = "KEÇİD MÜDDƏALARI",
@@ -75,23 +75,23 @@ namespace LawEditor.Commands.MainWindowCommands
             });
             
 
-            _viewModel.Laws.SourceData.Add(new SourceData
+            _viewModel.Laws.SourcesData.Add(new SourceData
             {
                 Id = 2,
                 Type = "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI",
                 Source = new ObservableCollection<object>(sources.Cast<object>())
             });
 
-            _viewModel.Laws.SourceData.Add(new SourceData
+            _viewModel.Laws.SourcesData.Add(new SourceData
             {
                 Id = 3,
                 Type = "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI",
                 Source = new ObservableCollection<object>(amendments.Cast<object>())
             });
-            _viewModel.Laws.SourceData[0].AddTransitionalProvision("Keçid müddəası 1");
-            _viewModel.Laws.SourceData[0].Source.Add(new TransitionalProvisionsDateNote());
-            _viewModel.Laws.SourceData[1].AddSourceDocument("Mənbə sənədi 1");
-            _viewModel.Laws.SourceData[2].AddConstitutionalAmendment("Konstitusiyaya edilmiş dəyişiklik 1");
+            _viewModel.Laws.SourcesData[0].AddTransitionalProvision("Keçid müddəası 1");
+            _viewModel.Laws.SourcesData[0].Source.Add(new TransitionalProvisionsDateNote());
+            _viewModel.Laws.SourcesData[1].AddSourceDocument("Mənbə sənədi 1");
+            _viewModel.Laws.SourcesData[2].AddConstitutionalAmendment("Konstitusiyaya edilmiş dəyişiklik 1");
 
             if (_viewModel.Window is MainWindow mainWindow)
             {

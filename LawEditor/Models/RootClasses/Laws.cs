@@ -18,7 +18,7 @@ namespace LawEditor.Models.RootClasses
         public ObservableCollection<UpperObject> UpperObjects { get; set; } = new();
         public ObservableCollection<Chapter> Chapters { get; } = new();
 
-        public ObservableCollection<SourceData> SourceData { get; set; } = new();
+        public ObservableCollection<SourceData> SourcesData { get; set; } = new();
 
         public Chapter AddChapter(string title, int? position = null)
         {

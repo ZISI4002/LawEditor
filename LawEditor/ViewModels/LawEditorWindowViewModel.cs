@@ -2,6 +2,7 @@
 using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
 using LawEditor.Models.TreeClasses;
+using LawEditor.Services.Intefase;
 using LawEditor.Services.LawServises;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -9,7 +10,7 @@ using System.Windows.Input;
 
 namespace LawEditor.ViewModels
 {
-    public class LawEditorWindowViewModel : BaseViewModel
+    public class LawEditorWindowViewModel : BaseViewModel, ICloseHandler
     {
         public LawEditorWindowViewModel(Window window, MainWindowViewModel mainWindowViewModel) : base(window)
         {
@@ -48,7 +49,7 @@ namespace LawEditor.ViewModels
             foreach (var ch in EditedLaws.Chapters)
                 TreeRoots.Add(ch);
 
-            foreach (var container in EditedLaws.SourceData)
+            foreach (var container in EditedLaws.SourcesData)
                 TreeRoots.Add(container); 
         }
 
@@ -57,6 +58,36 @@ namespace LawEditor.ViewModels
         {
             get => _isMenuOpen;
             set => Set(ref _isMenuOpen, value);
+        }
+        public bool HasUnsavedChanges { get; set; } = false;
+        public bool IsMesageSaving { get; set; } = false;
+        public bool CanClose()
+        {
+            if (!HasUnsavedChanges)
+                return true;
+
+            var result = MessageBox.Show(
+                "Du you want to save changes?",
+                "LawEditor",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Cancel)
+                return false;
+
+            if (result == MessageBoxResult.Yes)
+            {
+                IsMesageSaving = true;
+                SaveCommand.Execute(null);
+               
+            }
+
+            return true;
+        }
+
+        public void OnClosing()
+        {
+            // если нужно — очистка, логирование и т.д.
         }
 
         public ICommand SaveCommand { get; set; }
@@ -133,6 +164,7 @@ namespace LawEditor.ViewModels
                 if (_selectedText == value) return;
                 _selectedText = value;
                 FullTextWrapper.SetText(_selectedItem, value);
+                HasUnsavedChanges = true;
             }
         }
 
@@ -214,17 +246,17 @@ namespace LawEditor.ViewModels
 
                 case TransitionalProvisions tp:
                     CurrentAnchor.TransitionalProvision = tp;
-                    CurrentAnchor.SourceData = EditedLaws.SourceData.FirstOrDefault(s => s.Source.Contains(tp));
+                    CurrentAnchor.SourceData = EditedLaws.SourcesData.FirstOrDefault(s => s.Source.Contains(tp));
                     break;
 
                 case SourceDocumentsList sd:
                     CurrentAnchor.SourceDocument = sd;
-                    CurrentAnchor.SourceData = EditedLaws.SourceData.FirstOrDefault(s => s.Source.Contains(sd));
+                    CurrentAnchor.SourceData = EditedLaws.SourcesData.FirstOrDefault(s => s.Source.Contains(sd));
                     break;
 
                 case ConstitutionalAmendment ca:
                     CurrentAnchor.ConstitutionalAmendment = ca;
-                    CurrentAnchor.SourceData = EditedLaws.SourceData.FirstOrDefault(s => s.Source.Contains(ca));
+                    CurrentAnchor.SourceData = EditedLaws.SourcesData.FirstOrDefault(s => s.Source.Contains(ca));
                     break;
             }
         }

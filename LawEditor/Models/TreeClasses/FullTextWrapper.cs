@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Documents;
 
 namespace LawEditor.Models.TreeClasses
 {
@@ -19,7 +20,7 @@ namespace LawEditor.Models.TreeClasses
                 Header h => h.FullText ?? "",
                 UpperObject u => GetFullUpperObject(u),
                 Chapter c => GetFullChapter(c),
-                Section s => GetFullSection(s),
+                Models.ChangableData.Section s => GetFullSection(s),
                 Article a => GetFullArticle(a),
                 Clause cl => GetFullClause(cl),
                 SubClause sc => GetFullSubClause(sc),
@@ -75,7 +76,7 @@ namespace LawEditor.Models.TreeClasses
             return sb.ToString();
         }
 
-        private static string GetFullSection(Section section)
+        private static string GetFullSection(Models.ChangableData.Section section)
         {
             var sb = new StringBuilder();
             sb.AppendLine("{" + section.Id + "} " + section.Title);
@@ -193,7 +194,7 @@ namespace LawEditor.Models.TreeClasses
             {
                 case UpperObject u: ParseUpperObyect(u, value); break;
                 case Chapter c: ParseChapter(c, value); break;
-                case Section s: ParseSection(s, value); break;
+                case Models.ChangableData.Section s: ParseSection(s, value); break;
                 case Article a: ParseArticle(a, value); break;
                 case Clause cl: ParseClause(cl, value); break;
                 case SubClause sc: ParseSubClause(sc, value); break;
@@ -202,7 +203,7 @@ namespace LawEditor.Models.TreeClasses
                 case TransitionalProvisions tp: tp.Title = value; break;
                 case TransitionalProvisionsDateNote tpDate: tpDate.DisplayText = value; break;
                 case SourceDocumentsList sd: ParseSourceDocumentsList(sd, value); break;
-                case ConstitutionalAmendment ca: ca.Title = value; break;
+                case ConstitutionalAmendment ca: ParseConstitutionalAmendment(ca, value); break;
             }
         }
 
@@ -233,7 +234,7 @@ namespace LawEditor.Models.TreeClasses
             chapter.Title = lines[0].Trim();
             chapter.Sections.Clear();
 
-            Section currentSection = null;
+            Models.ChangableData.Section currentSection = null;
             Article currentArticle = null;
             Clause currentClause = null;
 
@@ -249,8 +250,8 @@ namespace LawEditor.Models.TreeClasses
                 {
                     var match = Regex.Match(line, @"^\{([0-9]+)\}\s+(.*)$");
                     currentSection = match.Success
-                        ? new Section { Id = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture), Title = match.Groups[2].Value }
-                        : new Section { Title = line };
+                        ? new Models.ChangableData.Section { Id = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture), Title = match.Groups[2].Value }
+                        : new Models.ChangableData.Section { Title = line };
                     chapter.Sections.Add(currentSection);
                     currentArticle = null;
                     currentClause = null;
@@ -262,7 +263,7 @@ namespace LawEditor.Models.TreeClasses
                     {
                         if (currentSection == null)
                         {
-                            currentSection = new Section { Title = "Auto Section" };
+                            currentSection = new Models.ChangableData.Section { Title = "Auto Section" };
                             chapter.Sections.Add(currentSection);
                         }
                         decimal.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal artId);
@@ -299,7 +300,7 @@ namespace LawEditor.Models.TreeClasses
             }
         }
 
-        private static void ParseSection(Section section, string text)
+        private static void ParseSection(Models.ChangableData.Section section, string text)
         {
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
@@ -543,6 +544,49 @@ namespace LawEditor.Models.TreeClasses
                 var line = lines[i].Trim();
                 if (line.StartsWith("🔗 Source URL:"))
                     sd.Url = line.Replace("🔗 Source URL:", "").Trim();
+            }
+        }
+        private static void ParseConstitutionalAmendment(ConstitutionalAmendment ca, string text)
+        {
+            // Формат GET:
+            //   {ca.Id}) [{ca.LinkText}] titleWithoutLinkText
+            //
+            //   🔗 Source URL: url
+            var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            if (lines.Length == 0) return;
+            ca.Url = null;
+            ca.LinkText = null;
+            var firstLine = lines[0].Trim();
+            // Пробуем: N) [LinkText] RestOfTitle
+            var fullMatch = Regex.Match(firstLine, @"^([^\s]+)\)\s+\[([^\]]*)\]\s+(.*)$");
+            if (fullMatch.Success)
+            {
+                ca.Id = fullMatch.Groups[1].Value;
+                ca.LinkText = fullMatch.Groups[2].Value;
+                var rest = fullMatch.Groups[3].Value.Trim();
+                ca.Title = string.IsNullOrEmpty(rest)
+                    ? ca.LinkText
+                    : ca.LinkText + " " + rest;
+            }
+            else
+            {
+                // Нет LinkText
+                var simpleMatch = Regex.Match(firstLine, @"^([^\s]+)\)\s+(.*)$");
+                if (simpleMatch.Success)
+                {
+                    ca.Id = simpleMatch.Groups[1].Value;
+                    ca.Title = simpleMatch.Groups[2].Value;
+                }
+                else
+                {
+                    ca.Title = firstLine;
+                }
+            }
+            for (int i = 1; i < lines.Length; i++)
+            {
+                var line = lines[i].Trim();
+                if (line.StartsWith("🔗 Source URL:"))
+                    ca.Url = line.Replace("🔗 Source URL:", "").Trim();
             }
         }
 

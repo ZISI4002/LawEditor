@@ -362,21 +362,21 @@ namespace LawEditor.Services.WordServises {
                 Headers = headers,
             });
 
-            // Копируем коллекции в law.SourceData
-            law.SourceData.Add(new SourceData {
+            // Копируем коллекции в law.SourcesData
+            law.SourcesData.Add(new SourceData {
                 Id = 1,
                 Type = "KEÇİD MÜDDƏALARI",
                 Source = new ObservableCollection<object>(transitional.Cast<object>())
             });
-            law.SourceData[0].Source.Add(new TransitionalProvisionsDateNote());
+            law.SourcesData[0].Source.Add(new TransitionalProvisionsDateNote());
 
-            law.SourceData.Add(new SourceData {
+            law.SourcesData.Add(new SourceData {
                 Id = 2,
                 Type = "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI",
                 Source = new ObservableCollection<object>(sources.Cast<object>())
             });
 
-            law.SourceData.Add(new SourceData {
+            law.SourcesData.Add(new SourceData {
                 Id = 3,
                 Type = "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI",
                 Source = new ObservableCollection<object>(amendments.Cast<object>())

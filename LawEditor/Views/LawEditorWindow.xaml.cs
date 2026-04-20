@@ -1,8 +1,10 @@
 ﻿using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
+using LawEditor.Services.Intefase;
 using LawEditor.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,6 +43,19 @@ namespace LawEditor.Views
         private void Button_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            if (DataContext is ICloseHandler vm)
+            {
+                if (!vm.CanClose())
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
+                vm.OnClosing();
+            }
         }
     }
 }

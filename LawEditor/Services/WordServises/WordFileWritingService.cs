@@ -66,7 +66,7 @@ namespace LawEditor.Services.WordServises
                 // ── Строим маппинг: amendmentId (строка) → int endnoteId ──
                 // Числовые ID остаются как есть, нечисловые (KM1, KQ1...) получают
                 // уникальные ID начиная с 1001 чтобы не конфликтовать с числовыми.
-                var amendments = laws.SourceData.FirstOrDefault(s => s.Id == 3);
+                var amendments = laws.SourcesData.FirstOrDefault(s => s.Id == 3);
                 var idMapping = BuildIdMapping(amendments);
 
                 // ── HEADER ──
@@ -154,7 +154,7 @@ namespace LawEditor.Services.WordServises
                 }
 
                 // ── TRANSITIONAL ──
-                var transitional = laws.SourceData.FirstOrDefault(s => s.Id == 1);
+                var transitional = laws.SourcesData.FirstOrDefault(s => s.Id == 1);
 
                 if (transitional?.Source.Count > 0)
                 {
@@ -194,7 +194,7 @@ namespace LawEditor.Services.WordServises
                 }
 
                 // ── SOURCES ──
-                var sources = laws.SourceData.FirstOrDefault(s => s.Id == 2);
+                var sources = laws.SourcesData.FirstOrDefault(s => s.Id == 2);
 
                 if (sources?.Source.Count > 0)
                 {

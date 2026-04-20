@@ -27,7 +27,7 @@ namespace LawEditor.Commands.MainWindowCommands
             // Очищаем оригинальный Laws
             _viewModel.Laws.ResetCounter();
             _viewModel.Laws.Chapters.Clear();
-            _viewModel.Laws.SourceData.Clear();
+            _viewModel.Laws.SourcesData.Clear();
             SourceDocumentsList.DecreaseCounterToOne();
             TransitionalProvisions.Date = string.Empty;
             TransitionalProvisions.Date=DateOnly.FromDateTime(DateTime.Now).ToString("dd.MM.yyyy");

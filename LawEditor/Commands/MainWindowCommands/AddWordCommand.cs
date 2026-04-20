@@ -53,11 +53,12 @@ namespace LawEditor.Commands.MainWindowCommands
 
                     if (_fileName.EndsWith(".docx"))
                     {
-                        _viewModel.FileNameRight = _fileName.Replace(".docx", ".xml");
+                        _viewModel.FileNameRight = _fileName.Replace(".doc", ".xml");
+
                     }
                     else if (_fileName.EndsWith(".doc"))
                     {
-                        _viewModel.FileNameRight = _fileName.Replace(".doc", ".xml");
+                        _viewModel.FileNameRight = _fileName.Replace(".docx", ".xml");
                     }
 
                     WordFileProsesingService wordService = new WordFileProsesingService();

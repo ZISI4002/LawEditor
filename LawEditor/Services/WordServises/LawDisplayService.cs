@@ -159,7 +159,7 @@ namespace LawEditor.Services.WordServises
 
 
             // TRANSITIONAL PROVISIONS
-            var transitionalProvisions = laws.SourceData[0] as dynamic;
+            var transitionalProvisions = laws.SourcesData[0] as dynamic;
             if (transitionalProvisions.Source.Count > 0)
             {
                 doc.Blocks.Add(new Paragraph(new Run("Keçid müddəaları"))
@@ -196,7 +196,7 @@ namespace LawEditor.Services.WordServises
             }
 
              // SOURCE DOCUMENTS
-             var sourceDocumentsLists = laws.SourceData[1] as dynamic;
+             var sourceDocumentsLists = laws.SourcesData[1] as dynamic;
             if (sourceDocumentsLists.Source.Count > 0)
             {
                 doc.Blocks.Add(new Paragraph(new Run("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI"))
@@ -220,7 +220,7 @@ namespace LawEditor.Services.WordServises
             }
 
             // CONSTITUTIONAL AMENDMENTS
-            var constitutionalAmendments = laws.SourceData[2] as dynamic;
+            var constitutionalAmendments = laws.SourcesData[2] as dynamic;
             if (constitutionalAmendments.Source.Count > 0)
             {
                 doc.Blocks.Add(new Paragraph(new Run("KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI"))

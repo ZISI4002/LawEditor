@@ -28,7 +28,7 @@ namespace LawEditor.Commands.MainWindowCommands
             if (_viewModel.FileIsAdded == true ||
                 (_viewModel.Laws.Chapters.Count > 0 &&
                  _viewModel.Laws.UpperObjects.Count > 0 &&
-                 _viewModel.Laws.SourceData.Count > 0))
+                 _viewModel.Laws.SourcesData.Count > 0))
             {
                 _viewModel.IsDisplayRightVisible = true;
                 _viewModel.IsLoading = true; // ← В UI-потоке, ДО Task.Run
