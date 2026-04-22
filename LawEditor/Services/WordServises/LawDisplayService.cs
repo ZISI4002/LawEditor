@@ -160,7 +160,7 @@ namespace LawEditor.Services.WordServises
 
             // TRANSITIONAL PROVISIONS
             var transitionalProvisions = laws.SourcesData[0] as dynamic;
-            if (transitionalProvisions.Source.Count > 0)
+            if (transitionalProvisions.Source.Count > 1)
             {
                 doc.Blocks.Add(new Paragraph(new Run("Keçid müddəaları"))
                 {

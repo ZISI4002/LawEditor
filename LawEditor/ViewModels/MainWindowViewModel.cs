@@ -31,6 +31,12 @@ public class MainWindowViewModel : BaseViewModel
         get => _fileisadded;
         set => Set(ref _fileisadded, value);
     }
+    private bool _xMLIsGenerated = false;
+    public bool XMLIsGenerated
+    {
+        get => _xMLIsGenerated;
+        set => Set(ref _xMLIsGenerated, value);
+    }
     private string _fileNameLeft;
     public string FileNameLeft
     {

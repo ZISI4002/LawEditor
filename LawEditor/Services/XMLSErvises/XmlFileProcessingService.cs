@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace LawEditor.Services.XMLSErvises
+namespace LawEditor.Services.XMLServises
 {
     public class XmlFileProcessingService
     {

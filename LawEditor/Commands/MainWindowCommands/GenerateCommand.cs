@@ -1,7 +1,8 @@
-﻿using LawEditor.Services.XMLSErvises;
+﻿using LawEditor.Services.XMLServises;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,7 +45,7 @@ namespace LawEditor.Commands.MainWindowCommands
                         string folderPath = System.IO.Path.GetDirectoryName(_viewModel.FilePath);
                         string fileName = _viewModel.FileNameRight;
                         xmlTranslator.Translate(_viewModel.Laws, folderPath, fileName);
-                        var xmlLaw = xmlFileProcessingService.ReadXmlFile(folderPath, fileName);
+                        var xmlLaw = xmlFileProcessingService.ReadXmlFile(Path.Combine(folderPath, "CreatedXML"), fileName);
 
                         return xmlLaw;
                     });
@@ -52,6 +53,7 @@ namespace LawEditor.Commands.MainWindowCommands
                     await Task.Delay(4000); // ← Не .Wait() — UI не блокируется
 
                     _viewModel.XML = result;
+                    _viewModel.XMLIsGenerated = true;
                 }
                 finally
                 {

@@ -63,7 +63,18 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     var fileNameExtension= System.IO.Path.GetExtension(_viewModel.MainWindowModel.FilePath);
                     var fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(_viewModel.MainWindowModel.FilePath);
                     var directory = System.IO.Path.GetDirectoryName(_viewModel.MainWindowModel.FilePath);
-                    var clonpath = System.IO.Path.Combine(directory, fileNameWithoutExtension + "_editedIn_" + dateTime + fileNameExtension);
+
+                    if (System.IO.Path.GetFileName(directory) == "EditedFiles")
+                    {
+                        directory = System.IO.Path.GetDirectoryName(directory);
+                    }
+
+                    var newFolderName = System.IO.Path.Combine(directory, "EditedFiles");
+                    if (!System.IO.Directory.Exists(newFolderName))
+                    {
+                        System.IO.Directory.CreateDirectory(newFolderName);
+                    }
+                    var clonpath = System.IO.Path.Combine(newFolderName, fileNameWithoutExtension + "_editedIn_" + dateTime + fileNameExtension);
                     wordWriter.WriteWordFile(clonpath, _viewModel.MainWindowModel.Laws);
 
 
@@ -71,7 +82,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 if (_viewModel.MainWindowModel.Window is MainWindow mainWindow)
                 {
                     mainWindow.DisplayLaws(_viewModel.Laws);
-                    if (_viewModel.MainWindowModel.FileIsAdded)
+                    if (_viewModel.MainWindowModel.FileIsAdded && _viewModel.MainWindowModel.XMLIsGenerated)
                     {
                         mainWindow.DisplayChangedXML(_viewModel.MainWindowModel);
                     }

@@ -607,15 +607,32 @@ namespace LawEditor.Models.TreeClasses
 
                 switch (sourceData.Id)
                 {
-                    case 1: // KEÇİD MÜDDƏALARI
+                    case 1:
                         {
+                            // объяви string date = ""; ДО цикла for, не здесь
+
                             var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                             if (match.Success)
+                            {
                                 sourceData.AddTransitionalProvision(match.Groups[2].Value);
-                            else if (line.StartsWith("Qüvvəyə minmə tarixi:"))
-                                TransitionalProvisions.Date = line.Replace("Qüvvəyə minmə tarixi:", "").Trim();
-                            else
-                                sourceData.AddTransitionalProvision(line);
+                                break;
+                            }
+
+                            var dateMatch = Regex.Match(line,
+                                @"^\d{1,2}\s+(yanvar|fevral|mart|aprel|may|iyun|iyul|avqust|sentyabr|oktyabr|noyabr|dekabr)\s+\d{4}");
+                            if (dateMatch.Success)
+                            {
+                                TransitionalProvisions.Date = line;
+                                break;
+                            }
+
+                            if (Regex.IsMatch(line, @"^№"))
+                            {
+                                TransitionalProvisions.Date += "\n" + line;
+                                break;
+                            }
+
+                            sourceData.AddTransitionalProvision(line);
                             break;
                         }
                     case 2: // İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI

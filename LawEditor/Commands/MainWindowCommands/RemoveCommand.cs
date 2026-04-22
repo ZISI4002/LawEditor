@@ -36,7 +36,8 @@ namespace LawEditor.Commands.MainWindowCommands
                 _viewModel.IsDisplayButtonsVisible = true;
                 _viewModel.IsDisplayRightVisible = false;
                 _viewModel.FileIsAdded = false;
-                _viewModel.FileNameLeft = string.Empty;
+            _viewModel.XMLIsGenerated = false;
+            _viewModel.FileNameLeft = string.Empty;
                 _viewModel.FileNameRight = string.Empty;
                 _viewModel.Laws = new Laws() ;
                 _viewModel.XML = null;

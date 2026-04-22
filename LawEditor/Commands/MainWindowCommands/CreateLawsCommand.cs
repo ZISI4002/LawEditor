@@ -88,11 +88,9 @@ namespace LawEditor.Commands.MainWindowCommands
                 Type = "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI",
                 Source = new ObservableCollection<object>(amendments.Cast<object>())
             });
-            _viewModel.Laws.SourcesData[0].AddTransitionalProvision("Keçid müddəası 1");
+           
             _viewModel.Laws.SourcesData[0].Source.Add(new TransitionalProvisionsDateNote());
-            _viewModel.Laws.SourcesData[1].AddSourceDocument("Mənbə sənədi 1");
-            _viewModel.Laws.SourcesData[2].AddConstitutionalAmendment("Konstitusiyaya edilmiş dəyişiklik 1");
-
+           
             if (_viewModel.Window is MainWindow mainWindow)
             {
                 mainWindow.DisplayLaws(_viewModel.Laws);

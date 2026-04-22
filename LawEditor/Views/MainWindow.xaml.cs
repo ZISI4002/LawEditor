@@ -1,6 +1,6 @@
 ﻿using LawEditor.Models.RootClasses;
 using LawEditor.Services.WordServises;
-using LawEditor.Services.XMLSErvises;
+using LawEditor.Services.XMLServises;
 using LawEditor.ViewModels;
 using System.IO;
 using System.Windows;
@@ -41,14 +41,14 @@ namespace LawEditor.Views
         private void DisplayXML(MainWindowViewModel vm)
         {
             string folderPath = Path.GetDirectoryName(vm.FilePath);
-            RichTextRight.Document = _xmlDisplay.BuildDocument(vm.XML, folderPath, vm.FileNameRight);
+            RichTextRight.Document = _xmlDisplay.BuildDocument(vm.XML, Path.Combine(folderPath, "CreatedXML"), vm.FileNameRight);
         }
         public void DisplayChangedXML(MainWindowViewModel vm)
         {
             string folderPath = Path.GetDirectoryName(vm.FilePath);
             _xMLTranslator.Translate(vm.Laws, folderPath, vm.FileNameRight);
-            vm.XML = xmlFileProcessingService.ReadXmlFile(folderPath, vm.FileNameRight);
-            RichTextRight.Document = _xmlDisplay.BuildDocument(vm.XML, folderPath, vm.FileNameRight);
+            vm.XML = xmlFileProcessingService.ReadXmlFile(Path.Combine(folderPath, "CreatedXML"), vm.FileNameRight);
+            RichTextRight.Document = _xmlDisplay.BuildDocument(vm.XML, Path.Combine(folderPath, "CreatedXML"), vm.FileNameRight);
         }
     }
 }

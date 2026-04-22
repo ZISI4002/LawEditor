@@ -162,7 +162,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
 
             }
-           
+           _viewModel.HasUnsavedChanges = true;
             _viewModel.RefreshSelectedText();
 
         }
