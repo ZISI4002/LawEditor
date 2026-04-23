@@ -137,7 +137,8 @@
                         </DataTemplate>
 
                         <HierarchicalDataTemplate DataType="{x:Type src:TransitionalProvisionsDateNote}" ItemsSource="{x:Null}">
-                            <TextBlock Text="{Binding DisplayText}" Foreground="#5DADE2"/>
+                            <TextBlock Text="{Binding DisplayText}" Foreground="#5DADE2"
+                                       />
                         </HierarchicalDataTemplate>
 
                         <DataTemplate DataType="{x:Type src:SourceDocumentsList}">

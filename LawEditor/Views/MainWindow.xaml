@@ -16,6 +16,16 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="BorderBrush" Value="#3498DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Placement" Value="Mouse"/>
+        </Style>
+
         <Style x:Key="ModernButtonStyle" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="14"/>
@@ -76,8 +86,19 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding FileNameLeft}" Foreground="#3498DB" FontSize="16" FontWeight="Bold" Margin="0,0,0,12" HorizontalAlignment="Center" Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"/>
-        <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding FileNameRight}" Foreground="#3498DB" FontSize="16" FontWeight="Bold" Margin="0,0,0,12" HorizontalAlignment="Center" Visibility="{Binding IsDisplayRightVisible, Converter={StaticResource BoolToVis}}"/>
+        <TextBlock Grid.Row="0" Grid.Column="0" 
+                   Text="{Binding FileNameLeft}" 
+                   ToolTip="{Binding FileNameLeft}"
+                   Foreground="#3498DB" FontSize="16" FontWeight="Bold" Margin="0,0,0,12" 
+                   HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"
+                   Visibility="{Binding IsDisplayLeftVisible, Converter={StaticResource BoolToVis}}"/>
+
+        <TextBlock Grid.Row="0" Grid.Column="4" 
+                   Text="{Binding FileNameRight}" 
+                   ToolTip="{Binding FileNameRight}"
+                   Foreground="#3498DB" FontSize="16" FontWeight="Bold" Margin="0,0,0,12" 
+                   HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"
+                   Visibility="{Binding IsDisplayRightVisible, Converter={StaticResource BoolToVis}}"/>
 
         <Border Grid.Row="1" Grid.Column="0" Background="#1E1E1E" CornerRadius="12" Padding="2">
             <Border Background="White" CornerRadius="10">

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -63,7 +64,9 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     var fileNameExtension= System.IO.Path.GetExtension(_viewModel.MainWindowModel.FilePath);
                     var fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(_viewModel.MainWindowModel.FilePath);
                     var directory = System.IO.Path.GetDirectoryName(_viewModel.MainWindowModel.FilePath);
-
+                    directory = directory.Replace("EditedFiles", "");
+                    fileNameWithoutExtension = Regex.Replace(fileNameWithoutExtension, @"_\d{2}-\d{2}-\d{4}_\d{2}-\d{2}-\d{2}", "");
+                    fileNameWithoutExtension = fileNameWithoutExtension.Replace("_editedIn", "");
                     if (System.IO.Path.GetFileName(directory) == "EditedFiles")
                     {
                         directory = System.IO.Path.GetDirectoryName(directory);
@@ -74,7 +77,19 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     {
                         System.IO.Directory.CreateDirectory(newFolderName);
                     }
+                    
                     var clonpath = System.IO.Path.Combine(newFolderName, fileNameWithoutExtension + "_editedIn_" + dateTime + fileNameExtension);
+                    var newFileName = System.IO.Path.Combine(fileNameWithoutExtension + "_editedIn_" + dateTime + fileNameExtension);
+                    _viewModel.MainWindowModel.FileNameLeft = newFileName;
+                    if (newFileName.EndsWith(".doc"))
+                    {
+                        _viewModel.MainWindowModel.FileNameRight = newFileName.Replace(".doc", ".xml");
+
+                    }
+                    else if (newFileName.EndsWith(".doc"))
+                    {
+                        _viewModel.MainWindowModel.FileNameRight = newFileName.Replace(".docx", ".xml");
+                    }
                     wordWriter.WriteWordFile(clonpath, _viewModel.MainWindowModel.Laws);
 
 

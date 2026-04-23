@@ -12,6 +12,7 @@ namespace LawEditor.Services.XMLServises
     {
         public Laws ReadXmlFile(string folderPath, string fileName)
         {
+            folderPath = folderPath.Replace("EditedFiles", "");
             string filePath = Path.Combine(folderPath, fileName);
 
             var doc = XDocument.Load(filePath);

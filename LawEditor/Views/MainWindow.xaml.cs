@@ -41,11 +41,13 @@ namespace LawEditor.Views
         private void DisplayXML(MainWindowViewModel vm)
         {
             string folderPath = Path.GetDirectoryName(vm.FilePath);
+            folderPath=folderPath.Replace("EditedFiles", "");
             RichTextRight.Document = _xmlDisplay.BuildDocument(vm.XML, Path.Combine(folderPath, "CreatedXML"), vm.FileNameRight);
         }
         public void DisplayChangedXML(MainWindowViewModel vm)
         {
             string folderPath = Path.GetDirectoryName(vm.FilePath);
+            folderPath=folderPath.Replace("EditedFiles", "");
             _xMLTranslator.Translate(vm.Laws, folderPath, vm.FileNameRight);
             vm.XML = xmlFileProcessingService.ReadXmlFile(Path.Combine(folderPath, "CreatedXML"), vm.FileNameRight);
             RichTextRight.Document = _xmlDisplay.BuildDocument(vm.XML, Path.Combine(folderPath, "CreatedXML"), vm.FileNameRight);

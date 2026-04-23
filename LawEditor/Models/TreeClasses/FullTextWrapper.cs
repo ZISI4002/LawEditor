@@ -175,10 +175,18 @@ namespace LawEditor.Models.TreeClasses
                         sb.AppendLine($"  {tpDate.DisplayText}");
                         break;
                     case SourceDocumentsList sd:
-                        sb.AppendLine($"  {sd.Id}) {sd.Title}");
+                        var titleWithoutLinkText = string.IsNullOrEmpty(sd.LinkText) ? sd.Title : sd.Title.Replace(sd.LinkText, "").Trim();
+                        sb.AppendLine($"  {sd.Id}) [{sd.LinkText}] {titleWithoutLinkText}");
+                        sb.AppendLine();
+                        if (!string.IsNullOrEmpty(titleWithoutLinkText))
+                            sb.AppendLine($"🔗 Source URL: {sd.Url}");
                         break;
                     case ConstitutionalAmendment ca:
-                        sb.AppendLine($"  {ca.Id}) {ca.Title}");
+                        var titleWhitoutLinkText = string.IsNullOrEmpty(ca.LinkText) ? ca.Title : ca.Title.Replace(ca.LinkText, "").Trim();
+                        sb.AppendLine($"{ca.Id}) [{ca.LinkText}] {titleWhitoutLinkText}");
+                        sb.AppendLine();
+                        if (!string.IsNullOrEmpty(ca.Url))
+                            sb.AppendLine($"🔗 Source URL: {ca.Url}");
                         break;
                 }
             }
@@ -597,7 +605,7 @@ namespace LawEditor.Models.TreeClasses
 
             sourceData.Type = lines[0].Trim();
             sourceData.Source.Clear();
-
+            string lastTransitionalProvisionTitle = "";
             for (int i = 1; i < lines.Length; i++)
             {
                 var rawLine = lines[i];
@@ -609,15 +617,16 @@ namespace LawEditor.Models.TreeClasses
                 {
                     case 1:
                         {
-                            // объяви string date = ""; ДО цикла for, не здесь
+                           
 
                             var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                            if (match.Success)
+                            if (match.Success && match.Groups[1].Value!=null)
                             {
                                 sourceData.AddTransitionalProvision(match.Groups[2].Value);
+                                lastTransitionalProvisionTitle = match.Groups[2].Value;
+
                                 break;
                             }
-
                             var dateMatch = Regex.Match(line,
                                 @"^\d{1,2}\s+(yanvar|fevral|mart|aprel|may|iyun|iyul|avqust|sentyabr|oktyabr|noyabr|dekabr)\s+\d{4}");
                             if (dateMatch.Success)
@@ -631,29 +640,62 @@ namespace LawEditor.Models.TreeClasses
                                 TransitionalProvisions.Date += "\n" + line;
                                 break;
                             }
+                            if (match.Groups[1].Value != null) 
+                            {
+                            string newTile=lastTransitionalProvisionTitle+"\n"+line;
+                                sourceData.DeleteTransitionalProvision(sourceData.Source.OfType<TransitionalProvisions>().LastOrDefault()?.Id ?? 0);
+                                sourceData.AddTransitionalProvision(newTile);
+                                lastTransitionalProvisionTitle = newTile;
+                                break;
+                            }
+
+                            
 
                             sourceData.AddTransitionalProvision(line);
                             break;
                         }
                     case 2: // İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI
                         {
-                            var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                            if (match.Success)
-                                sourceData.AddSourceDocument(match.Groups[2].Value);
+                            
+
+                            var firstLine = lines[0].Trim();
+                            var sd = new SourceDocumentsList();
+
+                            // Пробуем: N) [LinkText] RestOfTitle
+                            var fullMatch = Regex.Match(firstLine, @"^(\d+)\)\s+\[([^\]]*)\]\s+(.*)$");
+                            if (fullMatch.Success)
+                            {
+                                sd.Id = int.Parse(fullMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+                                sd.LinkText = fullMatch.Groups[2].Value;
+                                var rest = fullMatch.Groups[3].Value.Trim();
+                                sd.Title = string.IsNullOrEmpty(rest)
+                                    ? sd.LinkText
+                                    : sd.LinkText + " " + rest;
+                                
+                            }
                             else
-                                sourceData.AddSourceDocument(line);
+                            {
+                                // Нет LinkText
+                                var simpleMatch = Regex.Match(firstLine, @"^(\d+)\)\s+(.*)$");
+                                if (simpleMatch.Success)
+                                {
+                                    sd.Id = int.Parse(simpleMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+                                    sd.Title = simpleMatch.Groups[2].Value;
+                                }
+                                else
+                                {
+                                    sd.Title = firstLine;
+                                }
+                            }
+
+                            
+                                if (line.StartsWith("🔗 Source URL:"))
+                                    sd.Url = line.Replace("🔗 Source URL:", "").Trim();
+                            
                             break;
                         }
                     case 3: // KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI
                         {
-                            if (line.StartsWith("🔗 Source URL:"))
-                            {
-                                var lastCa = sourceData.Source.OfType<ConstitutionalAmendment>().LastOrDefault();
-                                if (lastCa != null)
-                                    lastCa.Url = line.Replace("🔗 Source URL:", "").Trim();
-                                break;
-                            }
-
                             var match = Regex.Match(line, @"^([^\s]+)\)\s+\[([^\]]*)\]\s+(.*)$");
                             if (match.Success)
                             {

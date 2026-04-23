@@ -11,6 +11,7 @@ namespace LawEditor.Services.XMLServises {
     public class XMLTranslatorServise {
         public void Translate(Laws law, string folderPath, string fileName)
         {
+            folderPath = folderPath.Replace("EditedFiles", "");
             var createdXmlFolder = Path.Combine(folderPath, "CreatedXML");
 
             if (!Directory.Exists(createdXmlFolder))
