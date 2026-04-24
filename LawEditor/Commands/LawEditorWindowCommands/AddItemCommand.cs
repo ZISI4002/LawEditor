@@ -1,4 +1,5 @@
-﻿using LawEditor.Models.ChangableSourse;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using LawEditor.Models.ChangableSourse;
 using LawEditor.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -128,19 +129,24 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
                     {
                         var list = anchor.SourceData.Source.Cast<ConstitutionalAmendment>().ToList();
-                        int pos = list.IndexOf(anchor.ConstitutionalAmendment);
+                        int pos = anchor.ConstitutionalAmendment.GetPositionInConstitutionalAmendmentsList(list);
+                        string lastUpId = anchor.ConstitutionalAmendment.GetLastUpIntId(list, anchor.ConstitutionalAmendment);
                         anchor.SourceData.AddConstitutionalAmendment(
                             "Yeni Konstitusiya Dəyişikliyi",
-                            position: pos > 0 ? pos : 0, linkText: "New Link Text", url: "https://*");
+                            id: lastUpId,
+                            position: pos,
+                             linkText: "New Link Text", url: "https://*");
                         break;
                     }
 
                 case "Aşağıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə":
                     {
                         var list1 = anchor.SourceData.Source.Cast<ConstitutionalAmendment>().ToList();
-                        int pos = list1.IndexOf(anchor.ConstitutionalAmendment);
+                        int pos = anchor.ConstitutionalAmendment.GetPositionInConstitutionalAmendmentsList(list1);
+                       string firstDownId = anchor.ConstitutionalAmendment.GetLastDownIntId(list1, anchor.ConstitutionalAmendment);
                         anchor.SourceData.AddConstitutionalAmendment(
                             "Yeni Konstitusiya Dəyişikliyi",
+                            id: firstDownId,
                             position: pos + 1, linkText: "New Link Text", url: "https://*");
                         break;
                     }

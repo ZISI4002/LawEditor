@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Documents;
 
 namespace LawEditor.Models.TreeClasses
@@ -179,14 +180,20 @@ namespace LawEditor.Models.TreeClasses
                         sb.AppendLine($"  {sd.Id}) [{sd.LinkText}] {titleWithoutLinkText}");
                         sb.AppendLine();
                         if (!string.IsNullOrEmpty(titleWithoutLinkText))
+                        {
                             sb.AppendLine($"🔗 Source URL: {sd.Url}");
+                            sb.AppendLine();
+                        }
                         break;
                     case ConstitutionalAmendment ca:
                         var titleWhitoutLinkText = string.IsNullOrEmpty(ca.LinkText) ? ca.Title : ca.Title.Replace(ca.LinkText, "").Trim();
                         sb.AppendLine($"{ca.Id}) [{ca.LinkText}] {titleWhitoutLinkText}");
                         sb.AppendLine();
                         if (!string.IsNullOrEmpty(ca.Url))
+                        {
                             sb.AppendLine($"🔗 Source URL: {ca.Url}");
+                            sb.AppendLine();
+                        }
                         break;
                 }
             }
@@ -556,10 +563,7 @@ namespace LawEditor.Models.TreeClasses
         }
         private static void ParseConstitutionalAmendment(ConstitutionalAmendment ca, string text)
         {
-            // Формат GET:
-            //   {ca.Id}) [{ca.LinkText}] titleWithoutLinkText
-            //
-            //   🔗 Source URL: url
+             bool updateList = false;
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
             ca.Url = null;
@@ -569,6 +573,19 @@ namespace LawEditor.Models.TreeClasses
             var fullMatch = Regex.Match(firstLine, @"^([^\s]+)\)\s+\[([^\]]*)\]\s+(.*)$");
             if (fullMatch.Success)
             {
+
+                // if (int.TryParse(fullMatch.Groups[1].Value, out int num)) { }
+                if (ca.Id != fullMatch.Groups[1].Value && updateList==false)
+                {
+                    updateList = true;
+                    var result = MessageBox.Show(
+                    "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                    "Təsdiqləmə",
+                     MessageBoxButton.YesNo,
+                     MessageBoxImage.Question
+);
+                }
+                
                 ca.Id = fullMatch.Groups[1].Value;
                 ca.LinkText = fullMatch.Groups[2].Value;
                 var rest = fullMatch.Groups[3].Value.Trim();
@@ -606,6 +623,9 @@ namespace LawEditor.Models.TreeClasses
             sourceData.Type = lines[0].Trim();
             sourceData.Source.Clear();
             string lastTransitionalProvisionTitle = "";
+            var sd = new SourceDocumentsList();
+            var ca = new ConstitutionalAmendment();
+            int positionCounter = 1;
             for (int i = 1; i < lines.Length; i++)
             {
                 var rawLine = lines[i];
@@ -656,13 +676,15 @@ namespace LawEditor.Models.TreeClasses
                         }
                     case 2: // İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI
                         {
-                            
-
-                            var firstLine = lines[0].Trim();
-                            var sd = new SourceDocumentsList();
-
                             // Пробуем: N) [LinkText] RestOfTitle
-                            var fullMatch = Regex.Match(firstLine, @"^(\d+)\)\s+\[([^\]]*)\]\s+(.*)$");
+                            if (line.StartsWith("🔗 Source URL:"))
+                            {
+                                sd.Url = line.Replace("🔗 Source URL:", "").Trim();
+                                sourceData.AddSourceDocument(sd.Title, sd.LinkText, sd.Url);
+                                sd=new SourceDocumentsList();
+                                break;
+                            }
+                            var fullMatch = Regex.Match(line, @"^(\d+)\)\s+\[([^\]]*)\]\s+(.*)$");
                             if (fullMatch.Success)
                             {
                                 sd.Id = int.Parse(fullMatch.Groups[1].Value, CultureInfo.InvariantCulture);
@@ -676,7 +698,7 @@ namespace LawEditor.Models.TreeClasses
                             else
                             {
                                 // Нет LinkText
-                                var simpleMatch = Regex.Match(firstLine, @"^(\d+)\)\s+(.*)$");
+                                var simpleMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                                 if (simpleMatch.Success)
                                 {
                                     sd.Id = int.Parse(simpleMatch.Groups[1].Value, CultureInfo.InvariantCulture);
@@ -684,41 +706,56 @@ namespace LawEditor.Models.TreeClasses
                                 }
                                 else
                                 {
-                                    sd.Title = firstLine;
+                                    sd.Title = line;
                                 }
                             }
-
-                            
-                                if (line.StartsWith("🔗 Source URL:"))
-                                    sd.Url = line.Replace("🔗 Source URL:", "").Trim();
                             
                             break;
                         }
                     case 3: // KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI
                         {
-                            var match = Regex.Match(line, @"^([^\s]+)\)\s+\[([^\]]*)\]\s+(.*)$");
-                            if (match.Success)
+                            if (line.StartsWith("🔗 Source URL:"))
                             {
-                                sourceData.AddConstitutionalAmendment(
-                                    title: match.Groups[2].Value + " " + match.Groups[3].Value,
-                                    id: match.Groups[1].Value,
-                                    linkText: match.Groups[2].Value);
+                                ca.Url = line.Replace("🔗 Source URL:", "").Trim();
+                                sourceData.AddConstitutionalAmendment(ca.Title, ca.Id, ca.LinkText, ca.Url,positionCounter);
+                                positionCounter++;
+                                ca=new ConstitutionalAmendment();
+                                break;
+                            }
+
+                            var fullMatch = Regex.Match(line, @"^([^\s]+)\)\s+\[([^\]]*)\]\s+(.*)$");
+                            if (fullMatch.Success)
+                            {
+                                ca.Id = fullMatch.Groups[1].Value;
+                                ca.LinkText = fullMatch.Groups[2].Value;
+                                var rest = fullMatch.Groups[3].Value.Trim();
+                                ca.Title = string.IsNullOrEmpty(rest)
+                                    ? ca.LinkText
+                                    : ca.LinkText + " " + rest;
                             }
                             else
                             {
+                                // Нет LinkText
                                 var simpleMatch = Regex.Match(line, @"^([^\s]+)\)\s+(.*)$");
                                 if (simpleMatch.Success)
-                                    sourceData.AddConstitutionalAmendment(title: simpleMatch.Groups[2].Value, id: simpleMatch.Groups[1].Value);
+                                {
+                                    ca.Id = simpleMatch.Groups[1].Value;
+                                    ca.Title = simpleMatch.Groups[2].Value;
+                                }
                                 else
-                                    sourceData.AddConstitutionalAmendment(title: line, id: i.ToString());
+                                {
+                                    ca.Title = line;
+                                }
                             }
-                            break;
+                            
+                                break;
                         }
                 }
             }
 
             if (sourceData.Id == 1)
                 sourceData.Source.Add(new TransitionalProvisionsDateNote());
+            positionCounter = 0;
         }
     }
 }

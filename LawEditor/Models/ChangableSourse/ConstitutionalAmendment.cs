@@ -18,5 +18,33 @@ namespace LawEditor.Models.ChangableSourse {
             LinkText = linkText;
             Url = url;
         }
+        public string GetLastUpIntId(List<ConstitutionalAmendment> amendmentsList, ConstitutionalAmendment amendment)
+        {
+            int startIndex = amendmentsList.FindIndex(a => a.Id == amendment.Id);
+            
+            for (int i = startIndex; i < amendmentsList.Count; i++)
+            {
+                if (int.TryParse(amendmentsList[i].Id, out int num))
+                    return amendmentsList[i].Id;
+            }
+
+            return "1";
+        }
+        public string GetLastDownIntId(List<ConstitutionalAmendment> amendmentsList, ConstitutionalAmendment amendment)
+        {
+            int startIndex = amendmentsList.FindIndex(a => a.Id == amendment.Id);
+            for (int i = startIndex + 1; i < amendmentsList.Count; i++)
+            {
+                if (int.TryParse(amendmentsList[i].Id, out int num))
+                    return amendmentsList[i].Id;
+            }
+
+            return "2";
+        }
+
+
+        public int GetPositionInConstitutionalAmendmentsList(List<ConstitutionalAmendment> amendmentsList) {
+            return amendmentsList.FindIndex(a => a.Id == Id);
+        }
     }
 }

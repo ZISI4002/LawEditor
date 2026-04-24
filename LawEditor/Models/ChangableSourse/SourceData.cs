@@ -85,8 +85,7 @@ namespace LawEditor.Models.ChangableSourse {
         }
 
         // ConstitutionalAmendment
-        public ConstitutionalAmendment AddConstitutionalAmendment(
-         string title, string id = null, string? linkText = null, string? url = null, int? position = null) {
+        public ConstitutionalAmendment AddConstitutionalAmendment(string title, string id = null, string? linkText = null, string? url = null, int? position = null) {
             var list = Source.Cast<ConstitutionalAmendment>().ToList();
             var newItem = new ConstitutionalAmendment(id, title, linkText, url);
 
@@ -106,7 +105,7 @@ namespace LawEditor.Models.ChangableSourse {
             Source.Insert(position.Value, newItem);
             return newItem;
         }
-
+       
         public void DeleteConstitutionalAmendment(string id) {
             var item = Source.Cast<ConstitutionalAmendment>().FirstOrDefault(c => c.Id == id);
             if (item == null) return;
