@@ -39,7 +39,23 @@ namespace LawEditor.Models.ChangableSourse {
             Source.Insert(position.Value, newItem);
             return newItem;
         }
+        public void UpdateTransitionalProvision(int previousId, int newId) {
+            if (newId <= 0)
+                throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
 
+            if (newId <= previousId)
+                throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
+
+            var itemsToUpdate = Source.OfType<TransitionalProvisions>()
+                .OrderBy(t => t.Id)
+                .Where(t => t.Id > previousId)
+                .ToList();
+
+            int diff = newId - (previousId + 1);
+
+            foreach (var item in itemsToUpdate)
+                item.Id += diff;
+        }
         public void DeleteTransitionalProvision(int id)
         {
             var list = Source.OfType<TransitionalProvisions>().ToList();
@@ -72,7 +88,23 @@ namespace LawEditor.Models.ChangableSourse {
             Source.Insert(position.Value, newItem);
             return newItem;
         }
+        public void UpdateSourceDocument(int previousId, int newId) {
+            if (newId <= 0)
+                throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
 
+            if (newId <= previousId)
+                throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
+
+            var itemsToUpdate = Source.OfType<SourceDocumentsList>()
+                .OrderBy(s => s.Id)
+                .Where(s => s.Id > previousId)
+                .ToList();
+
+            int diff = newId - (previousId + 1);
+
+            foreach (var item in itemsToUpdate)
+                item.Id += diff;
+        }
         public void DeleteSourceDocument(int id) {
             var item = Source.Cast<SourceDocumentsList>().FirstOrDefault(s => s.Id == id);
             if (item == null) return;
@@ -105,7 +137,23 @@ namespace LawEditor.Models.ChangableSourse {
             Source.Insert(position.Value, newItem);
             return newItem;
         }
-       
+        public void UpdateConstitutionalAmendment(int previousId, int newId) {
+            if (newId <= 0)
+                throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+
+            if (newId <= previousId)
+                throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
+
+            var itemsToUpdate = Source.OfType<ConstitutionalAmendment>()
+                .Where(c => int.TryParse(c.Id, out int id) && id > previousId)
+                .OrderBy(c => int.Parse(c.Id))
+                .ToList();
+
+            int diff = newId - (previousId + 1);
+
+            foreach (var item in itemsToUpdate)
+                item.Id = (int.Parse(item.Id) + diff).ToString();
+        }
         public void DeleteConstitutionalAmendment(string id) {
             var item = Source.Cast<ConstitutionalAmendment>().FirstOrDefault(c => c.Id == id);
             if (item == null) return;

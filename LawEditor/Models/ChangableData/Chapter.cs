@@ -63,15 +63,15 @@ namespace LawEditor.Models.ChangableData
             if (newId <= previousId)
                 throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
 
-            // Берём секцию с Id = previousId + 1 и все последующие
             var sectionsToUpdate = Sections
                 .OrderBy(s => s.Id)
                 .Where(s => s.Id > previousId)
                 .ToList();
 
-            decimal nextId = newId;
+            int diff = newId - (previousId + 1);
+
             foreach (var sec in sectionsToUpdate)
-                sec.Id = (int)nextId++;
+                sec.Id += diff;
 
             var sorted = Sections.OrderBy(s => s.Id).ToList();
             Sections.Clear();
