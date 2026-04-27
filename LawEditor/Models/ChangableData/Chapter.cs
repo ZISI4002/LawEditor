@@ -1,6 +1,7 @@
-﻿using LawEditor.Models.RootClasses;
-using System.Collections.ObjectModel;
+﻿using LawEditor.Models.ChangableSourse;
+using LawEditor.Models.RootClasses;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -55,6 +56,29 @@ namespace LawEditor.Models.ChangableData
             return newSection;
         }
 
+        public void UpdateSection(int previousId, int newId) {
+            if (newId <= 0)
+                throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+
+            if (newId <= previousId)
+                throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
+
+            // Берём секцию с Id = previousId + 1 и все последующие
+            var sectionsToUpdate = Sections
+                .OrderBy(s => s.Id)
+                .Where(s => s.Id > previousId)
+                .ToList();
+
+            decimal nextId = newId;
+            foreach (var sec in sectionsToUpdate)
+                sec.Id = (int)nextId++;
+
+            var sorted = Sections.OrderBy(s => s.Id).ToList();
+            Sections.Clear();
+            foreach (var s in sorted)
+                Sections.Add(s);
+        }
+
         public void DeleteSection(int id) {
             var section = Sections.FirstOrDefault(s => s.Id == id);
 
@@ -69,8 +93,5 @@ namespace LawEditor.Models.ChangableData
 
             Section.DecreaseCounter();
         }
-
-
-
     }
 }
