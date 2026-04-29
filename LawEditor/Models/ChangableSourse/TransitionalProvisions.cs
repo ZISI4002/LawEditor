@@ -16,5 +16,8 @@ namespace LawEditor.Models.ChangableSourse {
            
         }
         
+        public void UpdateTransitionalProvision(int previousId,int newId) {
+            
+        }
     }
 }

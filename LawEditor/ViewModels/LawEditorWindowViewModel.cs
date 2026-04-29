@@ -29,6 +29,7 @@ namespace LawEditor.ViewModels
             this.SaveCommand = new Commands.LawEditorWindowCommands.SaveCommand(this);
             this.DeleteCommand = new Commands.LawEditorWindowCommands.DeleteCommand(this);
             this.AddItemCommand = new Commands.LawEditorWindowCommands.AddItemCommand(this);
+
         }
 
         public MainWindowViewModel MainWindowModel { get; set; }
@@ -166,6 +167,7 @@ namespace LawEditor.ViewModels
                 _selectedText = value;
                 FullTextWrapper.SetText(_selectedItem, value);
                 HasUnsavedChanges = true;
+                RefreshSelectedText();
             }
         }
 
