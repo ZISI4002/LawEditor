@@ -15,7 +15,7 @@ namespace LawEditor.Models.ChangableSourse {
 
         // TransitionalProvision      
         public TransitionalProvisions AddTransitionalProvision(
- string title, int? id = null, string? linkText = null, string? url = null, int? position = null)
+ string title, int? id = null,  int? position = null)
         { 
             var list = Source.OfType<TransitionalProvisions>().OrderBy(x => x.Id).ToList();
             var newItem = new TransitionalProvisions(title);

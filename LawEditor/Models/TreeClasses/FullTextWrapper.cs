@@ -724,8 +724,8 @@ namespace LawEditor.Models.TreeClasses
                            
 
                             var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                            if (match.Success && match.Groups[1].Value!=null)
-                            {
+                            if (match.Success)
+                            {     
                                
                                 tr.Id = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
                                 tr.Title = match.Groups[2].Value;
@@ -741,11 +741,12 @@ namespace LawEditor.Models.TreeClasses
                                         IdofChangedTransitionalElement = tr.Id;
                                         PositionOfChangedTransitionalElement= IdcounterofTransitionalProvisions;
                                     }
-
                                 }
 
 
-                                sourceData.AddTransitionalProvision(title: tr.Title);
+
+                                sourceData.AddTransitionalProvision(title: tr.Title, id: tr.Id);
+
                                 lastTransitionalProvisionTitle = match.Groups[2].Value;
                                       IdcounterofTransitionalProvisions++;
                                 break;
@@ -763,19 +764,16 @@ namespace LawEditor.Models.TreeClasses
                                 TransitionalProvisions.Date += "\n" + line;
                                 break;
                             }
-                            if (match.Groups[1].Value != null) 
-                            {
+                           
                             string newTile=lastTransitionalProvisionTitle+"\n"+line;
-                                sourceData.DeleteTransitionalProvision(sourceData.Source.OfType<TransitionalProvisions>().LastOrDefault()?.Id ?? 0);
+                                sourceData.DeleteTransitionalProvision(tr.Id);
                                 sourceData.AddTransitionalProvision(newTile);
                                 lastTransitionalProvisionTitle = newTile;
                                 break;
-                            }
-
                             
 
-                            sourceData.AddTransitionalProvision(line);
-                            break;
+                            
+                                                  
                         }
                     case 2: // İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI
                         {
