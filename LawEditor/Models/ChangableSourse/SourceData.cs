@@ -15,12 +15,18 @@ namespace LawEditor.Models.ChangableSourse {
 
         // TransitionalProvision      
         public TransitionalProvisions AddTransitionalProvision(
- string title, string? linkText = null, string? url = null, int? position = null)
+ string title, int? id = null, string? linkText = null, string? url = null, int? position = null)
         { 
             var list = Source.OfType<TransitionalProvisions>().OrderBy(x => x.Id).ToList();
             var newItem = new TransitionalProvisions(title);
             var dateNode = Source.OfType<TransitionalProvisionsDateNote>().FirstOrDefault();
 
+            if(position == null && id != null)
+            {
+                newItem.Id = id.Value;
+                Source.Add(newItem);
+                return newItem;
+            }
             if (position == null || position >= list.Count)
             {
                 newItem.Id = list.Any() ? list.Max(x => x.Id) + 1 : 1;
@@ -39,19 +45,21 @@ namespace LawEditor.Models.ChangableSourse {
             Source.Insert(position.Value, newItem);
             return newItem;
         }
-        public void UpdateTransitionalProvision(int previousId, int newId) {
+        public void UpdateTransitionalProvision(int currentId, int newId) {
             if (newId <= 0)
                 throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+
+            int previousId = currentId - 1;
 
             if (newId <= previousId)
                 throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
 
             var itemsToUpdate = Source.OfType<TransitionalProvisions>()
                 .OrderBy(t => t.Id)
-                .Where(t => t.Id > previousId)
+                .Where(t => t.Id >= currentId)  // >= вместо >
                 .ToList();
 
-            int diff = newId - (previousId + 1);
+            int diff = newId - currentId;  // разница между новым и текущим
 
             foreach (var item in itemsToUpdate)
                 item.Id += diff;
@@ -71,9 +79,15 @@ namespace LawEditor.Models.ChangableSourse {
 
         // SourceDocumentsList
         public SourceDocumentsList AddSourceDocument(
-        string title, string? linkText = null, string? url = null, int? position = null) {
+        string title, int? id = null, string? linkText = null, string? url = null, int? position = null) {
             var list = Source.Cast<SourceDocumentsList>().ToList();
             var newItem = new SourceDocumentsList(title, linkText, url);
+
+            if (position == null && id != null) {
+                newItem.Id = id.Value;
+                Source.Add(newItem);
+                return newItem;
+            }
 
             if (position == null || position >= list.Count) {
                 Source.Add(newItem);
@@ -88,19 +102,21 @@ namespace LawEditor.Models.ChangableSourse {
             Source.Insert(position.Value, newItem);
             return newItem;
         }
-        public void UpdateSourceDocument(int previousId, int newId) {
+        public void UpdateSourceDocument(int currentId, int newId) {
             if (newId <= 0)
                 throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+
+            int previousId = currentId - 1;
 
             if (newId <= previousId)
                 throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
 
             var itemsToUpdate = Source.OfType<SourceDocumentsList>()
                 .OrderBy(s => s.Id)
-                .Where(s => s.Id > previousId)
+                .Where(s => s.Id >= currentId)
                 .ToList();
 
-            int diff = newId - (previousId + 1);
+            int diff = newId - currentId;
 
             foreach (var item in itemsToUpdate)
                 item.Id += diff;
@@ -121,6 +137,12 @@ namespace LawEditor.Models.ChangableSourse {
             var list = Source.Cast<ConstitutionalAmendment>().ToList();
             var newItem = new ConstitutionalAmendment(id, title, linkText, url);
 
+            if (position == null && id != null) {
+                newItem.Id = id;
+                Source.Add(newItem);
+                return newItem;
+            }
+
             if ((position == null && id == null) || position >= list.Count) {
                 newItem.Id = id ?? (list.Any() ? list.Max(c => int.TryParse(c.Id, out int numId) ? numId : 0) + 1 : 1).ToString();
                 Source.Add(newItem);
@@ -137,19 +159,27 @@ namespace LawEditor.Models.ChangableSourse {
             Source.Insert(position.Value, newItem);
             return newItem;
         }
-        public void UpdateConstitutionalAmendment(int previousId, int newId) {
-            if (newId <= 0)
+        public void UpdateConstitutionalAmendment(string currentId, string newId) {
+            if (!int.TryParse(currentId, out int currentInt))
+                throw new ArgumentException("currentId должен быть числом.", nameof(currentId));
+
+            if (!int.TryParse(newId, out int newInt))
+                throw new ArgumentException("newId должен быть числом.", nameof(newId));
+
+            if (newInt <= 0)
                 throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
 
-            if (newId <= previousId)
+            int previousId = currentInt - 1;
+
+            if (newInt <= previousId)
                 throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
 
             var itemsToUpdate = Source.OfType<ConstitutionalAmendment>()
-                .Where(c => int.TryParse(c.Id, out int id) && id > previousId)
+                .Where(c => int.TryParse(c.Id, out int id) && id >= currentInt)
                 .OrderBy(c => int.Parse(c.Id))
                 .ToList();
 
-            int diff = newId - (previousId + 1);
+            int diff = newInt - currentInt;
 
             foreach (var item in itemsToUpdate)
                 item.Id = (int.Parse(item.Id) + diff).ToString();

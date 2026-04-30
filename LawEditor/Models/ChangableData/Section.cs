@@ -98,32 +98,31 @@ namespace LawEditor.Models.ChangableData
             Articles.Add(newArticle);
             return newArticle;
         }
-        public void UpdateArticle(decimal previousId, decimal newId, Laws laws) {
+        public void UpdateArticle(decimal currentId, decimal newId, Laws laws) {
             if (newId <= 0)
                 throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+
+            decimal previousId = currentId - GetStep(currentId);
 
             if (newId <= previousId)
                 throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
 
-            // Собираем ВСЕ статьи из всех глав и секций
             var allArticles = laws.Chapters
                 .SelectMany(c => c.Sections)
                 .SelectMany(s => s.Articles)
                 .OrderBy(a => a.Id)
                 .ToList();
 
-            // Берём все статьи у которых Id > previousId
             var articlesToUpdate = allArticles
-                .Where(a => a.Id > previousId)
+                .Where(a => a.Id >= currentId)
                 .ToList();
 
-            decimal diff = newId - (previousId + GetStep(previousId));
+            decimal diff = newId - currentId;
 
             foreach (var article in articlesToUpdate) {
                 article.Id += diff;
             }
 
-            // Сортируем каждую секцию
             foreach (var chapter in laws.Chapters) {
                 foreach (var section in chapter.Sections) {
                     var sorted = section.Articles.OrderBy(a => a.Id).ToList();
@@ -134,7 +133,6 @@ namespace LawEditor.Models.ChangableData
             }
         }
 
-        // Определяем шаг: для целых (108) → 1, для дробных (108.1) → 0.1
         private decimal GetStep(decimal id) {
             return id % 1 == 0 ? 1m : 0.1m;
         }

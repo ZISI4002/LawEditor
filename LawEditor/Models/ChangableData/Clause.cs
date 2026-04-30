@@ -36,23 +36,24 @@ namespace LawEditor.Models.ChangableData
             SubClauses.Insert(position.Value, newSub);
             return newSub;
         }
-        public void UpdateSubClause(int previousNumber, int newNumber) {
+        public void UpdateSubClause(int currentNumber, int newNumber) {
             if (newNumber <= 0)
                 throw new ArgumentException("Номер не может быть отрицательным или нулём.", nameof(newNumber));
+
+            int previousNumber = currentNumber - 1;
 
             if (newNumber <= previousNumber)
                 throw new ArgumentException($"Новый номер ({newNumber}) должен быть больше предыдущего ({previousNumber}).", nameof(newNumber));
 
             var subClausesToUpdate = SubClauses
                 .OrderBy(s => s.Number)
-                .Where(s => s.Number > previousNumber)
+                .Where(s => s.Number >= currentNumber)
                 .ToList();
 
-            int diff = newNumber - (previousNumber + 1);
+            int diff = newNumber - currentNumber;
 
-            foreach (var sub in subClausesToUpdate) {
+            foreach (var sub in subClausesToUpdate)
                 sub.Number += diff;
-            }
 
             var sorted = SubClauses.OrderBy(s => s.Number).ToList();
             SubClauses.Clear();

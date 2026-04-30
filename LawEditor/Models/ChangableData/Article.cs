@@ -33,24 +33,24 @@ namespace LawEditor.Models.ChangableData
             Clauses.Insert(position.Value, newClause);
             return newClause;
         }
-        public void UpdateClause(int previousNumber, int newNumber) {
+        public void UpdateClause(int currentNumber, int newNumber) {
             if (newNumber <= 0)
                 throw new ArgumentException("Номер не может быть отрицательным или нулём.", nameof(newNumber));
+
+            int previousNumber = currentNumber - 1;
 
             if (newNumber <= previousNumber)
                 throw new ArgumentException($"Новый номер ({newNumber}) должен быть больше предыдущего ({previousNumber}).", nameof(newNumber));
 
-            // Берём все клаузы после previousNumber
             var clausesToUpdate = Clauses
                 .OrderBy(c => c.Number)
-                .Where(c => c.Number > previousNumber)
+                .Where(c => c.Number >= currentNumber)
                 .ToList();
 
-            int diff = newNumber - (previousNumber + 1);
+            int diff = newNumber - currentNumber;
 
-            foreach (var clause in clausesToUpdate) {
+            foreach (var clause in clausesToUpdate)
                 clause.Number += diff;
-            }
 
             var sorted = Clauses.OrderBy(c => c.Number).ToList();
             Clauses.Clear();

@@ -783,7 +783,7 @@ namespace LawEditor.Models.TreeClasses
                             if (line.StartsWith("🔗 Source URL:"))
                             {
                                 sd.Url = line.Replace("🔗 Source URL:", "").Trim();
-                                sourceData.AddSourceDocument(sd.Title, sd.LinkText, sd.Url);
+                                sourceData.AddSourceDocument(sd.Title, null, sd.LinkText, sd.Url);
                                 sd=new SourceDocumentsList();
                                 break;
                             }
@@ -857,16 +857,10 @@ namespace LawEditor.Models.TreeClasses
             }
             if (TransitionalProvisionsResult == MessageBoxResult.Yes) 
             {
-                if (PositionOfChangedTransitionalElement != 0)
-                {
-                    sourceData.UpdateTransitionalProvision(TransitionalProvisionsIds[PositionOfChangedTransitionalElement - 1], IdofChangedTransitionalElement);
+               
+                    sourceData.UpdateTransitionalProvision(TransitionalProvisionsIds[PositionOfChangedTransitionalElement], IdofChangedTransitionalElement);
 
-                }
-                else
-                {
-                    sourceData.UpdateTransitionalProvision(TransitionalProvisionsIds[PositionOfChangedTransitionalElement] - 1, IdofChangedTransitionalElement);
-
-                }
+               
             }
 
             if (sourceData.Id == 1)

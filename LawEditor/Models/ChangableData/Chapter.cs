@@ -56,19 +56,21 @@ namespace LawEditor.Models.ChangableData
             return newSection;
         }
 
-        public void UpdateSection(int previousId, int newId) {
+        public void UpdateSection(int currentId, int newId) {
             if (newId <= 0)
                 throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+
+            int previousId = currentId - 1;
 
             if (newId <= previousId)
                 throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
 
             var sectionsToUpdate = Sections
                 .OrderBy(s => s.Id)
-                .Where(s => s.Id > previousId)
+                .Where(s => s.Id >= currentId)
                 .ToList();
 
-            int diff = newId - (previousId + 1);
+            int diff = newId - currentId;
 
             foreach (var sec in sectionsToUpdate)
                 sec.Id += diff;
