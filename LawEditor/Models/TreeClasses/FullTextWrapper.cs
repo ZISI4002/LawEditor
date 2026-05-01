@@ -1,4 +1,6 @@
-﻿using LawEditor.Models.ChangableData;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
+using LawEditor.Models.ChangableData;
 using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
 using System;
@@ -14,10 +16,12 @@ namespace LawEditor.Models.TreeClasses
 {
     public class FullTextWrapper
     {
+        public static bool CanRefresh { get; set; } = false;
+
 
         public static string GetFullText(object item)
         {
-            
+
             return item switch
             {
                 Header h => h.FullText ?? "",
@@ -330,14 +334,14 @@ namespace LawEditor.Models.TreeClasses
             if (titleMatch.Success)
             {
                 int.TryParse(titleMatch.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int secId);
-               if(oldId != secId) 
+                if (oldId != secId)
                 {
-                     MessageBox.Show(
-                        "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
-                        "Xəbərdarlıq",
-                         MessageBoxButton.OK,
-                         MessageBoxImage.Information
-                          );
+                    MessageBox.Show(
+                       "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
+                       "Xəbərdarlıq",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                         );
                 }
                 section.Title = titleMatch.Groups[2].Value;
             }
@@ -408,7 +412,7 @@ namespace LawEditor.Models.TreeClasses
             {
                 decimal.TryParse(titleMatch.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal artId);
 
-                if (artId != oldId) 
+                if (artId != oldId)
                 {
                     MessageBox.Show(
                             "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
@@ -479,7 +483,7 @@ namespace LawEditor.Models.TreeClasses
             int OldNumber = clause.Number;
             if (match.Success)
             {
-                if(OldNumber != int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
+                if (OldNumber != int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
                 {
                     MessageBox.Show(
                         "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
@@ -487,9 +491,9 @@ namespace LawEditor.Models.TreeClasses
                          MessageBoxButton.OK,
                          MessageBoxImage.Information
                           );
-                    
+
                 }
-                  clause.Text = match.Groups[2].Value;
+                clause.Text = match.Groups[2].Value;
             }
 
             clause.SubClauses.Clear();
@@ -539,15 +543,15 @@ namespace LawEditor.Models.TreeClasses
             int OldNumber = sub.Number;
             if (match.Success)
             {
-                if(OldNumber != int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
+                if (OldNumber != int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
                 {
-                   MessageBox.Show(
-                        "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
-                        "Xəbərdarlıq",
-                         MessageBoxButton.OK,
-                         MessageBoxImage.Information
-                          );
-                    
+                    MessageBox.Show(
+                         "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
+                         "Xəbərdarlıq",
+                          MessageBoxButton.OK,
+                          MessageBoxImage.Information
+                           );
+
                 }
                 sub.Text = match.Groups[2].Value;
             }
@@ -560,11 +564,12 @@ namespace LawEditor.Models.TreeClasses
         private static void ParseTransitionalProvisions(TransitionalProvisions tp, string text)
         {
             int oldId = tp.Id;
-             // Формат GET: "N) текст"
+            // Формат GET: "N) текст"
             var match = Regex.Match(text.Trim(), @"^(\d+)\)\s+(.*)$");
             if (match.Success)
             {
-               if (oldId != int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture)) {
+                if (oldId != int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
+                {
                     MessageBox.Show(
                        "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
                        "Xəbərdarlıq",
@@ -638,7 +643,7 @@ namespace LawEditor.Models.TreeClasses
         }
         private static void ParseConstitutionalAmendment(ConstitutionalAmendment ca, string text)
         {
-             
+
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
             ca.Url = null;
@@ -649,7 +654,7 @@ namespace LawEditor.Models.TreeClasses
             string oldId = ca.Id;
             if (fullMatch.Success)
             {
-                if(oldId!= fullMatch.Groups[1].Value)
+                if (oldId != fullMatch.Groups[1].Value)
                 {
                     MessageBox.Show(
                         "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
@@ -658,7 +663,7 @@ namespace LawEditor.Models.TreeClasses
                         MessageBoxImage.Information
                     );
                 }
-                
+
                 ca.LinkText = fullMatch.Groups[2].Value;
                 var rest = fullMatch.Groups[3].Value.Trim();
                 ca.Title = string.IsNullOrEmpty(rest)
@@ -693,23 +698,27 @@ namespace LawEditor.Models.TreeClasses
             if (lines.Length == 0) return;
 
             sourceData.Type = lines[0].Trim();
-             List<TransitionalProvisions> TransitionalProvisionsList = sourceData.Source.OfType<TransitionalProvisions>().ToList();
-            List<int> TransitionalProvisionsIds = TransitionalProvisionsList.Select(tp => tp.Id).ToList();
-            List<SourceDocumentsList> SourceDocumentsLists = sourceData.Source.OfType<SourceDocumentsList>().ToList();
-            List<int> SourceDocumentsListsIds = SourceDocumentsLists.Select(sd => sd.Id).ToList(); 
-            List<ConstitutionalAmendment> ConstitutionalAmendments = sourceData.Source.OfType<ConstitutionalAmendment>().ToList();
-            List<string> ConstitutionalAmendmentsIds = ConstitutionalAmendments.Select(ca => ca.Id).ToList();
+
+            List<int> TransitionalProvisionsIds = sourceData.Source
+                .OfType<TransitionalProvisions>()
+                .OrderBy(tp => tp.Id)
+                .Select(tp => tp.Id)
+                .ToList();
 
             sourceData.Source.Clear();
-            string lastTransitionalProvisionTitle = "";
-            var tr=new TransitionalProvisions();
+
+            var tr = new TransitionalProvisions();
+            bool trPending = false;
+
             var sd = new SourceDocumentsList();
             var ca = new ConstitutionalAmendment();
+
             int positionCounterofAmendments = 1;
             int IdcounterofTransitionalProvisions = 0;
             var TransitionalProvisionsResult = MessageBoxResult.No;
             int IdofChangedTransitionalElement = 0;
             int PositionOfChangedTransitionalElement = 0;
+            bool transitionalAsked = false;
             for (int i = 1; i < lines.Length; i++)
             {
                 var rawLine = lines[i];
@@ -721,36 +730,39 @@ namespace LawEditor.Models.TreeClasses
                 {
                     case 1:
                         {
-                           
-
                             var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                             if (match.Success)
-                            {     
-                               
+                            {
+                                if (trPending)
+                                    sourceData.AddTransitionalProvision(title: tr.Title, id: tr.Id);
+
+                                tr = new TransitionalProvisions();
                                 tr.Id = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
                                 tr.Title = match.Groups[2].Value;
-                                if (TransitionalProvisionsIds[IdcounterofTransitionalProvisions] != tr.Id)
+                                trPending = true;
+
+                                if (TransitionalProvisionsResult == MessageBoxResult.No &&
+                                    IdcounterofTransitionalProvisions < TransitionalProvisionsIds.Count &&
+                                    TransitionalProvisionsIds[IdcounterofTransitionalProvisions] != tr.Id && !transitionalAsked)
                                 {
-                                     TransitionalProvisionsResult = MessageBox.Show(
+                                    transitionalAsked = true;
+                                    TransitionalProvisionsResult = MessageBox.Show(
                                         "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                                           "Təsdiqləmə",
-                                             MessageBoxButton.YesNo,
-                                                   MessageBoxImage.Question);
+                                        "Təsdiqləmə",
+                                        MessageBoxButton.YesNo,
+                                        MessageBoxImage.Question);
+
                                     if (TransitionalProvisionsResult == MessageBoxResult.Yes)
                                     {
                                         IdofChangedTransitionalElement = tr.Id;
-                                        PositionOfChangedTransitionalElement= IdcounterofTransitionalProvisions;
+                                        PositionOfChangedTransitionalElement = IdcounterofTransitionalProvisions;
                                     }
                                 }
 
-
-
-                                sourceData.AddTransitionalProvision(title: tr.Title, id: tr.Id);
-
-                                lastTransitionalProvisionTitle = match.Groups[2].Value;
-                                      IdcounterofTransitionalProvisions++;
+                                IdcounterofTransitionalProvisions++;
                                 break;
                             }
+
                             var dateMatch = Regex.Match(line,
                                 @"^\d{1,2}\s+(yanvar|fevral|mart|aprel|may|iyun|iyul|avqust|sentyabr|oktyabr|noyabr|dekabr)\s+\d{4}");
                             if (dateMatch.Success)
@@ -764,63 +776,68 @@ namespace LawEditor.Models.TreeClasses
                                 TransitionalProvisions.Date += "\n" + line;
                                 break;
                             }
-                           
-                            string newTile=lastTransitionalProvisionTitle+"\n"+line;
-                                sourceData.DeleteTransitionalProvision(tr.Id);
-                                sourceData.AddTransitionalProvision(newTile);
-                                lastTransitionalProvisionTitle = newTile;
-                                break;
-                            
 
-                            
-                                                  
+                            // Строка вида ") текст" без номера — склеиваем к предыдущему
+                            if (Regex.IsMatch(line, @"^\)\s+(.*)$"))
+                            {
+                                if (trPending)
+                                {
+                                    var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
+                                    tr.Title = tr.Title + "\n" + rest;
+                                    CanRefresh = true;
+                                }
+                                break;
+                            }
+
+                            // Обычная continuation строка
+                            if (trPending)
+                                tr.Title = tr.Title + "\n" + line;
+
+                            break;
                         }
-                    case 2: // İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI
+
+                    case 2:
                         {
-                            // Пробуем: N) [LinkText] RestOfTitle
                             if (line.StartsWith("🔗 Source URL:"))
                             {
                                 sd.Url = line.Replace("🔗 Source URL:", "").Trim();
                                 sourceData.AddSourceDocument(sd.Title, null, sd.LinkText, sd.Url);
-                                sd=new SourceDocumentsList();
+                                sd = new SourceDocumentsList();
                                 break;
                             }
+
                             var fullMatch = Regex.Match(line, @"^(\d+)\)\s+\[([^\]]*)\]\s+(.*)$");
                             if (fullMatch.Success)
                             {
                                 sd.Id = int.Parse(fullMatch.Groups[1].Value, CultureInfo.InvariantCulture);
                                 sd.LinkText = fullMatch.Groups[2].Value;
                                 var rest = fullMatch.Groups[3].Value.Trim();
-                                sd.Title = string.IsNullOrEmpty(rest)
-                                    ? sd.LinkText
-                                    : sd.LinkText + " " + rest;
-                                
+                                sd.Title = string.IsNullOrEmpty(rest) ? sd.LinkText : sd.LinkText + " " + rest;
+                                break;
+                            }
+
+                            var simpleMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+                            if (simpleMatch.Success)
+                            {
+                                sd.Id = int.Parse(simpleMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+                                sd.Title = simpleMatch.Groups[2].Value;
                             }
                             else
                             {
-                                // Нет LinkText
-                                var simpleMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                                if (simpleMatch.Success)
-                                {
-                                    sd.Id = int.Parse(simpleMatch.Groups[1].Value, CultureInfo.InvariantCulture);
-                                    sd.Title = simpleMatch.Groups[2].Value;
-                                }
-                                else
-                                {
-                                    sd.Title = line;
-                                }
+                                sd.Title = line;
                             }
-                            
+
                             break;
                         }
-                    case 3: // KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI
+
+                    case 3:
                         {
                             if (line.StartsWith("🔗 Source URL:"))
                             {
                                 ca.Url = line.Replace("🔗 Source URL:", "").Trim();
                                 sourceData.AddConstitutionalAmendment(ca.Title, ca.Id, ca.LinkText, ca.Url, positionCounterofAmendments);
                                 positionCounterofAmendments++;
-                                ca=new ConstitutionalAmendment();
+                                ca = new ConstitutionalAmendment();
                                 break;
                             }
 
@@ -830,40 +847,58 @@ namespace LawEditor.Models.TreeClasses
                                 ca.Id = fullMatch.Groups[1].Value;
                                 ca.LinkText = fullMatch.Groups[2].Value;
                                 var rest = fullMatch.Groups[3].Value.Trim();
-                                ca.Title = string.IsNullOrEmpty(rest)
-                                    ? ca.LinkText
-                                    : ca.LinkText + " " + rest;
+                                ca.Title = string.IsNullOrEmpty(rest) ? ca.LinkText : ca.LinkText + " " + rest;
+                                break;
+                            }
+
+                            var simpleMatch = Regex.Match(line, @"^([^\s]+)\)\s+(.*)$");
+                            if (simpleMatch.Success)
+                            {
+                                ca.Id = simpleMatch.Groups[1].Value;
+                                ca.Title = simpleMatch.Groups[2].Value;
                             }
                             else
                             {
-                                // Нет LinkText
-                                var simpleMatch = Regex.Match(line, @"^([^\s]+)\)\s+(.*)$");
-                                if (simpleMatch.Success)
-                                {
-                                    ca.Id = simpleMatch.Groups[1].Value;
-                                    ca.Title = simpleMatch.Groups[2].Value;
-                                }
-                                else
-                                {
-                                    ca.Title = line;
-                                }
+                                ca.Title = line;
                             }
-                            
-                                break;
+
+                            break;
                         }
                 }
             }
-            if (TransitionalProvisionsResult == MessageBoxResult.Yes) 
-            {
-               
-                    sourceData.UpdateTransitionalProvision(TransitionalProvisionsIds[PositionOfChangedTransitionalElement], IdofChangedTransitionalElement);
 
-               
+            // Добавляем последний незакрытый TransitionalProvision
+            if (sourceData.Id == 1 && trPending)
+                sourceData.AddTransitionalProvision(title: tr.Title, id: tr.Id);
+
+            if (TransitionalProvisionsResult == MessageBoxResult.Yes)
+            {
+                var currentList = sourceData.Source.OfType<TransitionalProvisions>().ToList();
+
+                if (currentList.Count >= TransitionalProvisionsIds.Count)
+                {
+                    // Элемент добавлен — сдвигаем ID вверх через Update
+                    sourceData.UpdateTransitionalProvision(
+                        TransitionalProvisionsIds[PositionOfChangedTransitionalElement],
+                        IdofChangedTransitionalElement);
+                }
+                else if (currentList.Count < TransitionalProvisionsIds.Count)
+                {
+                    // Добавляем пустышку со старым ID чтобы Delete нашёл и сдвинул остальные
+            sourceData.AddTransitionalProvision(
+                title: "",
+                id: TransitionalProvisionsIds[PositionOfChangedTransitionalElement]);
+                    // Элемент удалён — удаляем по старому ID, Delete сам сдвинет остальные вниз
+                    sourceData.DeleteTransitionalProvision(
+                        TransitionalProvisionsIds[PositionOfChangedTransitionalElement]);
+                }
+
+                CanRefresh = true;
             }
 
             if (sourceData.Id == 1)
                 sourceData.Source.Add(new TransitionalProvisionsDateNote());
-            positionCounterofAmendments = 0;
+            
         }
     }
 }

@@ -82,7 +82,19 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     anchor.Clause.DeleteSubClause(anchor.SubClause.Number);
                 }
             }
-           
+            else if (anchor.SourceData != null && anchor.TransitionalProvision != null)
+            {
+                anchor.SourceData.DeleteTransitionalProvision(anchor.TransitionalProvision.Id);
+            }
+            else if ( anchor.SourceData != null && anchor.SourceDocument !=null)
+            {
+                anchor.SourceData.DeleteSourceDocument(anchor.SourceDocument.Id);
+            }
+            else if (anchor.SourceData != null && anchor.ConstitutionalAmendment != null)
+            {
+                anchor.SourceData.DeleteConstitutionalAmendment(anchor.ConstitutionalAmendment.Id);
+            }
+
         }
     }
 }

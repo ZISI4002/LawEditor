@@ -167,7 +167,12 @@ namespace LawEditor.ViewModels
                 _selectedText = value;
                 FullTextWrapper.SetText(_selectedItem, value);
                 HasUnsavedChanges = true;
-                RefreshSelectedText();
+                if (FullTextWrapper.CanRefresh)
+                {
+                    RefreshSelectedText();
+                    FullTextWrapper.CanRefresh=false;
+                }
+               
             }
         }
 
