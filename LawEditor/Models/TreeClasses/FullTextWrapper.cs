@@ -880,7 +880,7 @@ namespace LawEditor.Models.TreeClasses
                     // Элемент добавлен — сдвигаем ID вверх через Update
                     sourceData.UpdateTransitionalProvision(
                         TransitionalProvisionsIds[PositionOfChangedTransitionalElement],
-                        IdofChangedTransitionalElement);
+                        IdofChangedTransitionalElement,PositionOfChangedTransitionalElement+1);
                 }
                 else if (currentList.Count < TransitionalProvisionsIds.Count)
                 {
