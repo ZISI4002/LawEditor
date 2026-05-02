@@ -700,10 +700,17 @@ namespace LawEditor.Models.TreeClasses
             sourceData.Type = lines[0].Trim();
 
             List<int> TransitionalProvisionsIds = sourceData.Source
-                .OfType<TransitionalProvisions>()
-                .OrderBy(tp => tp.Id)
-                .Select(tp => tp.Id)
-                .ToList();
+    .OfType<TransitionalProvisions>()
+    .Select(tp => tp.Id)
+    .ToList();
+            List<int> SourceDocumentsIds = sourceData.Source
+    .OfType<SourceDocumentsList>()
+    .Select(sd => sd.Id)
+    .ToList();
+            List<string> ConstitutionalAmendmentIds = sourceData.Source
+             .OfType<ConstitutionalAmendment>()
+              .Select(ca => ca.Id)
+              .ToList();
 
             sourceData.Source.Clear();
 
@@ -791,8 +798,10 @@ namespace LawEditor.Models.TreeClasses
 
                             // Обычная continuation строка
                             if (trPending)
+                            {
                                 tr.Title = tr.Title + "\n" + line;
-
+                                
+                            }
                             break;
                         }
 
