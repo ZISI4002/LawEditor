@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace LawEditor.Models.ChangableSourse {
     public class SourceData {
@@ -47,22 +48,20 @@ namespace LawEditor.Models.ChangableSourse {
         }
         public void UpdateTransitionalProvision(int currentId, int newId) {
             if (newId <= 0)
-                throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+                MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            int previousId = currentId - 1;
+            var list = Source.OfType<TransitionalProvisions>().ToList();
 
-            if (newId <= previousId)
-                throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
+            int currentIndex = list.FindIndex(t => t.Id == newId); 
 
-            var itemsToUpdate = Source.OfType<TransitionalProvisions>()
-                .OrderBy(t => t.Id)
-                .Where(t => t.Id >= currentId)  // >= вместо >
-                .ToList();
+            if (newId <= list[currentIndex - 1].Id)
+                MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            
+            var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
 
-            int diff = newId - currentId;  // разница между новым и текущим
-
-            foreach (var item in itemsToUpdate)
-                item.Id += diff;
+            foreach (var item in itemsToUpdate) {
+                item.Id = ++newId;
+            }
         }
         public void DeleteTransitionalProvision(int id)
         {
@@ -104,22 +103,20 @@ namespace LawEditor.Models.ChangableSourse {
         }
         public void UpdateSourceDocument(int currentId, int newId) {
             if (newId <= 0)
-                throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+                MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            int previousId = currentId - 1;
+            var list = Source.OfType<SourceDocumentsList>().ToList();
 
-            if (newId <= previousId)
-                throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
+            int currentIndex = list.FindIndex(t => t.Id == newId);
 
-            var itemsToUpdate = Source.OfType<SourceDocumentsList>()
-                .OrderBy(s => s.Id)
-                .Where(s => s.Id >= currentId)
-                .ToList();
+            if (newId <= list[currentIndex - 1].Id)
+                MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            int diff = newId - currentId;
+            var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
 
-            foreach (var item in itemsToUpdate)
-                item.Id += diff;
+            foreach (var item in itemsToUpdate) {
+                item.Id = ++newId;
+            }
         }
         public void DeleteSourceDocument(int id) {
             var item = Source.Cast<SourceDocumentsList>().FirstOrDefault(s => s.Id == id);
