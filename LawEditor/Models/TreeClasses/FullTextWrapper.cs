@@ -565,7 +565,7 @@ namespace LawEditor.Models.TreeClasses
         {
             int oldId = tp.Id;
             // Формат GET: "N) текст"
-            var match = Regex.Match(text.Trim(), @"^(\d+)\)\s+(.*)$");
+            var match = Regex.Match(text.Trim(), @"^(\d*)\)\s+(.*)$");
             if (match.Success)
             {
                 if (oldId != int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
@@ -576,11 +576,13 @@ namespace LawEditor.Models.TreeClasses
                         MessageBoxButton.OK,
                         MessageBoxImage.Information
                          );
+                    CanRefresh = true;
                 }
                 tp.Title = match.Groups[2].Value;
             }
             else
             {
+
                 tp.Title = text.Trim();
             }
         }
@@ -600,7 +602,7 @@ namespace LawEditor.Models.TreeClasses
             var firstLine = lines[0].Trim();
 
             // Пробуем: N) [LinkText] RestOfTitle
-            var fullMatch = Regex.Match(firstLine, @"^(\d+)\)\s+\[([^\]]*)\]\s+(.*)$");
+            var fullMatch = Regex.Match(firstLine, @"^(\d*)\)\s+\[([^\]]*)\]\s+(.*)$");
             int oldId = sd.Id;
             if (fullMatch.Success)
             {
@@ -612,6 +614,7 @@ namespace LawEditor.Models.TreeClasses
                         MessageBoxButton.OK,
                         MessageBoxImage.Information
                     );
+                    CanRefresh = true;
                 }
                 sd.LinkText = fullMatch.Groups[2].Value;
                 var rest = fullMatch.Groups[3].Value.Trim();
@@ -650,7 +653,7 @@ namespace LawEditor.Models.TreeClasses
             ca.LinkText = null;
             var firstLine = lines[0].Trim();
             // Пробуем: N) [LinkText] RestOfTitle
-            var fullMatch = Regex.Match(firstLine, @"^([^\s]+)\)\s+\[([^\]]*)\]\s+(.*)$");
+            var fullMatch = Regex.Match(firstLine, @"^([^\s]*)\)\s+\[([^\]]*)\]\s+(.*)$");
             string oldId = ca.Id;
             if (fullMatch.Success)
             {
@@ -662,6 +665,7 @@ namespace LawEditor.Models.TreeClasses
                         MessageBoxButton.OK,
                         MessageBoxImage.Information
                     );
+                    CanRefresh = true;
                 }
 
                 ca.LinkText = fullMatch.Groups[2].Value;
