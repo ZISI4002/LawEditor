@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -35,27 +36,20 @@ namespace LawEditor.Models.ChangableData
         }
         public void UpdateClause(int currentNumber, int newNumber) {
             if (newNumber <= 0)
-                throw new ArgumentException("Номер не может быть отрицательным или нулём.", nameof(newNumber));
+                MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            int previousNumber = currentNumber - 1;
+            var list = Clauses.ToList();
 
-            if (newNumber <= previousNumber)
-                throw new ArgumentException($"Новый номер ({newNumber}) должен быть больше предыдущего ({previousNumber}).", nameof(newNumber));
+            int currentIndex = list.FindIndex(t => t.Number == newNumber);
 
-            var clausesToUpdate = Clauses
-                .OrderBy(c => c.Number)
-                .Where(c => c.Number >= currentNumber)
-                .ToList();
+            if (newNumber <= list[currentIndex - 1].Number)
+                MessageBox.Show($"Новый ID ({newNumber}) должен быть больше предыдущего ({list[currentIndex - 1].Number}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            int diff = newNumber - currentNumber;
+            var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
 
-            foreach (var clause in clausesToUpdate)
-                clause.Number += diff;
-
-            var sorted = Clauses.OrderBy(c => c.Number).ToList();
-            Clauses.Clear();
-            foreach (var c in sorted)
-                Clauses.Add(c);
+            foreach (var item in itemsToUpdate) {
+                item.Number = ++newNumber;
+            }
         }
         public void DeleteClause(int number) {
             var clause = Clauses.FirstOrDefault(c => c.Number == number);

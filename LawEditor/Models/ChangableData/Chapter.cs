@@ -1,7 +1,9 @@
-﻿using LawEditor.Models.ChangableSourse;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -58,27 +60,21 @@ namespace LawEditor.Models.ChangableData
 
         public void UpdateSection(int currentId, int newId) {
             if (newId <= 0)
-                throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+                MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            int previousId = currentId - 1;
+            var list = Sections.ToList();
 
-            if (newId <= previousId)
-                throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
+            int currentIndex = list.FindIndex(t => t.Id == newId);
 
-            var sectionsToUpdate = Sections
-                .OrderBy(s => s.Id)
-                .Where(s => s.Id >= currentId)
-                .ToList();
+            if (newId <= list[currentIndex - 1].Id)
+                MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            int diff = newId - currentId;
+            var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
 
-            foreach (var sec in sectionsToUpdate)
-                sec.Id += diff;
+            foreach (var item in itemsToUpdate) {
+                item.Id = ++newId;
+            }
 
-            var sorted = Sections.OrderBy(s => s.Id).ToList();
-            Sections.Clear();
-            foreach (var s in sorted)
-                Sections.Add(s);
         }
 
         public void DeleteSection(int id) {
