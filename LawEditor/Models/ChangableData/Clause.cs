@@ -37,7 +37,7 @@ namespace LawEditor.Models.ChangableData
             SubClauses.Insert(position.Value, newSub);
             return newSub;
         }
-        public void UpdateSubClause(int currentNumber, int newNumber) {
+        public void UpdateSubClause(int newNumber) {
             if (newNumber <= 0)
                 MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
@@ -45,8 +45,10 @@ namespace LawEditor.Models.ChangableData
 
             int currentIndex = list.FindIndex(t => t.Number == newNumber);
 
-            if (newNumber <= list[currentIndex - 1].Number)
-                MessageBox.Show($"Новый ID ({newNumber}) должен быть больше предыдущего ({list[currentIndex - 1].Number}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (currentIndex >= 1) {
+                if (newNumber <= list[currentIndex - 1].Number)
+                    MessageBox.Show($"Новый ID ({newNumber}) должен быть больше предыдущего ({list[currentIndex - 1].Number}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
 
             var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
 

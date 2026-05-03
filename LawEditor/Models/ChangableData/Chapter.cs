@@ -58,7 +58,7 @@ namespace LawEditor.Models.ChangableData
             return newSection;
         }
 
-        public void UpdateSection(int currentId, int newId) {
+        public void UpdateSection(int newId) {
             if (newId <= 0)
                 MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
@@ -66,8 +66,10 @@ namespace LawEditor.Models.ChangableData
 
             int currentIndex = list.FindIndex(t => t.Id == newId);
 
-            if (newId <= list[currentIndex - 1].Id)
-                MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (currentIndex >= 1) {
+                if (newId <= list[currentIndex - 1].Id)
+                    MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
 
             var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
 
