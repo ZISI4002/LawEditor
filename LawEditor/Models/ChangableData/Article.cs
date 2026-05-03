@@ -35,16 +35,19 @@ namespace LawEditor.Models.ChangableData
             return newClause;
         }
         public void UpdateClause(int newNumber) {
-            if (newNumber <= 0)
+            if (newNumber <= 0) {
                 MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-
+                return;
+            }
             var list = Clauses.ToList();
 
             int currentIndex = list.FindIndex(t => t.Number == newNumber);
 
             if (currentIndex >= 1) {
-                if (newNumber <= list[currentIndex - 1].Number)
+                if (newNumber <= list[currentIndex - 1].Number) {
                     MessageBox.Show($"Новый ID ({newNumber}) должен быть больше предыдущего ({list[currentIndex - 1].Number}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
             }
 
             var itemsToUpdate = list.Skip(currentIndex + 1).ToList();

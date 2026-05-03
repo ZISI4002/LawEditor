@@ -47,16 +47,19 @@ namespace LawEditor.Models.ChangableSourse {
             return newItem;
         }
         public void UpdateTransitionalProvision(int currentId, int newId, int elementPosition) {
-            if (newId <= 0)
+            if (newId <= 0) {
                 MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-
+                return;
+            }
             var list = Source.OfType<TransitionalProvisions>().ToList();
 
             int currentIndex = list.FindIndex(t => t.Id == newId);
 
             if (currentIndex>=1) {
-                if (newId <= list[currentIndex - 1].Id)
+                if (newId <= list[currentIndex - 1].Id) {
                     MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
             }
             var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
 
@@ -103,16 +106,20 @@ namespace LawEditor.Models.ChangableSourse {
             return newItem;
         }
         public void UpdateSourceDocument(int newId) {
-            if (newId <= 0)
-                MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
+            if (newId <= 0) {
+                MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             var list = Source.OfType<SourceDocumentsList>().ToList();
 
             int currentIndex = list.FindIndex(t => t.Id == newId);
 
             if (currentIndex >= 1) {
-                if (newId <= list[currentIndex - 1].Id)
+                if (newId <= list[currentIndex - 1].Id) {
                     MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
             }
 
             var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
@@ -181,9 +188,10 @@ namespace LawEditor.Models.ChangableSourse {
                 // 2) Цифра и Цифра
                 // 3) строка и Цифра
 
-                if (newInt <= 0)
+                if (newInt <= 0) {
                     MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-
+                    return;
+                }
                 var list = Source.OfType<ConstitutionalAmendment>().ToList();
 
                 int currentIndex = list.FindIndex(t => t.Id == newId);
@@ -192,10 +200,13 @@ namespace LawEditor.Models.ChangableSourse {
                     // Ищу первую цифру до новой цифры
                     for (int i = currentIndex; i == 0; i--) {
                         if (int.TryParse(list[i - 1].Id, out int compare)) {
-                            if (compare < newInt)
+                            if (compare < newInt) {
                                 break;
-                            else
+                            }
+                            else {
                                 MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[i - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                                return;
+                            }
                         }
                     }
                 }

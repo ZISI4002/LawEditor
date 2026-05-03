@@ -59,16 +59,19 @@ namespace LawEditor.Models.ChangableData
         }
 
         public void UpdateSection(int newId) {
-            if (newId <= 0)
+            if (newId <= 0) {
                 MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-
+                return;
+            }
             var list = Sections.ToList();
 
             int currentIndex = list.FindIndex(t => t.Id == newId);
 
             if (currentIndex >= 1) {
-                if (newId <= list[currentIndex - 1].Id)
+                if (newId <= list[currentIndex - 1].Id) {
                     MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
             }
 
             var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
