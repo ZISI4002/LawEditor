@@ -52,11 +52,12 @@ namespace LawEditor.Models.ChangableSourse {
 
             var list = Source.OfType<TransitionalProvisions>().ToList();
 
-            int currentIndex = list.FindIndex(t => t.Id == newId); 
+            int currentIndex = list.FindIndex(t => t.Id == newId);
 
-            if (newId <= list[currentIndex - 1].Id)
-                MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-            
+            if (currentId != 1) {
+                if (newId <= list[currentIndex - 1].Id)
+                    MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
             var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
 
             foreach (var item in itemsToUpdate) {
@@ -157,29 +158,70 @@ namespace LawEditor.Models.ChangableSourse {
             return newItem;
         }
         public void UpdateConstitutionalAmendment(string currentId, string newId) {
-            if (!int.TryParse(currentId, out int currentInt))
-                throw new ArgumentException("currentId должен быть числом.", nameof(currentId));
 
-            if (!int.TryParse(newId, out int newInt))
-                throw new ArgumentException("newId должен быть числом.", nameof(newId));
+            if (int.TryParse(currentId, out int currentInt) && !int.TryParse(newId, out _)) {
+                // 1) Цифра и строка
 
-            if (newInt <= 0)
-                throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+                var list = Source.OfType<ConstitutionalAmendment>().ToList();
+                int currentIndex = list.FindIndex(t => t.Id == newId);
 
-            int previousId = currentInt - 1;
+                var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
 
-            if (newInt <= previousId)
-                throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
+                foreach (var item in itemsToUpdate) {
+                    if (int.TryParse(item.Id, out int itemInt)) {
+                        item.Id = (itemInt - 1).ToString();
+                    }
+                        
+                }
+            }
+            else if (int.TryParse(currentId, out currentInt) && int.TryParse(newId, out int newInt)) {
+                // 2) Цифра и Цифра
 
-            var itemsToUpdate = Source.OfType<ConstitutionalAmendment>()
-                .Where(c => int.TryParse(c.Id, out int id) && id >= currentInt)
-                .OrderBy(c => int.Parse(c.Id))
-                .ToList();
+                if (newInt <= 0)
+                    MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
 
-            int diff = newInt - currentInt;
+                var list = Source.OfType<ConstitutionalAmendment>().ToList();
 
-            foreach (var item in itemsToUpdate)
-                item.Id = (int.Parse(item.Id) + diff).ToString();
+                int currentIndex = list.FindIndex(t => t.Id == newId);
+
+                // Ищу первую цифру до новой цифры
+                if (currentInt != 1) {
+                    for (int i = currentIndex; ; i--) {
+                        if (int.TryParse(list[i - 1].Id, out int compare)) {
+                            if (compare < newInt)
+                                break;
+                            else
+                                MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({list[i - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                }
+                
+                var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
+
+                foreach (var item in itemsToUpdate) {
+                    if (int.TryParse(item.Id, out int itemInt)) {
+                        item.Id = (++newInt).ToString();
+                    }
+                }
+
+
+            }
+            else if (!int.TryParse(currentId, out _) && int.TryParse(newId, out newInt)) {
+                // 3) строка и Цифра
+
+                var list = Source.OfType<ConstitutionalAmendment>().ToList();
+                int currentIndex = list.FindIndex(t => t.Id == newId);
+
+                var itemsToUpdate = list.Skip(currentIndex + 1).ToList();
+
+                foreach (var item in itemsToUpdate) {
+                    if (int.TryParse(item.Id, out int itemInt)) {
+                        item.Id = (++newInt).ToString();
+                    }
+                }
+
+            }
+
         }
         public void DeleteConstitutionalAmendment(string id) {
             var item = Source.Cast<ConstitutionalAmendment>().FirstOrDefault(c => c.Id == id);
