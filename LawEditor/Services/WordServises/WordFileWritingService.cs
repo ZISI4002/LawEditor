@@ -368,6 +368,7 @@ namespace LawEditor.Services.WordServises
             {
                 MessageBox.Show(ex.Message);
             }
+            
         }
 
         // ── Строим маппинг amendmentId → int endnoteId ──────────────────────

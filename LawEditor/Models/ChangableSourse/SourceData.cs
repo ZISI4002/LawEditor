@@ -46,7 +46,7 @@ namespace LawEditor.Models.ChangableSourse {
             Source.Insert(position.Value, newItem);
             return newItem;
         }
-        public void UpdateTransitionalProvision(int currentId, int newId, int elementPosition) {
+        public void UpdateTransitionalProvision( int newId) {
             if (newId <= 0) {
                 MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;

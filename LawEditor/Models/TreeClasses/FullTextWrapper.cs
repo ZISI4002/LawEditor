@@ -193,6 +193,7 @@ namespace LawEditor.Models.TreeClasses
                         {
                             sb.AppendLine($"🔗 Source URL: {sd.Url}");
                             sb.AppendLine();
+                            sb.AppendLine();
                         }
                         break;
                     case ConstitutionalAmendment ca:
@@ -704,32 +705,42 @@ namespace LawEditor.Models.TreeClasses
             sourceData.Type = lines[0].Trim();
 
             List<int> TransitionalProvisionsIds = sourceData.Source
-    .OfType<TransitionalProvisions>()
-    .Select(tp => tp.Id)
-    .ToList();
+                .OfType<TransitionalProvisions>()
+                .Select(tp => tp.Id)
+                .ToList();
             List<int> SourceDocumentsIds = sourceData.Source
-    .OfType<SourceDocumentsList>()
-    .Select(sd => sd.Id)
-    .ToList();
+                .OfType<SourceDocumentsList>()
+                .Select(sd => sd.Id)
+                .ToList();
             List<string> ConstitutionalAmendmentIds = sourceData.Source
-             .OfType<ConstitutionalAmendment>()
-              .Select(ca => ca.Id)
-              .ToList();
+                .OfType<ConstitutionalAmendment>()
+                .Select(ca => ca.Id)
+                .ToList();
 
             sourceData.Source.Clear();
 
-            var tr = new TransitionalProvisions();
             bool trPending = false;
-
+            var tr = new TransitionalProvisions();
             var sd = new SourceDocumentsList();
             var ca = new ConstitutionalAmendment();
 
-            int positionCounterofAmendments = 1;
+            // Transitional counters
             int IdcounterofTransitionalProvisions = 0;
             var TransitionalProvisionsResult = MessageBoxResult.No;
             int IdofChangedTransitionalElement = 0;
             int PositionOfChangedTransitionalElement = 0;
             bool transitionalAsked = false;
+
+            // SourceDocument counters
+            int IdcounterofSourceDocuments = 0;
+            var SourceDocumentsResult = MessageBoxResult.No;
+            int IdofChangedSourceDocumentElement = 0;
+            int PositionOfChangedSourceDocumentElement = 0;
+            bool sourceDocumentAsked = false;
+            bool sdUrlPending = false;
+            // ConstitutionalAmendment counters
+            int positionCounterofAmendments = 1;
+
             for (int i = 1; i < lines.Length; i++)
             {
                 var rawLine = lines[i];
@@ -754,7 +765,8 @@ namespace LawEditor.Models.TreeClasses
 
                                 if (TransitionalProvisionsResult == MessageBoxResult.No &&
                                     IdcounterofTransitionalProvisions < TransitionalProvisionsIds.Count &&
-                                    TransitionalProvisionsIds[IdcounterofTransitionalProvisions] != tr.Id && !transitionalAsked)
+                                    TransitionalProvisionsIds[IdcounterofTransitionalProvisions] != tr.Id &&
+                                    !transitionalAsked)
                                 {
                                     transitionalAsked = true;
                                     TransitionalProvisionsResult = MessageBox.Show(
@@ -788,7 +800,6 @@ namespace LawEditor.Models.TreeClasses
                                 break;
                             }
 
-                            // Строка вида ") текст" без номера — склеиваем к предыдущему
                             if (Regex.IsMatch(line, @"^\)\s+(.*)$"))
                             {
                                 if (trPending)
@@ -800,48 +811,148 @@ namespace LawEditor.Models.TreeClasses
                                 break;
                             }
 
-                            // Обычная continuation строка
                             if (trPending)
-                            {
                                 tr.Title = tr.Title + "\n" + line;
-                                
-                            }
-                            break;
-                        }
-
-                    case 2:
-                        {
-                            if (line.StartsWith("🔗 Source URL:"))
-                            {
-                                sd.Url = line.Replace("🔗 Source URL:", "").Trim();
-                                sourceData.AddSourceDocument(sd.Title, null, sd.LinkText, sd.Url);
-                                sd = new SourceDocumentsList();
-                                break;
-                            }
-
-                            var fullMatch = Regex.Match(line, @"^(\d+)\)\s+\[([^\]]*)\]\s+(.*)$");
-                            if (fullMatch.Success)
-                            {
-                                sd.Id = int.Parse(fullMatch.Groups[1].Value, CultureInfo.InvariantCulture);
-                                sd.LinkText = fullMatch.Groups[2].Value;
-                                var rest = fullMatch.Groups[3].Value.Trim();
-                                sd.Title = string.IsNullOrEmpty(rest) ? sd.LinkText : sd.LinkText + " " + rest;
-                                break;
-                            }
-
-                            var simpleMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                            if (simpleMatch.Success)
-                            {
-                                sd.Id = int.Parse(simpleMatch.Groups[1].Value, CultureInfo.InvariantCulture);
-                                sd.Title = simpleMatch.Groups[2].Value;
-                            }
-                            else
-                            {
-                                sd.Title = line;
-                            }
 
                             break;
                         }
+
+                  case 2:
+{
+    // Сначала проверяем новый элемент с [LinkText]
+    var fullMatch = Regex.Match(line, @"^(\d+)\)\s+\[([^\]]*)\]\s+(.*)$");
+    if (fullMatch.Success)
+    {
+        if (sd.Title != null)
+        {
+            sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
+            sdUrlPending = false;
+        }
+
+        sd = new SourceDocumentsList();
+        sd.Id = int.Parse(fullMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+        sd.LinkText = fullMatch.Groups[2].Value;
+        var rest = fullMatch.Groups[3].Value.Trim();
+        sd.Title = string.IsNullOrEmpty(rest) ? sd.LinkText : sd.LinkText + " " + rest;
+
+        if (SourceDocumentsResult == MessageBoxResult.No &&
+            IdcounterofSourceDocuments < SourceDocumentsIds.Count &&
+            SourceDocumentsIds[IdcounterofSourceDocuments] != sd.Id &&
+            !sourceDocumentAsked)
+        {
+            sourceDocumentAsked = true;
+            SourceDocumentsResult = MessageBox.Show(
+                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                "Təsdiqləmə",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (SourceDocumentsResult == MessageBoxResult.Yes)
+            {
+                IdofChangedSourceDocumentElement = sd.Id;
+                PositionOfChangedSourceDocumentElement = IdcounterofSourceDocuments;
+            }
+        }
+
+        IdcounterofSourceDocuments++;
+        break;
+    }
+
+    // Потом новый элемент без [LinkText]
+    var simpleMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+    if (simpleMatch.Success)
+    {
+        if (sd.Title != null)
+        {
+            sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
+            sdUrlPending = false;
+        }
+
+        sd = new SourceDocumentsList();
+        sd.Id = int.Parse(simpleMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+        sd.Title = simpleMatch.Groups[2].Value;
+
+        if (SourceDocumentsResult == MessageBoxResult.No &&
+            IdcounterofSourceDocuments < SourceDocumentsIds.Count &&
+            SourceDocumentsIds[IdcounterofSourceDocuments] != sd.Id &&
+            !sourceDocumentAsked)
+        {
+            sourceDocumentAsked = true;
+            SourceDocumentsResult = MessageBox.Show(
+                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                "Təsdiqləmə",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (SourceDocumentsResult == MessageBoxResult.Yes)
+            {
+                IdofChangedSourceDocumentElement = sd.Id;
+                PositionOfChangedSourceDocumentElement = IdcounterofSourceDocuments;
+            }
+        }
+
+        IdcounterofSourceDocuments++;
+        break;
+    }
+
+    // Потом URL
+    if (line.StartsWith("🔗 Source URL:"))
+    {
+        if (sdUrlPending)
+        {
+            MessageBox.Show(
+                "Ardıcıl olaraq iki 'Source URL' əlavə etmək olmaz. İkinci URL nəzərə alınmadı.",
+                "Xəbərdarlıq",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+                                    CanRefresh = true;
+                                    break;
+        }
+
+        sd.Url = line.Replace("🔗 Source URL:", "").Trim();
+        sdUrlPending = true;
+        break;
+    }
+
+    // Строка вида ") текст" без номера — склеиваем к предыдущему
+    if (Regex.IsMatch(line, @"^\)\s+\[([^\]]*)\]\s+(.*)$"))
+        {
+                                if (sd.Title != null)
+                                {
+                                    sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
+                                    var rest = Regex.Match(line, @"^\)\s+\[([^\]]*)\]\s+(.*)$").Groups[2].Value;
+                                    var linkTextMatch = Regex.Match(line, @"^\)\s+\[([^\]]*)\]\s+(.*)$").Groups[1].Value;
+                                    sd.Title = rest;
+                                    sd.LinkText = linkTextMatch;
+                                    sd.Id = SourceDocumentsIds[IdcounterofSourceDocuments];
+                                    sdUrlPending = false;
+                                    sourceDocumentAsked = true;
+                                    IdcounterofSourceDocuments++;
+                                }
+                                break;
+                            }
+                                if (Regex.IsMatch(line, @"^\)\s+(.*)$"))
+                               {
+                                if (sd.Title != null)
+                                  {
+                                      sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
+                                      var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
+                                      sd.Title = rest;
+                                      sd.Id = SourceDocumentsIds[IdcounterofSourceDocuments];
+
+                                      sdUrlPending = false; 
+                                      sourceDocumentAsked = true; 
+                                        IdcounterofSourceDocuments++;
+                                }
+                                        break;
+                                   }
+
+                              // Обычная continuation строка
+                               if (sd.Title != null)
+                                     sd.Title = sd.Title + "\n" + line;
+ 
+                                     break;
+                                   }
 
                     case 3:
                         {
@@ -884,24 +995,24 @@ namespace LawEditor.Models.TreeClasses
             if (sourceData.Id == 1 && trPending)
                 sourceData.AddTransitionalProvision(title: tr.Title, id: tr.Id);
 
+            // Добавляем последний незакрытый SourceDocument
+            if (sourceData.Id == 2 && sd.Title != null)
+                sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
+
+            // Обработка изменения ID для TransitionalProvisions
             if (TransitionalProvisionsResult == MessageBoxResult.Yes)
             {
                 var currentList = sourceData.Source.OfType<TransitionalProvisions>().ToList();
 
                 if (currentList.Count >= TransitionalProvisionsIds.Count)
                 {
-                    // Элемент добавлен — сдвигаем ID вверх через Update
-                    sourceData.UpdateTransitionalProvision(
-                        TransitionalProvisionsIds[PositionOfChangedTransitionalElement],
-                        IdofChangedTransitionalElement,PositionOfChangedTransitionalElement+1);
+                    sourceData.UpdateTransitionalProvision(IdofChangedTransitionalElement);
                 }
-                else if (currentList.Count < TransitionalProvisionsIds.Count)
+                else
                 {
-                    // Добавляем пустышку со старым ID чтобы Delete нашёл и сдвинул остальные
-            sourceData.AddTransitionalProvision(
-                title: "",
-                id: TransitionalProvisionsIds[PositionOfChangedTransitionalElement]);
-                    // Элемент удалён — удаляем по старому ID, Delete сам сдвинет остальные вниз
+                    sourceData.AddTransitionalProvision(
+                        title: "",
+                        id: TransitionalProvisionsIds[PositionOfChangedTransitionalElement]);
                     sourceData.DeleteTransitionalProvision(
                         TransitionalProvisionsIds[PositionOfChangedTransitionalElement]);
                 }
@@ -909,9 +1020,30 @@ namespace LawEditor.Models.TreeClasses
                 CanRefresh = true;
             }
 
+            // Обработка изменения ID для SourceDocuments
+            if (SourceDocumentsResult == MessageBoxResult.Yes)
+            {
+                var currentList = sourceData.Source.OfType<SourceDocumentsList>().ToList();
+
+                if (currentList.Count >= SourceDocumentsIds.Count)
+                {
+                    sourceData.UpdateSourceDocument(
+                        IdofChangedSourceDocumentElement);
+                }
+                else
+                {
+                    sourceData.AddSourceDocument(
+                        title: "",
+                        id: SourceDocumentsIds[PositionOfChangedSourceDocumentElement]);
+                    sourceData.DeleteSourceDocument(
+                        SourceDocumentsIds[PositionOfChangedSourceDocumentElement]);
+                }
+
+                CanRefresh = true;
+            }
+
             if (sourceData.Id == 1)
                 sourceData.Source.Add(new TransitionalProvisionsDateNote());
-            
         }
     }
 }
