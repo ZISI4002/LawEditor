@@ -3,6 +3,7 @@ using LawEditor.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -99,43 +100,160 @@ namespace LawEditor.Models.ChangableData
             return newArticle;
         }
         public void UpdateArticle(decimal currentId, decimal newId, Laws laws) {
-            if (newId <= 0)
-                throw new ArgumentException("ID не может быть отрицательным или нулём.", nameof(newId));
+            if (currentId == Math.Floor(currentId) && newId == Math.Floor(newId)) {
+                // 1) Целое и целое
 
-            decimal previousId = currentId - GetStep(currentId);
-
-            if (newId <= previousId)
-                throw new ArgumentException($"Новый ID ({newId}) должен быть больше предыдущего ({previousId}).", nameof(newId));
-
-            var allArticles = laws.Chapters
-                .SelectMany(c => c.Sections)
-                .SelectMany(s => s.Articles)
-                .OrderBy(a => a.Id)
-                .ToList();
-
-            var articlesToUpdate = allArticles
-                .Where(a => a.Id >= currentId)
-                .ToList();
-
-            decimal diff = newId - currentId;
-
-            foreach (var article in articlesToUpdate) {
-                article.Id += diff;
-            }
-
-            foreach (var chapter in laws.Chapters) {
-                foreach (var section in chapter.Sections) {
-                    var sorted = section.Articles.OrderBy(a => a.Id).ToList();
-                    section.Articles.Clear();
-                    foreach (var a in sorted)
-                        section.Articles.Add(a);
+                if (newId <= 0) {
+                    MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
                 }
+
+                // Собираем ВСЕ статьи из всех глав и секций
+                var allArticles = laws.Chapters
+                    .SelectMany(c => c.Sections)
+                    .SelectMany(s => s.Articles)
+                    .ToList();
+
+                int currentIndex = allArticles.FindIndex(a => a.Id == currentId);
+
+                // Найти предыдущий целый элемент
+                if (currentIndex >= 1) {
+                    if (newId <= allArticles[currentIndex - 1].Id) {
+                        MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({allArticles[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+
+                decimal diff = newId - currentId;
+
+                var itemsToUpdate = allArticles.Skip(currentIndex + 1).ToList();
+
+                foreach (var item in itemsToUpdate) {
+                    item.Id += diff;
+                }
+
+
+            }
+            else if (currentId == Math.Floor(currentId) && newId != Math.Floor(newId)) {
+                // 2) Целое и дробное
+
+                if (newId <= 0) {
+                    MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Собираем ВСЕ статьи из всех глав и секций
+                var allArticles = laws.Chapters
+                    .SelectMany(c => c.Sections)
+                    .SelectMany(s => s.Articles)
+                    .ToList();
+
+                int currentIndex = allArticles.FindIndex(a => a.Id == currentId);
+
+                // Проверяю, NewId - предыдущий айди = 0.1  МОЖНО работать. Иначе нет
+
+                if (currentIndex >= 1) {
+                    if ((newId - allArticles[currentIndex - 1].Id) != 0.1m) {
+                        MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({allArticles[currentIndex - 1].Id}) на 0.1 .", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+
+                var itemsToUpdate = allArticles.Skip(currentIndex + 1).ToList();
+
+                foreach (var item in itemsToUpdate) {
+                    item.Id--;
+                }
+
+            }
+            else if (currentId != Math.Floor(currentId) && newId != Math.Floor(newId)) {
+                // 3) Дробное и дробное
+
+                if (newId <= 0) {
+                    MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Собираем ВСЕ статьи из всех глав и секций
+                var allArticles = laws.Chapters
+                    .SelectMany(c => c.Sections)
+                    .SelectMany(s => s.Articles)
+                    .ToList();
+
+                int currentIndex = allArticles.FindIndex(a => a.Id == currentId);
+
+                // Найти предыдущий целый элемент
+                if (currentIndex >= 1) {
+                    if (newId <= allArticles[currentIndex - 1].Id) {
+                        MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({allArticles[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+
+                decimal diff = newId - currentId;
+
+                var itemsToUpdate = allArticles.Skip(currentIndex + 1).ToList();
+
+                foreach (var item in itemsToUpdate) {
+                    if (item.Id != Math.Floor(item.Id)) {
+                        item.Id += diff;
+                    }
+                    else {
+                        break;
+                    }
+                }
+
+            }
+            else if (currentId != Math.Floor(currentId) && newId == Math.Floor(newId)) {
+                // 4) Дробное и целое
+
+                if (newId <= 0) {
+                    MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Собираем ВСЕ статьи из всех глав и секций
+                var allArticles = laws.Chapters
+                    .SelectMany(c => c.Sections)
+                    .SelectMany(s => s.Articles)
+                    .ToList();
+
+                int currentIndex = allArticles.FindIndex(a => a.Id == currentId);
+
+                // Найти предыдущий целый элемент
+                if (currentIndex >= 1) {
+                    if (newId <= allArticles[currentIndex - 1].Id) {
+                        MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({allArticles[currentIndex - 1].Id}).", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+
+                decimal diff = newId - Math.Ceiling(currentId);
+
+                var itemsToUpdate = allArticles.Skip(currentIndex + 1).ToList();
+
+                foreach (var item in itemsToUpdate) {
+                    if (Math.Floor(item.Id) == currentId) {
+                        item.Id -= 0.1m;
+                    }
+                    else {
+                        item.Id += diff;
+                    }
+                }
+
+                // Сортировка
+                foreach (var chapter in laws.Chapters) {
+                    foreach (var section in chapter.Sections) {
+                        var sorted = section.Articles.OrderBy(a => a.Id).ToList();
+                        section.Articles.Clear();
+                        foreach (var a in sorted)
+                            section.Articles.Add(a);
+                    }
+                }
+
             }
         }
 
-        private decimal GetStep(decimal id) {
-            return id % 1 == 0 ? 1m : 0.1m;
-        }
         public void DeleteArticle(decimal id, Laws laws) {
             var article = Articles.FirstOrDefault(a => a.Id == id);
             if (article == null)
