@@ -14,9 +14,56 @@ namespace LawEditor.Services.WordServises
 {
     public class WordFileWritingService
     {
+        public bool CompareEndnoteLists(List<string> list1, List<string> list2)
+        {
+            if (list1.Count != list2.Count)
+                return false;
+            var set1 = new HashSet<string>(list1);
+            var set2 = new HashSet<string>(list2);
+            return set1.SetEquals(set2);
+        }
 
         public void WriteWordFile(string filePath, Laws laws)
         {
+            List<string> allEndnoteIdesFromLaws = new List<string>();
+                foreach (var chapter in laws.Chapters)
+                {
+                    foreach (var section in chapter.Sections)
+                    {
+                        foreach (var article in section.Articles)
+                        {
+                            if (!string.IsNullOrEmpty(article.EndnoteId))
+                                allEndnoteIdesFromLaws.Add(article.EndnoteId);
+    
+                            foreach (var clause in article.Clauses)
+                            {
+                                if (!string.IsNullOrEmpty(clause.EndnoteId))
+                                    allEndnoteIdesFromLaws.Add(clause.EndnoteId);
+    
+                                foreach (var sub in clause.SubClauses)
+                                {
+                                    if (!string.IsNullOrEmpty(sub.EndnoteId))
+                                        allEndnoteIdesFromLaws.Add(sub.EndnoteId);
+                                }
+                            }
+                        }
+                    }
+            }
+            List<string> allIdesFromAmendments = new List<string>();
+            var allAmendments = laws.SourcesData.FirstOrDefault(s => s.Id == 3);
+                        if (allAmendments != null)
+            {
+                foreach (var item in allAmendments.Source.OfType<ConstitutionalAmendment>())
+                {
+                     allIdesFromAmendments.Add(item.Id);
+                }
+            }
+
+            if (CompareEndnoteLists(allEndnoteIdesFromLaws, allIdesFromAmendments)==false)
+            {
+                MessageBox.Show("Endnote ID-ləri Konstitusiyaya edilmiş dəyişiklik və əlavələrin siyahısıyla üst-üstə düşmür. Unikal ID-lər təmin edilməlidir.", "Xəta", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             try
             {
                 using var doc = WordprocessingDocument.Create(filePath, WordprocessingDocumentType.Document);

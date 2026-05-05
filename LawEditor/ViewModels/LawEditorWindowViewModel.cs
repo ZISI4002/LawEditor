@@ -165,7 +165,7 @@ namespace LawEditor.ViewModels
             {
                 if (_selectedText == value) return;
                 _selectedText = value;
-                FullTextWrapper.SetText(_selectedItem, value);
+                FullTextWrapper.SetText(_selectedItem, value, EditedLaws);
                 HasUnsavedChanges = true;
                 if (FullTextWrapper.CanRefresh)
                 {

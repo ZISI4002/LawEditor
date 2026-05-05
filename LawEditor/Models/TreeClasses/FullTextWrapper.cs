@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using LawEditor.Models.ChangableData;
 using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
+using LawEditor.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -14,6 +15,7 @@ using System.Windows.Documents;
 
 namespace LawEditor.Models.TreeClasses
 {
+    
     public class FullTextWrapper
     {
         public static bool CanRefresh { get; set; } = false;
@@ -213,14 +215,13 @@ namespace LawEditor.Models.TreeClasses
         }
 
         // ==================== SET ====================
-
-        public static void SetText(object item, string value)
+        public static void SetText(object item, string value, Laws laws)
         {
             switch (item)
             {
                 case UpperObject u: ParseUpperObyect(u, value); break;
-                case Chapter c: ParseChapter(c, value); break;
-                case Models.ChangableData.Section s: ParseSection(s, value); break;
+                case Chapter c: ParseChapter(c, value, laws); break;
+                case Models.ChangableData.Section s: ParseSection(s, value,laws); break;
                 case Article a: ParseArticle(a, value); break;
                 case Clause cl: ParseClause(cl, value); break;
                 case SubClause sc: ParseSubClause(sc, value); break;
@@ -252,13 +253,21 @@ namespace LawEditor.Models.TreeClasses
                 upperObject.Headers.Add(new Header { FullText = rest });
         }
 
-        private static void ParseChapter(Chapter chapter, string text)
+        private static void ParseChapter(Chapter chapter, string text, Laws laws)
         {
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
 
             chapter.Title = lines[0].Trim();
+
+            List<int> IdesofSections = chapter.Sections.Select(s => s.Id).ToList();
             chapter.Sections.Clear();
+
+            int IdcounterofSections = 0;
+            var SectionsResult = MessageBoxResult.No;
+            bool sectionsAsked = false;
+            int IdofChangedSectionElement = 0;
+            int PositionOfChangedSectionElement = 0;
 
             Models.ChangableData.Section currentSection = null;
             Article currentArticle = null;
@@ -269,67 +278,141 @@ namespace LawEditor.Models.TreeClasses
                 var rawLine = lines[i];
                 if (string.IsNullOrWhiteSpace(rawLine)) continue;
 
-                int indent = GetIndent(rawLine);
                 var line = rawLine.Trim();
 
-                if (indent >= 2 && indent < 4)
+                // Section: "{1} текст"
+                var sectionMatch = Regex.Match(line, @"^\{([0-9]+)\}\s+(.*)$");
+                if (sectionMatch.Success)
                 {
-                    var match = Regex.Match(line, @"^\{([0-9]+)\}\s+(.*)$");
-                    currentSection = match.Success
-                        ? new Models.ChangableData.Section { Id = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture), Title = match.Groups[2].Value }
-                        : new Models.ChangableData.Section { Title = line };
+                    int secId = int.Parse(sectionMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+
+                    if (SectionsResult == MessageBoxResult.No &&
+                        IdcounterofSections < IdesofSections.Count &&
+                        IdesofSections[IdcounterofSections] != secId &&
+                        !sectionsAsked)
+                    {
+                        sectionsAsked = true;
+                        SectionsResult = MessageBox.Show(
+                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                            "Təsdiqləmə",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (SectionsResult == MessageBoxResult.Yes)
+                        {
+                            IdofChangedSectionElement = secId;
+                            PositionOfChangedSectionElement = IdcounterofSections;
+                        }
+                    }
+
+                    currentSection = new Models.ChangableData.Section { Id = secId, Title = sectionMatch.Groups[2].Value };
                     chapter.Sections.Add(currentSection);
                     currentArticle = null;
                     currentClause = null;
+                    IdcounterofSections++;
+                    continue;
                 }
-                else if (indent >= 4 && indent < 6)
+
+                // Section без номера: "{} текст"
+                if (Regex.IsMatch(line, @"^\{\}\s+(.*)$") && IdcounterofSections < IdesofSections.Count)
                 {
-                    var match = Regex.Match(line, @"^\[([0-9.]+)\]\s+(.*)$");
-                    if (match.Success)
+                    var rest = Regex.Match(line, @"^\{\}\s+(.*)$").Groups[1].Value;
+                    currentSection = new Models.ChangableData.Section
                     {
-                        if (currentSection == null)
-                        {
-                            currentSection = new Models.ChangableData.Section { Title = "Auto Section" };
-                            chapter.Sections.Add(currentSection);
-                        }
-                        decimal.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal artId);
-                        currentArticle = new Article { Id = artId, Title = match.Groups[2].Value };
-                        currentSection.Articles.Add(currentArticle);
-                        currentClause = null;
-                    }
+                        Id = IdesofSections[IdcounterofSections],
+                        Title = rest
+                    };
+                    chapter.Sections.Add(currentSection);
+                    sectionsAsked = true;
+                    currentArticle = null;
+                    currentClause = null;
+                    IdcounterofSections++;
+                    continue;
                 }
-                else if (indent >= 6 && indent < 8)
+
+                // Article: "[1] текст"
+                var articleMatch = Regex.Match(line, @"^\[([0-9.]+)\]\s+(.*)$");
+                if (articleMatch.Success)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
-                    if (match.Success && currentArticle != null)
+                    if (currentSection == null)
                     {
-                        currentClause = new Clause
-                        {
-                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
-                            Text = match.Groups[2].Value
-                        };
-                        currentArticle.Clauses.Add(currentClause);
+                        currentSection = new Models.ChangableData.Section { Title = "Auto Section" };
+                        chapter.Sections.Add(currentSection);
                     }
+                    decimal.TryParse(articleMatch.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal artId);
+                    currentArticle = new Article { Id = artId, Title = articleMatch.Groups[2].Value };
+                    currentSection.Articles.Add(currentArticle);
+                    currentClause = null;
+                    continue;
                 }
-                else if (indent >= 8)
+
+                // Clause: "1. текст"
+                var clauseMatch = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
+                if (clauseMatch.Success && currentArticle != null)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                    if (match.Success && currentClause != null)
+                    currentClause = new Clause
                     {
-                        currentClause.SubClauses.Add(new SubClause
-                        {
-                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
-                            Text = match.Groups[2].Value
-                        });
-                    }
+                        Number = int.Parse(clauseMatch.Groups[1].Value, CultureInfo.InvariantCulture),
+                        Text = clauseMatch.Groups[2].Value
+                    };
+                    currentArticle.Clauses.Add(currentClause);
+                    continue;
                 }
+
+                // SubClause: "1) текст"
+                var subMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+                if (subMatch.Success && currentClause != null)
+                {
+                    currentClause.SubClauses.Add(new SubClause
+                    {
+                        Number = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture),
+                        Text = subMatch.Groups[2].Value
+                    });
+                    continue;
+                }
+
+                // Continuation
+                if (currentClause != null)
+                {
+                    if (currentClause.SubClauses.Count > 0)
+                        currentClause.SubClauses.Last().Text += "\n" + line;
+                    else
+                        currentClause.Text += "\n" + line;
+                }
+                else if (currentArticle != null)
+                {
+                    currentArticle.Title += "\n" + line;
+                }
+                else if (currentSection != null)
+                {
+                    currentSection.Title += "\n" + line;
+                }
+            }
+
+            // Обработка изменения ID
+            if (SectionsResult == MessageBoxResult.Yes)
+            {
+                var currentList = chapter.Sections.ToList();
+
+                if (currentList.Count >= IdesofSections.Count)
+                {
+                    chapter.UpdateSection(IdofChangedSectionElement);
+                }
+                else
+                {
+                    chapter.AddSection("", IdesofSections[PositionOfChangedSectionElement]);
+                    chapter.DeleteSection(IdesofSections[PositionOfChangedSectionElement]);
+                }
+
+                CanRefresh = true;
             }
         }
 
-        private static void ParseSection(Models.ChangableData.Section section, string text)
+        private static void ParseSection(Models.ChangableData.Section section, string text, Laws laws)
         {
             var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             if (lines.Length == 0) return;
+
             var titleMatch = Regex.Match(lines[0].Trim(), @"^\{([0-9]+)\}\s+(.*)$");
             int oldId = section.Id;
             if (titleMatch.Success)
@@ -341,8 +424,7 @@ namespace LawEditor.Models.TreeClasses
                        "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
                        "Xəbərdarlıq",
                         MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                         );
+                        MessageBoxImage.Information);
                 }
                 section.Title = titleMatch.Groups[2].Value;
             }
@@ -351,7 +433,14 @@ namespace LawEditor.Models.TreeClasses
                 section.Title = lines[0].Trim();
             }
 
+            List<decimal> IdesofArticles = section.Articles.Select(a => a.Id).ToList();
             section.Articles.Clear();
+
+            int IdcounterofArticles = 0;
+            var ArticlesResult = MessageBoxResult.No;
+            bool articlesAsked = false;
+            decimal IdofChangedArticleElement = 0;
+            int PositionOfChangedArticleElement = 0;
             Article currentArticle = null;
             Clause currentClause = null;
 
@@ -360,45 +449,119 @@ namespace LawEditor.Models.TreeClasses
                 var rawLine = lines[i];
                 if (string.IsNullOrWhiteSpace(rawLine)) continue;
 
-                int indent = GetIndent(rawLine);
                 var line = rawLine.Trim();
 
-                if (indent >= 2 && indent < 4)
+                // Article: "[1] текст"
+                var articleMatch = Regex.Match(line, @"^\[([0-9.]+)\]\s+(.*)$");
+                if (articleMatch.Success)
                 {
-                    var match = Regex.Match(line, @"^\[([0-9.]+)\]\s+(.*)$");
-                    if (match.Success)
+                    decimal.TryParse(articleMatch.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal artId);
+
+                    if (ArticlesResult == MessageBoxResult.No &&
+                        IdcounterofArticles < IdesofArticles.Count &&
+                        IdesofArticles[IdcounterofArticles] != artId &&
+                        !articlesAsked)
                     {
-                        decimal.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal artId);
-                        currentArticle = new Article { Id = artId, Title = match.Groups[2].Value };
-                        section.Articles.Add(currentArticle);
-                        currentClause = null;
-                    }
-                }
-                else if (indent >= 4 && indent < 6)
-                {
-                    var match = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
-                    if (match.Success && currentArticle != null)
-                    {
-                        currentClause = new Clause
+                        articlesAsked = true;
+                        ArticlesResult = MessageBox.Show(
+                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                            "Təsdiqləmə",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (ArticlesResult == MessageBoxResult.Yes)
                         {
-                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
-                            Text = match.Groups[2].Value
-                        };
-                        currentArticle.Clauses.Add(currentClause);
+                            IdofChangedArticleElement = artId;
+                            PositionOfChangedArticleElement = IdcounterofArticles;
+                        }
                     }
+
+                    currentArticle = new Article { Id = artId, Title = articleMatch.Groups[2].Value };
+                    section.Articles.Add(currentArticle);
+                    currentClause = null;
+                    IdcounterofArticles++;
+                    continue;
                 }
-                else if (indent >= 6)
+
+                // Article без номера: "[] текст"
+                if (Regex.IsMatch(line, @"^\[\]\s+(.*)$") && IdcounterofArticles < IdesofArticles.Count)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                    if (match.Success && currentClause != null)
+                    var rest = Regex.Match(line, @"^\[\]\s+(.*)$").Groups[1].Value;
+                    currentArticle = new Article
                     {
-                        currentClause.SubClauses.Add(new SubClause
-                        {
-                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
-                            Text = match.Groups[2].Value
-                        });
-                    }
+                        Id = IdesofArticles[IdcounterofArticles],
+                        Title = rest
+                    };
+                    section.Articles.Add(currentArticle);
+                    articlesAsked = true;
+                    currentClause = null;
+                    IdcounterofArticles++;
+                    continue;
                 }
+
+                // Clause: "1. текст"
+                var clauseMatch = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
+                if (clauseMatch.Success && currentArticle != null)
+                {
+                    currentClause = new Clause
+                    {
+                        Number = int.Parse(clauseMatch.Groups[1].Value, CultureInfo.InvariantCulture),
+                        Text = clauseMatch.Groups[2].Value
+                    };
+                    currentArticle.Clauses.Add(currentClause);
+                    continue;
+                }
+
+                // SubClause: "1) текст"
+                var subMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+                if (subMatch.Success && currentClause != null)
+                {
+                    currentClause.SubClauses.Add(new SubClause
+                    {
+                        Number = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture),
+                        Text = subMatch.Groups[2].Value
+                    });
+                    continue;
+                }
+
+                // Continuation
+                if (currentClause != null)
+                {
+                    if (currentClause.SubClauses.Count > 0)
+                        currentClause.SubClauses.Last().Text += "\n" + line;
+                    else
+                        currentClause.Text += "\n" + line;
+                }
+                else if (currentArticle != null)
+                {
+                    currentArticle.Title += "\n" + line;
+                }
+            }
+
+            // Обработка изменения ID
+            if (ArticlesResult == MessageBoxResult.Yes)
+            {
+                var currentList = section.Articles.ToList();
+
+                if (currentList.Count >= IdesofArticles.Count)
+                {
+                    section.UpdateArticle(
+                        IdesofArticles[PositionOfChangedArticleElement],
+                        IdofChangedArticleElement,
+                        laws);
+                }
+                else
+                {
+                    section.AddArticle(
+                        IdesofArticles[PositionOfChangedArticleElement],
+                        "",
+                        laws);
+                    section.DeleteArticle(
+                        IdesofArticles[PositionOfChangedArticleElement],
+                        laws);
+                }
+
+                CanRefresh = true;
             }
         }
 
@@ -429,8 +592,15 @@ namespace LawEditor.Models.TreeClasses
                 article.Title = lines[0].Trim();
             }
 
-            article.Clauses.Clear();
             article.EndnoteId = null;
+            List<int> IdesofClauses = article.Clauses.Select(sc => sc.Number).ToList();
+            article.Clauses.Clear();
+
+            int IdcounterofClauses = 0;
+            var ClausesResult = MessageBoxResult.No;
+            bool clausesAsked = false;
+            int IdofChangedClauseElement = 0;
+            int PositionOfChangedClauseElement = 0;
             Clause currentClause = null;
 
             for (int i = 1; i < lines.Length; i++)
@@ -438,7 +608,6 @@ namespace LawEditor.Models.TreeClasses
                 var rawLine = lines[i];
                 if (string.IsNullOrWhiteSpace(rawLine)) continue;
 
-                int indent = GetIndent(rawLine);
                 var line = rawLine.Trim();
 
                 if (line.StartsWith("EndnoteId:"))
@@ -447,31 +616,110 @@ namespace LawEditor.Models.TreeClasses
                     continue;
                 }
 
-                if (indent >= 2 && indent < 4)
+                // Clause: "1. текст"
+                var clauseMatch = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
+                if (clauseMatch.Success)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
-                    if (match.Success)
+                    int newNumber = int.Parse(clauseMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+
+                    if (ClausesResult == MessageBoxResult.No &&
+                        IdcounterofClauses < IdesofClauses.Count &&
+                        IdesofClauses[IdcounterofClauses] != newNumber &&
+                        !clausesAsked)
                     {
+                        clausesAsked = true;
+                        ClausesResult = MessageBox.Show(
+                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                            "Təsdiqləmə",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (ClausesResult == MessageBoxResult.Yes)
+                        {
+                            IdofChangedClauseElement = newNumber;
+                            PositionOfChangedClauseElement = IdcounterofClauses;
+                        }
+                    }
+
+                    currentClause = new Clause
+                    {
+                        Number = newNumber,
+                        Text = clauseMatch.Groups[2].Value
+                    };
+                    article.Clauses.Add(currentClause);
+                    IdcounterofClauses++;
+                    continue;
+                }
+
+                // Clause без номера: ". текст"
+                if (Regex.IsMatch(line, @"^\.\s+(.*)$"))
+                {
+                    if (IdcounterofClauses < IdesofClauses.Count)
+                    {
+                        var rest = Regex.Match(line, @"^\.\s+(.*)$").Groups[1].Value;
                         currentClause = new Clause
                         {
-                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
-                            Text = match.Groups[2].Value
+                            Number = IdesofClauses[IdcounterofClauses],
+                            Text = rest
                         };
                         article.Clauses.Add(currentClause);
+                        clausesAsked = true;
+                        IdcounterofClauses++;
                     }
+                    continue;
                 }
-                else if (indent >= 4)
+
+                // SubClause: "1) текст"
+                var subMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+                if (subMatch.Success && currentClause != null)
                 {
-                    var match = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-                    if (match.Success && currentClause != null)
+                    currentClause.SubClauses.Add(new SubClause
                     {
-                        currentClause.SubClauses.Add(new SubClause
-                        {
-                            Number = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
-                            Text = match.Groups[2].Value
-                        });
-                    }
+                        Number = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture),
+                        Text = subMatch.Groups[2].Value
+                    });
+                    continue;
                 }
+
+                // SubClause без номера: ") текст"
+                if (Regex.IsMatch(line, @"^\)\s+(.*)$") && currentClause != null && currentClause.SubClauses.Count > 0)
+                {
+                    var lastSub = currentClause.SubClauses.Last();
+                    var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
+                    lastSub.Text = lastSub.Text + "\n" + rest;
+                    continue;
+                }
+
+                // Continuation — дописываем к последнему Clause или SubClause
+                if (currentClause != null)
+                {
+                    if (currentClause.SubClauses.Count > 0)
+                        currentClause.SubClauses.Last().Text += "\n" + line;
+                    else
+                        currentClause.Text += "\n" + line;
+                }
+            }
+
+            // Обработка изменения ID
+            if (ClausesResult == MessageBoxResult.Yes)
+            {
+                var currentList = article.Clauses.ToList();
+
+                if (currentList.Count >= IdesofClauses.Count)
+                {
+                    article.UpdateClause(IdofChangedClauseElement);
+                }
+                else
+                {
+                    article.Clauses.Add(new Clause
+                    {
+                        Number = IdesofClauses[PositionOfChangedClauseElement],
+                        Text = ""
+                    });
+                    article.DeleteClause(IdesofClauses[PositionOfChangedClauseElement]);
+                }
+
+                CanRefresh = true;
             }
         }
 
