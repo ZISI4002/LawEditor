@@ -114,7 +114,7 @@ namespace LawEditor.Models.ChangableData
                     .SelectMany(s => s.Articles)
                     .ToList();
 
-                int currentIndex = allArticles.FindIndex(a => a.Id == currentId);
+                int currentIndex = allArticles.FindIndex(a => a.Id == newId);
 
                 // Найти предыдущий целый элемент
                 if (currentIndex >= 1) {
@@ -124,12 +124,15 @@ namespace LawEditor.Models.ChangableData
                     }
                 }
 
-                decimal diff = newId - currentId;
-
                 var itemsToUpdate = allArticles.Skip(currentIndex + 1).ToList();
 
                 foreach (var item in itemsToUpdate) {
-                    item.Id += diff;
+                    if(item.Id == Math.Floor(item.Id)) {
+                        item.Id = ++newId;
+                    }
+                    else {
+                        item.Id = newId + (item.Id%1);
+                    }
                 }
 
 
@@ -137,6 +140,7 @@ namespace LawEditor.Models.ChangableData
             else if (currentId == Math.Floor(currentId) && newId != Math.Floor(newId)) {
                 // 2) Целое и дробное
 
+                /*
                 if (newId <= 0) {
                     MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
@@ -148,7 +152,7 @@ namespace LawEditor.Models.ChangableData
                     .SelectMany(s => s.Articles)
                     .ToList();
 
-                int currentIndex = allArticles.FindIndex(a => a.Id == currentId);
+                int currentIndex = allArticles.FindIndex(a => a.Id == newId);
 
                 // Проверяю, NewId - предыдущий айди = 0.1  МОЖНО работать. Иначе нет
 
@@ -161,9 +165,17 @@ namespace LawEditor.Models.ChangableData
 
                 var itemsToUpdate = allArticles.Skip(currentIndex + 1).ToList();
 
+                newId = Math.Floor(newId);
+
                 foreach (var item in itemsToUpdate) {
-                    item.Id--;
+                    if (item.Id == Math.Floor(item.Id)) {
+                        item.Id = ++newId;
+                    }
+                    else {
+                        item.Id = newId + (item.Id % 1);
+                    }
                 }
+                */
 
             }
             else if (currentId != Math.Floor(currentId) && newId != Math.Floor(newId)) {
@@ -180,7 +192,7 @@ namespace LawEditor.Models.ChangableData
                     .SelectMany(s => s.Articles)
                     .ToList();
 
-                int currentIndex = allArticles.FindIndex(a => a.Id == currentId);
+                int currentIndex = allArticles.FindIndex(a => a.Id == newId);
 
                 // Найти предыдущий целый элемент
                 if (currentIndex >= 1) {
@@ -190,13 +202,12 @@ namespace LawEditor.Models.ChangableData
                     }
                 }
 
-                decimal diff = newId - currentId;
 
                 var itemsToUpdate = allArticles.Skip(currentIndex + 1).ToList();
 
                 foreach (var item in itemsToUpdate) {
                     if (item.Id != Math.Floor(item.Id)) {
-                        item.Id += diff;
+                        item.Id = newId += 0.1m;
                     }
                     else {
                         break;
@@ -218,7 +229,7 @@ namespace LawEditor.Models.ChangableData
                     .SelectMany(s => s.Articles)
                     .ToList();
 
-                int currentIndex = allArticles.FindIndex(a => a.Id == currentId);
+                int currentIndex = allArticles.FindIndex(a => a.Id == newId);
 
                 // Найти предыдущий целый элемент
                 if (currentIndex >= 1) {
@@ -228,8 +239,6 @@ namespace LawEditor.Models.ChangableData
                     }
                 }
 
-                decimal diff = newId - Math.Ceiling(currentId);
-
                 var itemsToUpdate = allArticles.Skip(currentIndex + 1).ToList();
 
                 foreach (var item in itemsToUpdate) {
@@ -237,7 +246,12 @@ namespace LawEditor.Models.ChangableData
                         item.Id -= 0.1m;
                     }
                     else {
-                        item.Id += diff;
+                        if (item.Id == Math.Floor(item.Id)) {
+                            item.Id = ++newId;
+                        }
+                        else {
+                            item.Id = newId + (item.Id % 1);
+                        }
                     }
                 }
 
