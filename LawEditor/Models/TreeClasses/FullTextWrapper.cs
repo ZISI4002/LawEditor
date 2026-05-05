@@ -740,6 +740,13 @@ namespace LawEditor.Models.TreeClasses
             bool sdUrlPending = false;
             // ConstitutionalAmendment counters
             int positionCounterofAmendments = 1;
+            
+            bool caUrlPending = false;
+            bool constitutionalAmendmentAsked = false;
+            var ConstitutionalAmendmentResult = MessageBoxResult.No;
+            string IdofChangedConstitutionalAmendmentElement = "";
+            int PositionOfChangedConstitutionalAmendmentElement = 0;
+            int IdcounterofConstitutionalAmendments = 0;        
 
             for (int i = 1; i < lines.Length; i++)
             {
@@ -956,35 +963,140 @@ namespace LawEditor.Models.TreeClasses
 
                     case 3:
                         {
-                            if (line.StartsWith("🔗 Source URL:"))
-                            {
-                                ca.Url = line.Replace("🔗 Source URL:", "").Trim();
-                                sourceData.AddConstitutionalAmendment(ca.Title, ca.Id, ca.LinkText, ca.Url, positionCounterofAmendments);
-                                positionCounterofAmendments++;
-                                ca = new ConstitutionalAmendment();
-                                break;
-                            }
-
                             var fullMatch = Regex.Match(line, @"^([^\s]+)\)\s+\[([^\]]*)\]\s+(.*)$");
                             if (fullMatch.Success)
                             {
+                                if (ca.Title != null)
+                                {
+                                    sourceData.AddConstitutionalAmendment(ca.Title, ca.Id, ca.LinkText, ca.Url, positionCounterofAmendments);
+                                    positionCounterofAmendments++;
+                                    caUrlPending = false;
+                                }
+
+                                ca = new ConstitutionalAmendment();
                                 ca.Id = fullMatch.Groups[1].Value;
                                 ca.LinkText = fullMatch.Groups[2].Value;
                                 var rest = fullMatch.Groups[3].Value.Trim();
                                 ca.Title = string.IsNullOrEmpty(rest) ? ca.LinkText : ca.LinkText + " " + rest;
+
+                                if (ConstitutionalAmendmentResult == MessageBoxResult.No &&
+                                    IdcounterofConstitutionalAmendments < ConstitutionalAmendmentIds.Count &&
+                                    ConstitutionalAmendmentIds[IdcounterofConstitutionalAmendments] != ca.Id &&
+                                    !constitutionalAmendmentAsked)
+                                {
+                                    constitutionalAmendmentAsked = true;
+                                    ConstitutionalAmendmentResult = MessageBox.Show(
+                                        "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                        "Təsdiqləmə",
+                                        MessageBoxButton.YesNo,
+                                        MessageBoxImage.Question);
+
+                                    if (ConstitutionalAmendmentResult == MessageBoxResult.Yes)
+                                    {
+                                        IdofChangedConstitutionalAmendmentElement = ca.Id;
+                                        PositionOfChangedConstitutionalAmendmentElement = IdcounterofConstitutionalAmendments;
+                                    }
+                                }
+
+                                IdcounterofConstitutionalAmendments++;
                                 break;
                             }
 
                             var simpleMatch = Regex.Match(line, @"^([^\s]+)\)\s+(.*)$");
                             if (simpleMatch.Success)
                             {
+                                if (ca.Title != null)
+                                {
+                                    sourceData.AddConstitutionalAmendment(ca.Title, ca.Id, ca.LinkText, ca.Url, positionCounterofAmendments);
+                                    positionCounterofAmendments++;
+                                    caUrlPending = false;
+                                }
+
+                                ca = new ConstitutionalAmendment();
                                 ca.Id = simpleMatch.Groups[1].Value;
                                 ca.Title = simpleMatch.Groups[2].Value;
+
+                                if (ConstitutionalAmendmentResult == MessageBoxResult.No &&
+                                    IdcounterofConstitutionalAmendments < ConstitutionalAmendmentIds.Count &&
+                                    ConstitutionalAmendmentIds[IdcounterofConstitutionalAmendments] != ca.Id &&
+                                    !constitutionalAmendmentAsked)
+                                {
+                                    constitutionalAmendmentAsked = true;
+                                    ConstitutionalAmendmentResult = MessageBox.Show(
+                                        "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                        "Təsdiqləmə",
+                                        MessageBoxButton.YesNo,
+                                        MessageBoxImage.Question);
+
+                                    if (ConstitutionalAmendmentResult == MessageBoxResult.Yes)
+                                    {
+                                        IdofChangedConstitutionalAmendmentElement = ca.Id;
+                                        PositionOfChangedConstitutionalAmendmentElement = IdcounterofConstitutionalAmendments;
+                                    }
+                                }
+
+                                IdcounterofConstitutionalAmendments++;
+                                break;
                             }
-                            else
+
+                            if (line.StartsWith("🔗 Source URL:"))
                             {
-                                ca.Title = line;
+                                if (caUrlPending)
+                                {
+                                    MessageBox.Show(
+                                        "Ardıcıl olaraq iki 'Source URL' əlavə etmək olmaz. İkinci URL nəzərə alınmadı.",
+                                        "Xəbərdarlıq",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Warning);
+                                    CanRefresh = true;
+                                    break;
+                                }
+
+                                ca.Url = line.Replace("🔗 Source URL:", "").Trim();
+                                caUrlPending = true;
+                                break;
                             }
+
+                            // Строка вида ") [LinkText] текст" без номера
+                            if (Regex.IsMatch(line, @"^\)\s+\[([^\]]*)\]\s+(.*)$"))
+                            {
+                                if (ca.Title != null)
+                                {
+                                    sourceData.AddConstitutionalAmendment(ca.Title, ca.Id, ca.LinkText, ca.Url, positionCounterofAmendments);
+                                    positionCounterofAmendments++;
+                                    var linkTextMatch = Regex.Match(line, @"^\)\s+\[([^\]]*)\]\s+(.*)$");
+                                    ca = new ConstitutionalAmendment();
+                                    ca.LinkText = linkTextMatch.Groups[1].Value;
+                                    ca.Title = linkTextMatch.Groups[2].Value;
+                                    ca.Id = ConstitutionalAmendmentIds[IdcounterofConstitutionalAmendments];
+                                    caUrlPending = false;
+                                    constitutionalAmendmentAsked = true;
+                                    IdcounterofConstitutionalAmendments++;
+                                }
+                                break;
+                            }
+
+                            // Строка вида ") текст" без номера
+                            if (Regex.IsMatch(line, @"^\)\s+(.*)$"))
+                            {
+                                if (ca.Title != null)
+                                {
+                                    sourceData.AddConstitutionalAmendment(ca.Title, ca.Id, ca.LinkText, ca.Url, positionCounterofAmendments);
+                                    positionCounterofAmendments++;
+                                    var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
+                                    ca = new ConstitutionalAmendment();
+                                    ca.Title = rest;
+                                    ca.Id = ConstitutionalAmendmentIds[IdcounterofConstitutionalAmendments];
+                                    caUrlPending = false;
+                                    constitutionalAmendmentAsked = true;
+                                    IdcounterofConstitutionalAmendments++;
+                                }
+                                break;
+                            }
+
+                            // Обычная continuation строка
+                            if (ca.Title != null)
+                                ca.Title = ca.Title + "\n" + line;
 
                             break;
                         }
@@ -998,7 +1110,13 @@ namespace LawEditor.Models.TreeClasses
             // Добавляем последний незакрытый SourceDocument
             if (sourceData.Id == 2 && sd.Title != null)
                 sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
-
+            
+            // Добавляем последний незакрытый ConstitutionalAmendment
+            if (sourceData.Id == 3 && ca.Title != null)
+            {
+                sourceData.AddConstitutionalAmendment(ca.Title, ca.Id, ca.LinkText, ca.Url, positionCounterofAmendments);
+            }
+            
             // Обработка изменения ID для TransitionalProvisions
             if (TransitionalProvisionsResult == MessageBoxResult.Yes)
             {
@@ -1041,6 +1159,30 @@ namespace LawEditor.Models.TreeClasses
 
                 CanRefresh = true;
             }
+
+            // Обработка изменения ID для ConstitutionalAmendments
+            if (ConstitutionalAmendmentResult == MessageBoxResult.Yes)
+            {
+                var currentList = sourceData.Source.OfType<ConstitutionalAmendment>().ToList();
+
+                if (currentList.Count >= ConstitutionalAmendmentIds.Count)
+                {
+                    sourceData.UpdateConstitutionalAmendment(
+                        ConstitutionalAmendmentIds[PositionOfChangedConstitutionalAmendmentElement],
+                        IdofChangedConstitutionalAmendmentElement);
+                }
+                else
+                {
+                    sourceData.AddConstitutionalAmendment(
+                        title: "",
+                        id: ConstitutionalAmendmentIds[PositionOfChangedConstitutionalAmendmentElement]);
+                    sourceData.DeleteConstitutionalAmendment(
+                        ConstitutionalAmendmentIds[PositionOfChangedConstitutionalAmendmentElement]);
+                }
+
+                CanRefresh = true;
+            }
+
 
             if (sourceData.Id == 1)
                 sourceData.Source.Add(new TransitionalProvisionsDateNote());
