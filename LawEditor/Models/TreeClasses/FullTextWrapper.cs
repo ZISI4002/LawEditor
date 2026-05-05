@@ -1053,6 +1053,10 @@ namespace LawEditor.Models.TreeClasses
             var sd = new SourceDocumentsList();
             var ca = new ConstitutionalAmendment();
 
+            tr.Id = TransitionalProvisionsIds[0];
+            sd.Id = SourceDocumentsIds[0];
+            ca.Id = ConstitutionalAmendmentIds[0];
+
             // Transitional counters
             int IdcounterofTransitionalProvisions = 0;
             var TransitionalProvisionsResult = MessageBoxResult.No;
@@ -1153,106 +1157,106 @@ namespace LawEditor.Models.TreeClasses
                             break;
                         }
 
-                  case 2:
-{
-    // Сначала проверяем новый элемент с [LinkText]
-    var fullMatch = Regex.Match(line, @"^(\d+)\)\s+\[([^\]]*)\]\s+(.*)$");
-    if (fullMatch.Success)
-    {
-        if (sd.Title != null)
-        {
-            sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
-            sdUrlPending = false;
-        }
+                    case 2:
+                        {
+                            // Сначала проверяем новый элемент с [LinkText]
+                            var fullMatch = Regex.Match(line, @"^(\d+)\)\s+\[([^\]]*)\]\s+(.*)$");
+                            if (fullMatch.Success)
+                            {
+                                if (sd.Title != null)
+                                {
+                                    sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
+                                    sdUrlPending = false;
+                                }
 
-        sd = new SourceDocumentsList();
-        sd.Id = int.Parse(fullMatch.Groups[1].Value, CultureInfo.InvariantCulture);
-        sd.LinkText = fullMatch.Groups[2].Value;
-        var rest = fullMatch.Groups[3].Value.Trim();
-        sd.Title = string.IsNullOrEmpty(rest) ? sd.LinkText : sd.LinkText + " " + rest;
+                                sd = new SourceDocumentsList();
+                                sd.Id = int.Parse(fullMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+                                sd.LinkText = fullMatch.Groups[2].Value;
+                                var rest = fullMatch.Groups[3].Value.Trim();
+                                sd.Title = string.IsNullOrEmpty(rest) ? sd.LinkText : sd.LinkText + " " + rest;
 
-        if (SourceDocumentsResult == MessageBoxResult.No &&
-            IdcounterofSourceDocuments < SourceDocumentsIds.Count &&
-            SourceDocumentsIds[IdcounterofSourceDocuments] != sd.Id &&
-            !sourceDocumentAsked)
-        {
-            sourceDocumentAsked = true;
-            SourceDocumentsResult = MessageBox.Show(
-                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                "Təsdiqləmə",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                                if (SourceDocumentsResult == MessageBoxResult.No &&
+                                    IdcounterofSourceDocuments < SourceDocumentsIds.Count &&
+                                    SourceDocumentsIds[IdcounterofSourceDocuments] != sd.Id &&
+                                    !sourceDocumentAsked)
+                                {
+                                    sourceDocumentAsked = true;
+                                    SourceDocumentsResult = MessageBox.Show(
+                                        "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                        "Təsdiqləmə",
+                                        MessageBoxButton.YesNo,
+                                        MessageBoxImage.Question);
 
-            if (SourceDocumentsResult == MessageBoxResult.Yes)
-            {
-                IdofChangedSourceDocumentElement = sd.Id;
-                PositionOfChangedSourceDocumentElement = IdcounterofSourceDocuments;
-            }
-        }
+                                    if (SourceDocumentsResult == MessageBoxResult.Yes)
+                                    {
+                                        IdofChangedSourceDocumentElement = sd.Id;
+                                        PositionOfChangedSourceDocumentElement = IdcounterofSourceDocuments;
+                                    }
+                                }
 
-        IdcounterofSourceDocuments++;
-        break;
-    }
+                                IdcounterofSourceDocuments++;
+                                break;
+                            }
 
-    // Потом новый элемент без [LinkText]
-    var simpleMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
-    if (simpleMatch.Success)
-    {
-        if (sd.Title != null)
-        {
-            sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
-            sdUrlPending = false;
-        }
+                            // Потом новый элемент без [LinkText]
+                            var simpleMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
+                            if (simpleMatch.Success)
+                            {
+                                if (sd.Title != null)
+                                {
+                                    sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
+                                    sdUrlPending = false;
+                                }
 
-        sd = new SourceDocumentsList();
-        sd.Id = int.Parse(simpleMatch.Groups[1].Value, CultureInfo.InvariantCulture);
-        sd.Title = simpleMatch.Groups[2].Value;
+                                sd = new SourceDocumentsList();
+                                sd.Id = int.Parse(simpleMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+                                sd.Title = simpleMatch.Groups[2].Value;
 
-        if (SourceDocumentsResult == MessageBoxResult.No &&
-            IdcounterofSourceDocuments < SourceDocumentsIds.Count &&
-            SourceDocumentsIds[IdcounterofSourceDocuments] != sd.Id &&
-            !sourceDocumentAsked)
-        {
-            sourceDocumentAsked = true;
-            SourceDocumentsResult = MessageBox.Show(
-                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                "Təsdiqləmə",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                                if (SourceDocumentsResult == MessageBoxResult.No &&
+                                    IdcounterofSourceDocuments < SourceDocumentsIds.Count &&
+                                    SourceDocumentsIds[IdcounterofSourceDocuments] != sd.Id &&
+                                    !sourceDocumentAsked)
+                                {
+                                    sourceDocumentAsked = true;
+                                    SourceDocumentsResult = MessageBox.Show(
+                                        "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                        "Təsdiqləmə",
+                                        MessageBoxButton.YesNo,
+                                        MessageBoxImage.Question);
 
-            if (SourceDocumentsResult == MessageBoxResult.Yes)
-            {
-                IdofChangedSourceDocumentElement = sd.Id;
-                PositionOfChangedSourceDocumentElement = IdcounterofSourceDocuments;
-            }
-        }
+                                    if (SourceDocumentsResult == MessageBoxResult.Yes)
+                                    {
+                                        IdofChangedSourceDocumentElement = sd.Id;
+                                        PositionOfChangedSourceDocumentElement = IdcounterofSourceDocuments;
+                                    }
+                                }
 
-        IdcounterofSourceDocuments++;
-        break;
-    }
+                                IdcounterofSourceDocuments++;
+                                break;
+                            }
 
-    // Потом URL
-    if (line.StartsWith("🔗 Source URL:"))
-    {
-        if (sdUrlPending)
-        {
-            MessageBox.Show(
-                "Ardıcıl olaraq iki 'Source URL' əlavə etmək olmaz. İkinci URL nəzərə alınmadı.",
-                "Xəbərdarlıq",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+                            // Потом URL
+                            if (line.StartsWith("🔗 Source URL:"))
+                            {
+                                if (sdUrlPending)
+                                {
+                                    MessageBox.Show(
+                                        "Ardıcıl olaraq iki 'Source URL' əlavə etmək olmaz. İkinci URL nəzərə alınmadı.",
+                                        "Xəbərdarlıq",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Warning);
                                     CanRefresh = true;
                                     break;
-        }
+                                }
 
-        sd.Url = line.Replace("🔗 Source URL:", "").Trim();
-        sdUrlPending = true;
-        break;
-    }
+                                sd.Url = line.Replace("🔗 Source URL:", "").Trim();
+                                sdUrlPending = true;
+                                break;
+                            }
 
-    // Строка вида ") текст" без номера — склеиваем к предыдущему
-    if (Regex.IsMatch(line, @"^\)\s+\[([^\]]*)\]\s+(.*)$"))
-        {
+                            // Строка вида ") текст" без номера — склеиваем к предыдущему
+                            if (Regex.IsMatch(line, @"^\)\s+\[([^\]]*)\]\s+(.*)$"))
+                            {
                                 if (sd.Title != null)
                                 {
                                     sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
@@ -1267,28 +1271,28 @@ namespace LawEditor.Models.TreeClasses
                                 }
                                 break;
                             }
-                                if (Regex.IsMatch(line, @"^\)\s+(.*)$"))
-                               {
+                            if (Regex.IsMatch(line, @"^\)\s+(.*)$"))
+                            {
                                 if (sd.Title != null)
-                                  {
-                                      sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
-                                      var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
-                                      sd.Title = rest;
-                                      sd.Id = SourceDocumentsIds[IdcounterofSourceDocuments];
+                                {
+                                    sourceData.AddSourceDocument(sd.Title, sd.Id, sd.LinkText, sd.Url);
+                                    var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
+                                    sd.Title = rest;
+                                    sd.Id = SourceDocumentsIds[IdcounterofSourceDocuments];
 
-                                      sdUrlPending = false; 
-                                      sourceDocumentAsked = true; 
-                                        IdcounterofSourceDocuments++;
+                                    sdUrlPending = false;
+                                    sourceDocumentAsked = true;
+                                    IdcounterofSourceDocuments++;
                                 }
-                                        break;
-                                   }
+                                break;
+                            }
 
-                              // Обычная continuation строка
-                               if (sd.Title != null)
-                                     sd.Title = sd.Title + "\n" + line;
- 
-                                     break;
-                                   }
+                            // Обычная continuation строка
+                            if (sd.Title != null)
+                                sd.Title = sd.Title + "\n" + line;
+
+                            break;
+                        }
 
                     case 3:
                         {
