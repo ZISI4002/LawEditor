@@ -496,6 +496,15 @@ namespace LawEditor.Models.TreeClasses
                 }
                 clause.Text = match.Groups[2].Value;
             }
+           
+            clause.SubClauses.Clear();
+            // About SubClauses: 
+            List<int> IdesofSubclauses = clause.SubClauses.Select(sc => sc.Number).ToList();
+            int IdcounterofSubclauses = 0;
+            var SubclausesResult = MessageBoxResult.No;
+            bool subclausesAsked = false;
+            int IdofChangedSubclauseElement = 0;
+            int PositionOfChangedSubclauseElement = 0;
 
             clause.SubClauses.Clear();
             clause.EndnoteId = null;
@@ -516,12 +525,84 @@ namespace LawEditor.Models.TreeClasses
                 var subMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                 if (subMatch.Success)
                 {
+                    int newNumber = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+
+                    if (SubclausesResult == MessageBoxResult.No &&
+                        IdcounterofSubclauses < IdesofSubclauses.Count &&
+                        IdesofSubclauses[IdcounterofSubclauses] != newNumber &&
+                        !subclausesAsked)
+                    {
+                        subclausesAsked = true;
+                        SubclausesResult = MessageBox.Show(
+                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                            "Təsdiqləmə",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (SubclausesResult == MessageBoxResult.Yes)
+                        {
+                            IdofChangedSubclauseElement = newNumber;
+                            PositionOfChangedSubclauseElement = IdcounterofSubclauses;
+                        }
+                    }
+
                     clause.SubClauses.Add(new SubClause
                     {
-                        Number = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture),
+                        Number = newNumber,
                         Text = subMatch.Groups[2].Value
                     });
+
+                    IdcounterofSubclauses++;
+                    continue;
                 }
+
+                // Строка вида ") текст" без номера — восстанавливаем старый номер
+                if (Regex.IsMatch(line, @"^\)\s+(.*)$"))
+                {
+                    if (IdcounterofSubclauses < IdesofSubclauses.Count)
+                    {
+                        var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
+                        clause.SubClauses.Add(new SubClause
+                        {
+                            Number = IdesofSubclauses[IdcounterofSubclauses],
+                            Text = rest
+                        });
+                        subclausesAsked = true;
+                        IdcounterofSubclauses++;
+                    }
+                    continue;
+                }
+
+                // Continuation — дописываем к последнему SubClause
+                if (clause.SubClauses.Count > 0)
+                {
+                    var last = clause.SubClauses.Last();
+                    last.Text = last.Text + "\n" + line;
+                }
+            }
+
+            // Обработка изменения ID
+            if (SubclausesResult == MessageBoxResult.Yes)
+            {
+                var currentList = clause.SubClauses.ToList();
+
+                if (currentList.Count >= IdesofSubclauses.Count)
+                {
+                    // Элемент добавлен — сдвигаем через UpdateSubClause
+                    clause.UpdateSubClause(IdofChangedSubclauseElement);
+                }
+                else
+                {
+                    // Элемент удалён — добавляем пустышку и удаляем через DeleteSubClause
+                    clause.SubClauses.Add(new SubClause
+                    {
+                        Number = IdesofSubclauses[PositionOfChangedSubclauseElement],
+                        Text = ""
+                    });
+                    clause.DeleteSubClause(IdesofSubclauses[PositionOfChangedSubclauseElement]);
+                }
+
+                CanRefresh = true;
             }
         }
 
