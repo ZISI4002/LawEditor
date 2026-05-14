@@ -425,6 +425,7 @@ namespace LawEditor.Models.TreeClasses
                        "Xəbərdarlıq",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
+                    CanRefresh = true;
                 }
                 section.Title = titleMatch.Groups[2].Value;
             }
@@ -434,15 +435,108 @@ namespace LawEditor.Models.TreeClasses
             }
 
             List<decimal> IdesofArticles = section.Articles.Select(a => a.Id).ToList();
+
+            // Сохраняем старые Clause IDs для каждой Article
+            var oldClauseIds = section.Articles
+                .ToDictionary(a => a.Id, a => a.Clauses.Select(c => c.Number).ToList());
+
+            // Сохраняем старые SubClause IDs для каждой Article+Clause
+            var oldSubClauseIds = section.Articles
+                .ToDictionary(
+                    a => a.Id,
+                    a => a.Clauses.ToDictionary(c => c.Number, c => c.SubClauses.Select(s => s.Number).ToList())
+                );
+
             section.Articles.Clear();
 
+            // Article переменные
             int IdcounterofArticles = 0;
             var ArticlesResult = MessageBoxResult.No;
             bool articlesAsked = false;
             decimal IdofChangedArticleElement = 0;
             int PositionOfChangedArticleElement = 0;
             Article currentArticle = null;
+
+            // Clause переменные
+            List<int> idsOfClauses = new List<int>();
+            List<int> idsOfClausesSnapshot = new List<int>();
+            int idCounterOfClauses = 0;
+            var clausesResult = MessageBoxResult.No;
+            var clausesFinalResult = MessageBoxResult.No;
+            Article clausesTargetArticle = null;
+            bool clausesAsked = false;
+            int idOfChangedClauseElement = 0;
+            int positionOfChangedClauseElement = 0;
             Clause currentClause = null;
+
+            // SubClause переменные
+            List<int> idsOfSubClauses = new List<int>();
+            List<int> idsOfSubClausesSnapshot = new List<int>();
+            int idCounterOfSubClauses = 0;
+            var subClausesResult = MessageBoxResult.No;
+            var subClausesFinalResult = MessageBoxResult.No;
+            Clause subClausesTargetClause = null;
+            bool subClausesAsked = false;
+            int idOfChangedSubClauseElement = 0;
+            int positionOfChangedSubClauseElement = 0;
+            SubClause currentSubClause = null;
+
+            // ── Применяем SubClause изменения ──
+            void ApplySubClauseChanges()
+            {
+                if (subClausesFinalResult != MessageBoxResult.Yes || subClausesTargetClause == null)
+                    return;
+
+                var currentSubList = subClausesTargetClause.SubClauses.ToList();
+
+                if (currentSubList.Count >= idsOfSubClausesSnapshot.Count)
+                {
+                    subClausesTargetClause.UpdateSubClause(idOfChangedSubClauseElement);
+                }
+                else
+                {
+                    subClausesTargetClause.SubClauses.Add(new SubClause
+                    {
+                        Number = idsOfSubClausesSnapshot[positionOfChangedSubClauseElement],
+                        Text = ""
+                    });
+                    subClausesTargetClause.DeleteSubClause(idsOfSubClausesSnapshot[positionOfChangedSubClauseElement]);
+                }
+
+                subClausesFinalResult = MessageBoxResult.No;
+                subClausesTargetClause = null;
+                CanRefresh = true;
+            }
+
+            // ── Применяем Clause изменения ──
+            void ApplyClauseChanges()
+            {
+                // Сначала завершаем SubClause текущего Clause
+                ApplySubClauseChanges();
+
+                if (clausesFinalResult != MessageBoxResult.Yes || clausesTargetArticle == null)
+                    return;
+
+                var currentClauseList = clausesTargetArticle.Clauses.ToList();
+
+                if (currentClauseList.Count >= idsOfClausesSnapshot.Count)
+                {
+                    clausesTargetArticle.UpdateClause(idOfChangedClauseElement);
+                }
+                else
+                {
+                    clausesTargetArticle.Clauses.Add(new Clause
+                    {
+                        Number = idsOfClausesSnapshot[positionOfChangedClauseElement],
+                        Text = ""
+                    });
+                    clausesTargetArticle.DeleteClause(idsOfClausesSnapshot[positionOfChangedClauseElement]);
+                }
+
+                clausesFinalResult = MessageBoxResult.No;
+                clausesTargetArticle = null;
+                CanRefresh = true;
+            }
 
             for (int i = 1; i < lines.Length; i++)
             {
@@ -451,51 +545,99 @@ namespace LawEditor.Models.TreeClasses
 
                 var line = rawLine.Trim();
 
-                // Article: "[1] текст"
+                // Article: "[1] текст" или "[10.2] текст"
                 var articleMatch = Regex.Match(line, @"^\[([0-9.]+)\]\s+(.*)$");
                 if (articleMatch.Success)
                 {
+                    // ── Применяем Clause изменения перед переходом к новой Article ──
+                    ApplyClauseChanges();
+
                     decimal.TryParse(articleMatch.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal artId);
 
-                    if (ArticlesResult == MessageBoxResult.No &&
-                        IdcounterofArticles < IdesofArticles.Count &&
-                        IdesofArticles[IdcounterofArticles] != artId &&
-                        !articlesAsked)
+                    // Проверка запрещённого преобразования целое → дробное
+                    if (IdcounterofArticles < IdesofArticles.Count)
                     {
-                        articlesAsked = true;
-                        ArticlesResult = MessageBox.Show(
-                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                            "Təsdiqləmə",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Question);
+                        decimal oldArtId = IdesofArticles[IdcounterofArticles];
+                        bool oldIsWhole = oldArtId == Math.Floor(oldArtId);
+                        bool newIsWhole = artId == Math.Floor(artId);
 
-                        if (ArticlesResult == MessageBoxResult.Yes)
+                        if (oldIsWhole && !newIsWhole)
                         {
-                            IdofChangedArticleElement = artId;
-                            PositionOfChangedArticleElement = IdcounterofArticles;
+                            MessageBox.Show(
+                                "Tam ədədi kəsr ədədə çevirmək olmaz.",
+                                "Xəbərdarlıq",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+                            CanRefresh = true;
+                            // восстанавливаем старый ID
+                            artId = oldArtId;
+                        }
+                        else if (ArticlesResult == MessageBoxResult.No &&
+                                 oldArtId != artId &&
+                                 !articlesAsked)
+                        {
+                            articlesAsked = true;
+                            ArticlesResult = MessageBox.Show(
+                                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                "Təsdiqləmə",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Question);
+
+                            if (ArticlesResult == MessageBoxResult.Yes)
+                            {
+                                IdofChangedArticleElement = artId;
+                                PositionOfChangedArticleElement = IdcounterofArticles;
+                            }
                         }
                     }
 
                     currentArticle = new Article { Id = artId, Title = articleMatch.Groups[2].Value };
                     section.Articles.Add(currentArticle);
                     currentClause = null;
+                    currentSubClause = null;
                     IdcounterofArticles++;
+
+                    // Сбрасываем Clause счётчики для новой Article
+                    idsOfClauses = oldClauseIds.TryGetValue(artId, out var oldCls)
+                        ? oldCls
+                        : (IdcounterofArticles - 1 < IdesofArticles.Count
+                            ? (oldClauseIds.TryGetValue(IdesofArticles[IdcounterofArticles - 1], out var oldCls2) ? oldCls2 : new List<int>())
+                            : new List<int>());
+                    idCounterOfClauses = 0;
+                    clausesResult = MessageBoxResult.No;
+                    clausesAsked = false;
+                    idOfChangedClauseElement = 0;
+                    positionOfChangedClauseElement = 0;
+
                     continue;
                 }
 
                 // Article без номера: "[] текст"
                 if (Regex.IsMatch(line, @"^\[\]\s+(.*)$") && IdcounterofArticles < IdesofArticles.Count)
                 {
+                    // ── Применяем Clause изменения перед переходом к новой Article ──
+                    ApplyClauseChanges();
+
                     var rest = Regex.Match(line, @"^\[\]\s+(.*)$").Groups[1].Value;
+                    decimal restoredId = IdesofArticles[IdcounterofArticles];
                     currentArticle = new Article
                     {
-                        Id = IdesofArticles[IdcounterofArticles],
+                        Id = restoredId,
                         Title = rest
                     };
                     section.Articles.Add(currentArticle);
                     articlesAsked = true;
                     currentClause = null;
+                    currentSubClause = null;
                     IdcounterofArticles++;
+
+                    idsOfClauses = oldClauseIds.TryGetValue(restoredId, out var oldCls3)
+                        ? oldCls3
+                        : new List<int>();
+                    idCounterOfClauses = 0;
+                    clausesResult = MessageBoxResult.No;
+                    clausesAsked = false;
+
                     continue;
                 }
 
@@ -503,12 +645,90 @@ namespace LawEditor.Models.TreeClasses
                 var clauseMatch = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
                 if (clauseMatch.Success && currentArticle != null)
                 {
+                    // ── Применяем SubClause изменения перед переходом к новому Clause ──
+                    ApplySubClauseChanges();
+
+                    int newClauseNumber = int.Parse(clauseMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+
+                    if (clausesResult == MessageBoxResult.No &&
+                        idCounterOfClauses < idsOfClauses.Count &&
+                        idsOfClauses[idCounterOfClauses] != newClauseNumber &&
+                        !clausesAsked)
+                    {
+                        clausesAsked = true;
+                        clausesResult = MessageBox.Show(
+                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                            "Təsdiqləmə",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (clausesResult == MessageBoxResult.Yes)
+                        {
+                            idOfChangedClauseElement = newClauseNumber;
+                            positionOfChangedClauseElement = idCounterOfClauses;
+                            clausesFinalResult = MessageBoxResult.Yes;
+                            clausesTargetArticle = currentArticle;
+                            idsOfClausesSnapshot = new List<int>(idsOfClauses);
+                        }
+                    }
+
                     currentClause = new Clause
                     {
-                        Number = int.Parse(clauseMatch.Groups[1].Value, CultureInfo.InvariantCulture),
+                        Number = newClauseNumber,
                         Text = clauseMatch.Groups[2].Value
                     };
                     currentArticle.Clauses.Add(currentClause);
+                    currentSubClause = null;
+                    idCounterOfClauses++;
+
+                    // Сбрасываем SubClause счётчики для нового Clause
+                    decimal artKey = currentArticle.Id;
+                    if (oldSubClauseIds.TryGetValue(artKey, out var subDict) &&
+                        subDict.TryGetValue(newClauseNumber, out var oldSubs))
+                        idsOfSubClauses = oldSubs;
+                    else
+                        idsOfSubClauses = new List<int>();
+
+                    idCounterOfSubClauses = 0;
+                    subClausesResult = MessageBoxResult.No;
+                    subClausesAsked = false;
+                    idOfChangedSubClauseElement = 0;
+                    positionOfChangedSubClauseElement = 0;
+
+                    continue;
+                }
+
+                // Clause без номера: ". текст"
+                if (Regex.IsMatch(line, @"^\.\s+(.*)$") && currentArticle != null)
+                {
+                    // ── Применяем SubClause изменения перед переходом к новому Clause ──
+                    ApplySubClauseChanges();
+
+                    if (idCounterOfClauses < idsOfClauses.Count)
+                    {
+                        var rest = Regex.Match(line, @"^\.\s+(.*)$").Groups[1].Value;
+                        int restoredClauseNum = idsOfClauses[idCounterOfClauses];
+                        currentClause = new Clause
+                        {
+                            Number = restoredClauseNum,
+                            Text = rest
+                        };
+                        currentArticle.Clauses.Add(currentClause);
+                        clausesAsked = true;
+                        currentSubClause = null;
+                        idCounterOfClauses++;
+
+                        decimal artKey2 = currentArticle.Id;
+                        if (oldSubClauseIds.TryGetValue(artKey2, out var subDict2) &&
+                            subDict2.TryGetValue(restoredClauseNum, out var oldSubs2))
+                            idsOfSubClauses = oldSubs2;
+                        else
+                            idsOfSubClauses = new List<int>();
+
+                        idCounterOfSubClauses = 0;
+                        subClausesResult = MessageBoxResult.No;
+                        subClausesAsked = false;
+                    }
                     continue;
                 }
 
@@ -516,29 +736,68 @@ namespace LawEditor.Models.TreeClasses
                 var subMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                 if (subMatch.Success && currentClause != null)
                 {
-                    currentClause.SubClauses.Add(new SubClause
+                    int newSubNumber = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+
+                    if (subClausesResult == MessageBoxResult.No &&
+                        idCounterOfSubClauses < idsOfSubClauses.Count &&
+                        idsOfSubClauses[idCounterOfSubClauses] != newSubNumber &&
+                        !subClausesAsked)
                     {
-                        Number = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture),
+                        subClausesAsked = true;
+                        subClausesResult = MessageBox.Show(
+                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                            "Təsdiqləmə",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (subClausesResult == MessageBoxResult.Yes)
+                        {
+                            idOfChangedSubClauseElement = newSubNumber;
+                            positionOfChangedSubClauseElement = idCounterOfSubClauses;
+                            subClausesFinalResult = MessageBoxResult.Yes;
+                            subClausesTargetClause = currentClause;
+                            idsOfSubClausesSnapshot = new List<int>(idsOfSubClauses);
+                        }
+                    }
+
+                    currentSubClause = new SubClause
+                    {
+                        Number = newSubNumber,
                         Text = subMatch.Groups[2].Value
-                    });
+                    };
+                    currentClause.SubClauses.Add(currentSubClause);
+                    idCounterOfSubClauses++;
+                    continue;
+                }
+
+                // SubClause без номера: ") текст"
+                if (Regex.IsMatch(line, @"^\)\s+(.*)$") && currentSubClause != null)
+                {
+                    var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
+                    currentSubClause.Text += "\n" + rest;
+                    continue;
+                }
+
+                if (Regex.IsMatch(line, @"^\)\s+(.*)$") && currentSubClause == null && currentClause != null)
+                {
+                    var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
+                    currentClause.Text += "\n" + rest;
                     continue;
                 }
 
                 // Continuation
-                if (currentClause != null)
-                {
-                    if (currentClause.SubClauses.Count > 0)
-                        currentClause.SubClauses.Last().Text += "\n" + line;
-                    else
-                        currentClause.Text += "\n" + line;
-                }
+                if (currentSubClause != null)
+                    currentSubClause.Text += "\n" + line;
+                else if (currentClause != null)
+                    currentClause.Text += "\n" + line;
                 else if (currentArticle != null)
-                {
                     currentArticle.Title += "\n" + line;
-                }
             }
 
-            // Обработка изменения ID
+            // Применяем Clause изменения для последней Article (включая SubClause)
+            ApplyClauseChanges();
+
+            // Обработка изменения Article ID
             if (ArticlesResult == MessageBoxResult.Yes)
             {
                 var currentList = section.Articles.ToList();
@@ -584,6 +843,7 @@ namespace LawEditor.Models.TreeClasses
                              MessageBoxButton.OK,
                              MessageBoxImage.Information
                               );
+                    CanRefresh = true;
                 }
                 article.Title = titleMatch.Groups[2].Value;
             }
@@ -593,15 +853,59 @@ namespace LawEditor.Models.TreeClasses
             }
 
             article.EndnoteId = null;
-            List<int> IdesofClauses = article.Clauses.Select(sc => sc.Number).ToList();
+
+            List<int> IdesofClauses = article.Clauses.Select(c => c.Number).ToList();
+            var oldSubClauseIds = article.Clauses
+                .ToDictionary(c => c.Number, c => c.SubClauses.Select(s => s.Number).ToList());
+
             article.Clauses.Clear();
 
+            // Clause переменные
             int IdcounterofClauses = 0;
             var ClausesResult = MessageBoxResult.No;
             bool clausesAsked = false;
             int IdofChangedClauseElement = 0;
             int PositionOfChangedClauseElement = 0;
             Clause currentClause = null;
+
+            // SubClause переменные
+            List<int> idsOfSubClauses = new List<int>();
+            List<int> idsOfSubClausesSnapshot = new List<int>();
+            int idCounterOfSubClauses = 0;
+            var subClausesResult = MessageBoxResult.No;
+            var subClausesFinalResult = MessageBoxResult.No;
+            Clause subClausesTargetClause = null;
+            bool subClausesAsked = false;
+            int idOfChangedSubClauseElement = 0;
+            int positionOfChangedSubClauseElement = 0;
+            SubClause currentSubClause = null;
+
+            // ── Вспомогательный метод применения SubClause изменений ──
+            void ApplySubClauseChanges()
+            {
+                if (subClausesFinalResult != MessageBoxResult.Yes || subClausesTargetClause == null)
+                    return;
+
+                var currentSubList = subClausesTargetClause.SubClauses.ToList();
+
+                if (currentSubList.Count >= idsOfSubClausesSnapshot.Count)
+                {
+                    subClausesTargetClause.UpdateSubClause(idOfChangedSubClauseElement);
+                }
+                else
+                {
+                    subClausesTargetClause.SubClauses.Add(new SubClause
+                    {
+                        Number = idsOfSubClausesSnapshot[positionOfChangedSubClauseElement],
+                        Text = ""
+                    });
+                    subClausesTargetClause.DeleteSubClause(idsOfSubClausesSnapshot[positionOfChangedSubClauseElement]);
+                }
+
+                subClausesFinalResult = MessageBoxResult.No;
+                subClausesTargetClause = null;
+                CanRefresh = true;
+            }
 
             for (int i = 1; i < lines.Length; i++)
             {
@@ -620,6 +924,9 @@ namespace LawEditor.Models.TreeClasses
                 var clauseMatch = Regex.Match(line, @"^(\d+)\.\s+(.*)$");
                 if (clauseMatch.Success)
                 {
+                    // ── Применяем SubClause изменения перед переходом к новому Clause ──
+                    ApplySubClauseChanges();
+
                     int newNumber = int.Parse(clauseMatch.Groups[1].Value, CultureInfo.InvariantCulture);
 
                     if (ClausesResult == MessageBoxResult.No &&
@@ -648,12 +955,27 @@ namespace LawEditor.Models.TreeClasses
                     };
                     article.Clauses.Add(currentClause);
                     IdcounterofClauses++;
+
+                    // Сбрасываем SubClause счётчики для нового Clause
+                    idsOfSubClauses = oldSubClauseIds.TryGetValue(newNumber, out var oldSubs)
+                        ? oldSubs
+                        : new List<int>();
+                    idCounterOfSubClauses = 0;
+                    subClausesResult = MessageBoxResult.No;
+                    subClausesAsked = false;
+                    idOfChangedSubClauseElement = 0;
+                    positionOfChangedSubClauseElement = 0;
+                    currentSubClause = null;
+
                     continue;
                 }
 
                 // Clause без номера: ". текст"
                 if (Regex.IsMatch(line, @"^\.\s+(.*)$"))
                 {
+                    // ── Применяем SubClause изменения перед переходом к новому Clause ──
+                    ApplySubClauseChanges();
+
                     if (IdcounterofClauses < IdesofClauses.Count)
                     {
                         var rest = Regex.Match(line, @"^\.\s+(.*)$").Groups[1].Value;
@@ -665,6 +987,14 @@ namespace LawEditor.Models.TreeClasses
                         article.Clauses.Add(currentClause);
                         clausesAsked = true;
                         IdcounterofClauses++;
+
+                        idsOfSubClauses = oldSubClauseIds.TryGetValue(currentClause.Number, out var oldSubs2)
+                            ? oldSubs2
+                            : new List<int>();
+                        idCounterOfSubClauses = 0;
+                        subClausesResult = MessageBoxResult.No;
+                        subClausesAsked = false;
+                        currentSubClause = null;
                     }
                     continue;
                 }
@@ -673,34 +1003,68 @@ namespace LawEditor.Models.TreeClasses
                 var subMatch = Regex.Match(line, @"^(\d+)\)\s+(.*)$");
                 if (subMatch.Success && currentClause != null)
                 {
-                    currentClause.SubClauses.Add(new SubClause
+                    int newSubNumber = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+
+                    if (subClausesResult == MessageBoxResult.No &&
+                        idCounterOfSubClauses < idsOfSubClauses.Count &&
+                        idsOfSubClauses[idCounterOfSubClauses] != newSubNumber &&
+                        !subClausesAsked)
                     {
-                        Number = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture),
+                        subClausesAsked = true;
+                        subClausesResult = MessageBox.Show(
+                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                            "Təsdiqləmə",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
+
+                        if (subClausesResult == MessageBoxResult.Yes)
+                        {
+                            idOfChangedSubClauseElement = newSubNumber;
+                            positionOfChangedSubClauseElement = idCounterOfSubClauses;
+                            subClausesFinalResult = MessageBoxResult.Yes;
+                            subClausesTargetClause = currentClause;
+                            idsOfSubClausesSnapshot = new List<int>(idsOfSubClauses);
+                        }
+                    }
+
+                    currentSubClause = new SubClause
+                    {
+                        Number = newSubNumber,
                         Text = subMatch.Groups[2].Value
-                    });
+                    };
+                    currentClause.SubClauses.Add(currentSubClause);
+                    idCounterOfSubClauses++;
                     continue;
                 }
 
                 // SubClause без номера: ") текст"
-                if (Regex.IsMatch(line, @"^\)\s+(.*)$") && currentClause != null && currentClause.SubClauses.Count > 0)
+                if (Regex.IsMatch(line, @"^\)\s+(.*)$") && currentSubClause != null)
                 {
-                    var lastSub = currentClause.SubClauses.Last();
                     var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
-                    lastSub.Text = lastSub.Text + "\n" + rest;
+                    currentSubClause.Text += "\n" + rest;
                     continue;
                 }
 
-                // Continuation — дописываем к последнему Clause или SubClause
-                if (currentClause != null)
+                if (Regex.IsMatch(line, @"^\)\s+(.*)$") && currentSubClause == null)
                 {
-                    if (currentClause.SubClauses.Count > 0)
-                        currentClause.SubClauses.Last().Text += "\n" + line;
-                    else
-                        currentClause.Text += "\n" + line;
+                    var rest = Regex.Match(line, @"^\)\s+(.*)$").Groups[1].Value;
+                    if (currentClause != null)
+                        currentClause.Text += "\n" + rest;
+                    continue;
+                }
+
+                // Continuation
+                if (currentSubClause != null)
+                {
+                    currentSubClause.Text += "\n" + line;
+                }
+                else if (currentClause != null)
+                {
+                    currentClause.Text += "\n" + line;
                 }
             }
 
-            // Обработка изменения ID
+            // Обработка изменения Clause ID
             if (ClausesResult == MessageBoxResult.Yes)
             {
                 var currentList = article.Clauses.ToList();
@@ -721,6 +1085,9 @@ namespace LawEditor.Models.TreeClasses
 
                 CanRefresh = true;
             }
+
+            // Применяем SubClause изменения для последнего Clause
+            ApplySubClauseChanges();
         }
 
         private static void ParseClause(Clause clause, string text)
@@ -740,14 +1107,16 @@ namespace LawEditor.Models.TreeClasses
                          MessageBoxButton.OK,
                          MessageBoxImage.Information
                           );
+                    CanRefresh = true;
 
                 }
                 clause.Text = match.Groups[2].Value;
             }
            
-            clause.SubClauses.Clear();
             // About SubClauses: 
             List<int> IdesofSubclauses = clause.SubClauses.Select(sc => sc.Number).ToList();
+            clause.SubClauses.Clear();
+
             int IdcounterofSubclauses = 0;
             var SubclausesResult = MessageBoxResult.No;
             bool subclausesAsked = false;
@@ -881,6 +1250,7 @@ namespace LawEditor.Models.TreeClasses
                           MessageBoxButton.OK,
                           MessageBoxImage.Information
                            );
+                    CanRefresh = true;  
 
                 }
                 sub.Text = match.Groups[2].Value;
@@ -1032,30 +1402,48 @@ namespace LawEditor.Models.TreeClasses
             if (lines.Length == 0) return;
 
             sourceData.Type = lines[0].Trim();
-
-            List<int> TransitionalProvisionsIds = sourceData.Source
-                .OfType<TransitionalProvisions>()
-                .Select(tp => tp.Id)
-                .ToList();
-            List<int> SourceDocumentsIds = sourceData.Source
-                .OfType<SourceDocumentsList>()
-                .Select(sd => sd.Id)
-                .ToList();
-            List<string> ConstitutionalAmendmentIds = sourceData.Source
-                .OfType<ConstitutionalAmendment>()
-                .Select(ca => ca.Id)
-                .ToList();
-
-            sourceData.Source.Clear();
-
-            bool trPending = false;
+            // List
+            List<int> TransitionalProvisionsIds = new List<int>();
+            List<int> SourceDocumentsIds=new List<int>();
+            List<string> ConstitutionalAmendmentIds=new List<string>();
+            // Objects
             var tr = new TransitionalProvisions();
             var sd = new SourceDocumentsList();
             var ca = new ConstitutionalAmendment();
 
-            tr.Id = TransitionalProvisionsIds[0];
-            sd.Id = SourceDocumentsIds[0];
-            ca.Id = ConstitutionalAmendmentIds[0];
+
+
+
+            if (sourceData.Id == 1)
+            {
+                TransitionalProvisionsIds = sourceData.Source
+                   .OfType<TransitionalProvisions>()
+                   .Select(tp => tp.Id)
+                   .ToList();
+                tr.Id = TransitionalProvisionsIds[0];
+
+            }
+            else if (sourceData.Id == 2)
+            {
+                SourceDocumentsIds = sourceData.Source
+                    .OfType<SourceDocumentsList>()
+                    .Select(sd => sd.Id)
+                    .ToList();
+                sd.Id = SourceDocumentsIds[0];
+
+            }
+            else if (sourceData.Id == 3)
+            {
+                ConstitutionalAmendmentIds = sourceData.Source
+                .OfType<ConstitutionalAmendment>()
+                .Select(ca => ca.Id)
+                .ToList();
+                ca.Id = ConstitutionalAmendmentIds[0];
+
+            }
+            sourceData.Source.Clear();
+
+            bool trPending = false;
 
             // Transitional counters
             int IdcounterofTransitionalProvisions = 0;

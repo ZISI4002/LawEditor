@@ -138,44 +138,7 @@ namespace LawEditor.Models.ChangableData
 
             }
             else if (currentId == Math.Floor(currentId) && newId != Math.Floor(newId)) {
-                // 2) Целое и дробное
-
-                /*
-                if (newId <= 0) {
-                    MessageBox.Show("ID не может быть отрицательным или нулём.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                // Собираем ВСЕ статьи из всех глав и секций
-                var allArticles = laws.Chapters
-                    .SelectMany(c => c.Sections)
-                    .SelectMany(s => s.Articles)
-                    .ToList();
-
-                int currentIndex = allArticles.FindIndex(a => a.Id == newId);
-
-                // Проверяю, NewId - предыдущий айди = 0.1  МОЖНО работать. Иначе нет
-
-                if (currentIndex >= 1) {
-                    if ((newId - allArticles[currentIndex - 1].Id) != 0.1m) {
-                        MessageBox.Show($"Новый ID ({newId}) должен быть больше предыдущего ({allArticles[currentIndex - 1].Id}) на 0.1 .", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                }
-
-                var itemsToUpdate = allArticles.Skip(currentIndex + 1).ToList();
-
-                newId = Math.Floor(newId);
-
-                foreach (var item in itemsToUpdate) {
-                    if (item.Id == Math.Floor(item.Id)) {
-                        item.Id = ++newId;
-                    }
-                    else {
-                        item.Id = newId + (item.Id % 1);
-                    }
-                }
-                */
+                
 
             }
             else if (currentId != Math.Floor(currentId) && newId != Math.Floor(newId)) {
