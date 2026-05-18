@@ -41,7 +41,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 return; }
 
 
- MessageBoxResult result = MessageBox.Show("Deleting it will remove all other elements relying on it!", "Are you sure?", MessageBoxButton.YesNoCancel, MessageBoxImage
+                 MessageBoxResult result = MessageBox.Show("Deleting it will remove all other elements relying on it!", "Are you sure?", MessageBoxButton.YesNoCancel, MessageBoxImage
                  .Warning, MessageBoxResult.No);
 
             if (result != MessageBoxResult.Yes) return;
@@ -95,6 +95,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 anchor.SourceData.DeleteConstitutionalAmendment(anchor.ConstitutionalAmendment.Id);
             }
 
+            _viewModel.RefreshSelectedText();
         }
     }
 }
