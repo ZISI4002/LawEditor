@@ -82,11 +82,15 @@ namespace LawEditor.Models.ChangableData
 
             Articles.Add(newArticle);
 
-            // сортировка
-            var sortedList = Articles.OrderBy(a => a.Id).ToList();
-            Articles.Clear();
-            foreach (var a in sortedList)
-                Articles.Add(a);
+            // Сортировка
+            foreach (var chapter in laws.Chapters) {
+                foreach (var section in chapter.Sections) {
+                    var sorted = section.Articles.OrderBy(a => a.Id).ToList();
+                    section.Articles.Clear();
+                    foreach (var a in sorted)
+                        section.Articles.Add(a);
+                }
+            }
 
             return newArticle;
         }
@@ -264,6 +268,7 @@ namespace LawEditor.Models.ChangableData
                     }
                 }
             }
+
         }
 
     }
