@@ -217,22 +217,264 @@ namespace LawEditor.Models.TreeClasses
         // ==================== SET ====================
         public static void SetText(object item, string value, Laws laws)
         {
-            switch (item)
+            var lines = value.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+            bool isArchitectureCorrect = item switch
             {
-                case UpperObject u: ParseUpperObyect(u, value); break;
-                case Chapter c: ParseChapter(c, value, laws); break;
-                case Models.ChangableData.Section s: ParseSection(s, value,laws); break;
-                case Article a: ParseArticle(a, value); break;
-                case Clause cl: ParseClause(cl, value); break;
-                case SubClause sc: ParseSubClause(sc, value); break;
-                case Header h: h.FullText = value; break;
-                case SourceData sd: ParseSourceData(sd, value); break;
-                case TransitionalProvisions tp: ParseTransitionalProvisions(tp, value); break;
-                case TransitionalProvisionsDateNote tpDate: tpDate.DisplayText = value; break;
-                case SourceDocumentsList sd: ParseSourceDocumentsList(sd, value); break;
-                case ConstitutionalAmendment ca: ParseConstitutionalAmendment(ca, value); break;
+                Chapter => VerifyChapter(lines, out int el1, out string em1) || ShowError(em1),
+                Models.ChangableData.Section => VerifySection(lines, out int el2, out string em2) || ShowError(em2),
+                Article => VerifyArticle(lines, out int el3, out string em3) || ShowError(em3),
+                Clause => VerifyClause(lines, out int el4, out string em4) || ShowError(em4),
+                SubClause => VerifySubClause(lines, out int el5, out string em5) || ShowError(em5),
+                _ => true
+            };
+
+            if (isArchitectureCorrect)
+            {
+                switch (item)
+                {
+                    case UpperObject u: ParseUpperObyect(u, value); break;
+                    case Chapter c: ParseChapter(c, value, laws); break;
+                    case Models.ChangableData.Section s: ParseSection(s, value, laws); break;
+                    case Article a: ParseArticle(a, value); break;
+                    case Clause cl: ParseClause(cl, value); break;
+                    case SubClause sc: ParseSubClause(sc, value); break;
+                    case Header h: h.FullText = value; break;
+                    case SourceData sd: ParseSourceData(sd, value); break;
+                    case TransitionalProvisions tp: ParseTransitionalProvisions(tp, value); break;
+                    case TransitionalProvisionsDateNote tpDate: tpDate.DisplayText = value; break;
+                    case SourceDocumentsList sd: ParseSourceDocumentsList(sd, value); break;
+                    case ConstitutionalAmendment ca: ParseConstitutionalAmendment(ca, value); break;
+                }
             }
+          
         }
+
+        private static bool ShowError(string message)
+        {
+            MessageBox.Show(message, "Arxitektura xətası", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        // ==================== Architecture Correctness Verifier ====================
+
+        private static bool VerifyChapter(string[] lines, out int errorLine, out string errorMessage)
+        {
+            errorLine = -1; errorMessage = "";
+            bool insideSection = false, insideArticle = false, insideClause = false;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i].Trim();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                if (Regex.IsMatch(line, @"^\{[0-9]+\}\s+.*$"))
+                {
+                    insideSection = true;
+                    insideArticle = false;
+                    insideClause = false;
+                }
+                else if (Regex.IsMatch(line, @"^\[[0-9.]+\]\s+.*$"))
+                {
+                    if (!insideSection)
+                    {
+                        errorLine = i + 1;
+                        errorMessage = $"Sətir {i + 1}: maddə fəsil olmadan tapıldı — '{line}'";
+                        return false;
+                    }
+                    insideArticle = true;
+                    insideClause = false;
+                }
+                else if (Regex.IsMatch(line, @"^\d+\.\s+.*$"))
+                {
+                    if (!insideArticle)
+                    {
+                        errorLine = i + 1;
+                        errorMessage = $"Sətir {i + 1}: bənd maddə olmadan tapıldı — '{line}'";
+                        return false;
+                    }
+                    insideClause = true;
+                }
+                else if (Regex.IsMatch(line, @"^\d+\)\s+.*$"))
+                {
+                    if (!insideClause)
+                    {
+                        errorLine = i + 1;
+                        errorMessage = $"Sətir {i + 1}: alt bənd bənd olmadan tapıldı — '{line}'";
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool VerifySection(string[] lines, out int errorLine, out string errorMessage)
+        {
+            errorLine = -1; errorMessage = "";
+            bool insideArticle = false, insideClause = false;
+            int countSection = 0;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i].Trim();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                if (Regex.IsMatch(line, @"^\{[0-9]+\}\s+.*$"))
+                {
+                    countSection++;
+                }
+                if (countSection >= 2)
+                {
+                    errorLine = i + 1;
+                    errorMessage = $"Sətir {i + 1}: fəsil fəsil daxilində ola bilməz — '{line}'";
+                    return false;
+                }
+
+                else if (Regex.IsMatch(line, @"^\[[0-9.]+\]\s+.*$"))
+                {
+                    insideArticle = true;
+                    insideClause = false;
+                }
+                else if (Regex.IsMatch(line, @"^\d+\.\s+.*$"))
+                {
+                    if (!insideArticle)
+                    {
+                        errorLine = i + 1;
+                        errorMessage = $"Sətir {i + 1}: bənd maddə olmadan tapıldı — '{line}'";
+                        return false;
+                    }
+                    insideClause = true;
+                }
+                else if (Regex.IsMatch(line, @"^\d+\)\s+.*$"))
+                {
+                    if (!insideClause)
+                    {
+                        errorLine = i + 1;
+                        errorMessage = $"Sətir {i + 1}: alt bənd bənd olmadan tapıldı — '{line}'";
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool VerifyArticle(string[] lines, out int errorLine, out string errorMessage)
+        {
+            errorLine = -1; errorMessage = "";
+            bool insideClause = false;
+            int coutArticle = 0;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i].Trim();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                if (Regex.IsMatch(line, @"^\[[0-9.]+\]\s+.*$"))
+                {
+                    coutArticle++;
+                }
+                    if (coutArticle >= 2)
+                    {
+                        errorLine = i + 1;
+                        errorMessage = $"Sətir {i + 1}: maddə maddə  daxilində ola bilməz — '{line}'";
+                        return false;
+                    } 
+                    else 
+                if (Regex.IsMatch(line, @"^\{[0-9]+\}\s+.*$") )
+                {
+                    errorLine = i + 1;
+                    errorMessage = $"Sətir {i + 1}: fəsil maddə  daxilində ola bilməz — '{line}'";
+                    return false;
+                }
+                else if (Regex.IsMatch(line, @"^\d+\.\s+.*$"))
+                {
+                    insideClause = true;
+                }
+                else if (Regex.IsMatch(line, @"^\d+\)\s+.*$"))
+                {
+                    if (!insideClause)
+                    {
+                        errorLine = i + 1;
+                        errorMessage = $"Sətir {i + 1}: alt bənd bənd olmadan tapıldı — '{line}'";
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static bool VerifyClause(string[] lines, out int errorLine, out string errorMessage)
+        {
+            errorLine = -1; errorMessage = "";
+            int coutClause = 0;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i].Trim();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+
+                if(Regex.IsMatch(line, @"^\d+\.\s+.*$") ){ 
+                    coutClause++;
+                }
+                 else if (Regex.IsMatch(line, @"^\d+\)\s+.*$"))
+                {
+                    if (coutClause == 0)
+                    {
+                        errorLine = i + 1;
+                        errorMessage = $"Sətir {i + 1}: alt bənd bənd olmadan tapıldı — '{line}'";
+                        return false;
+                    }
+                }
+                 else
+
+                if (Regex.IsMatch(line, @"^\{[0-9]+\}\s+.*$") ||
+                    Regex.IsMatch(line, @"^\[[0-9.]+\]\s+.*$")
+                    )
+                {
+                    errorLine = i + 1;
+                    errorMessage = $"Sətir {i + 1}: bu element bənd daxilində ola bilməz — '{line}'";
+                    return false;
+                }
+
+
+                if ( coutClause >= 2)
+                {
+                    errorLine = i + 1;
+                    errorMessage = $"Sətir {i + 1}: bir bənd daxilində yalnız bir bənd ola bilər — '{line}'";
+                    return false;
+                }
+
+            }
+            return true;
+        }
+
+        private static bool VerifySubClause(string[] lines, out int errorLine, out string errorMessage)
+        {
+            errorLine = -1; errorMessage = "";
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i].Trim();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                if (Regex.IsMatch(line, @"^\d+\)\s+.*$"))
+                {
+                    continue;
+                }
+                else
+                    if (Regex.IsMatch(line, @"^\{[0-9]+\}\s+.*$") ||
+                        Regex.IsMatch(line, @"^\[[0-9.]+\]\s+.*$")||
+                        Regex.IsMatch(line, @"^\d+\.\s+.*$")
+                        )
+                    {
+                    errorLine = i + 1;
+                    errorMessage = $"Sətir {i + 1}: alt bənd səviyyəsində yalnız 'n) text' formatı qəbul edilir — '{line}'";
+                    return false;
+                }
+                else
+                    {
+                        continue;
+                    }
+            }
+            return true;
+        }   
 
         // ==================== PARSE ====================
 
@@ -1558,6 +1800,7 @@ namespace LawEditor.Models.TreeClasses
             {
                 sub.Text = trimmed;
             }
+            
         }
 
         private static void ParseTransitionalProvisions(TransitionalProvisions tp, string text)

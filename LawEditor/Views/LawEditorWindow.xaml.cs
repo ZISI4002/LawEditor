@@ -37,13 +37,24 @@ namespace LawEditor.Views
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (LineNumbersBox == null || MainTextBox == null) return;
 
+            // Считаем количество явных переносов строк (так как TextWrapping="NoWrap")
+            string[] lines = MainTextBox.Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            int lineCount = lines.Length;
+
+            if (lineCount < 1) lineCount = 1;
+
+            var sb = new System.Text.StringBuilder();
+            for (int i = 1; i <= lineCount; i++)
+            {
+                sb.AppendLine(i.ToString());
+            }
+
+            LineNumbersBox.Text = sb.ToString();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
 
-        }
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             if (DataContext is ICloseHandler vm)
