@@ -193,63 +193,64 @@
                            Foreground="#3498DB" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
 
                 <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="8" Padding="0">
-                    <ScrollViewer x:Name="SharedScrollViewer" 
-                                  VerticalScrollBarVisibility="Auto" 
-                                  HorizontalScrollBarVisibility="Auto">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="1"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="1"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                            <Border x:Name="LineNumbersPanel"
-                                    Grid.Column="0" 
-                                    Background="#000000"
-                                    CornerRadius="8,0,0,8" 
-                                    IsHitTestVisible="False"
-                                    Visibility="Collapsed">
+                        <Border x:Name="LineNumbersPanel"
+                Grid.Column="0" 
+                Background="#000000"
+                CornerRadius="8,0,0,8" 
+                IsHitTestVisible="False"
+                Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
+                            <ScrollViewer x:Name="LineNumbersScrollViewer"
+                          VerticalScrollBarVisibility="Hidden"
+                          HorizontalScrollBarVisibility="Disabled">
                                 <TextBox x:Name="LineNumbersBox"
-                                         Background="Transparent"
-                                         Foreground="#2B91AF"
-                                         BorderThickness="0"
-                                         FontSize="14"
-                                         FontFamily="Consolas, Monaco, Courier New"
-                                         Padding="8,5,5,5"
-                                         TextAlignment="Right"
-                                         IsReadOnly="True"
-                                         IsTabStop="False"
-                                         Focusable="False"
-                                         VerticalScrollBarVisibility="Disabled"
-                                         HorizontalScrollBarVisibility="Disabled"/>
-                            </Border>
+                         Background="Transparent"
+                         Foreground="#2B91AF"
+                         BorderThickness="0"
+                         FontSize="14"
+                         FontFamily="Consolas, Monaco, Courier New"
+                         Padding="8,5,5,5"
+                         TextAlignment="Right"
+                         IsReadOnly="True"
+                         IsTabStop="False"
+                         Focusable="False"/>
+                            </ScrollViewer>
+                        </Border>
 
-                            <Rectangle x:Name="SeparatorLine"
-                                       Grid.Column="1" 
-                                       Fill="#CCCCCC" 
-                                       VerticalAlignment="Stretch"
-                                       Visibility="Collapsed"/>
+                        <Rectangle Grid.Column="1" 
+                   Fill="#CCCCCC" 
+                   VerticalAlignment="Stretch"
+                   IsHitTestVisible="False"
+                   Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}"/>
 
-                            <TextBox Grid.Column="2"
-                                     x:Name="MainTextBox"
-                                     Text="{Binding SelectedText, UpdateSourceTrigger=PropertyChanged}"
-                                     Background="Transparent"
-                                     Foreground="#1A1A1A"
-                                     CaretBrush="Black"
-                                     BorderThickness="0"
-                                     AcceptsReturn="True"
-                                     TextWrapping="NoWrap"
-                                     FontSize="14"
-                                     FontFamily="Consolas, Monaco, Courier New"
-                                     Padding="5"
-                                     VerticalScrollBarVisibility="Disabled"
-                                     HorizontalScrollBarVisibility="Disabled"
-                                     IsEnabled="{Binding HasSelection}"
-                                     TextChanged="TextBox_TextChanged"/>
-                        </Grid>
-                    </ScrollViewer>
+                        <Border Grid.Column="2" Background="Transparent">
+                            <ScrollViewer x:Name="MainScrollViewer"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Auto"
+                          ScrollChanged="MainScrollViewer_ScrollChanged">
+                                <TextBox x:Name="MainTextBox"
+                         Text="{Binding SelectedText, UpdateSourceTrigger=PropertyChanged}"
+                         Background="Transparent"
+                         Foreground="#1A1A1A"
+                         CaretBrush="Black"
+                         BorderThickness="0"
+                         AcceptsReturn="True"
+                         TextWrapping="NoWrap"
+                         FontSize="14"
+                         FontFamily="Consolas, Monaco, Courier New"
+                         Padding="5"
+                         IsEnabled="{Binding HasSelection}"
+                         TextChanged="TextBox_TextChanged"/>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
                 </Border>
-
                 <Button Grid.Row="2" Content="✔ Save Changes" Width="140" Height="40"
                         Style="{StaticResource SaveButtonStyle}"
                         HorizontalAlignment="Right" Margin="0,15,0,0"

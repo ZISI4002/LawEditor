@@ -27,6 +27,7 @@ namespace LawEditor.Views
         public LawEditorWindow()
         {
             InitializeComponent();
+            MainTextBox.IsEnabledChanged += (s, e) => TextBox_TextChanged(null, null);
         }
 
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -35,26 +36,23 @@ namespace LawEditor.Views
                 vm.SelectedItem = e.NewValue;
         }
 
+        // 1. Этот метод намертво связывает вертикальную прокрутку номеров и текста
+        private void MainScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (LineNumbersScrollViewer != null && MainScrollViewer != null)
+            {
+                // Передаем вертикальное смещение от текста к номерам строк
+                LineNumbersScrollViewer.ScrollToVerticalOffset(MainScrollViewer.VerticalOffset);
+            }
+        }
+
+        // 2. Твой стандартный подсчет строк
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (LineNumbersBox == null || MainTextBox == null || LineNumbersPanel == null || SeparatorLine == null) return;
+            if (LineNumbersBox == null || MainTextBox == null) return;
 
-            // Проверяем реальное наличие текста. 
-            // Если окно только открылось и текст NULL — скрываем панель номеров строк полностью.
-            if (MainTextBox.Text == null)
-            {
-                LineNumbersPanel.Visibility = Visibility.Collapsed;
-                SeparatorLine.Visibility = Visibility.Collapsed;
-                LineNumbersBox.Text = string.Empty;
-                return;
-            }
-
-            // Если элемент выбран (даже если текст внутри пустой "" при редактировании) — показываем ЧЕРНУЮ панель
-            LineNumbersPanel.Visibility = Visibility.Visible;
-            SeparatorLine.Visibility = Visibility.Visible;
-
-            // Считаем перенос строк
-            string[] lines = MainTextBox.Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            string text = MainTextBox.Text ?? string.Empty;
+            string[] lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
             int lineCount = lines.Length;
 
             if (lineCount < 1) lineCount = 1;
