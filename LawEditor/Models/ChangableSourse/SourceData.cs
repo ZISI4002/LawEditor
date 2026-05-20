@@ -14,7 +14,14 @@ namespace LawEditor.Models.ChangableSourse {
        
         public ObservableCollection<object> Source { get; set; } = new();
 
-        // TransitionalProvision      
+        // TransitionalProvision
+
+        public TransitionalProvisions AddPhantomTransitionalProvision(
+ string title, int? id = null, int? position = null)
+        {
+            return null;
+        }
+
         public TransitionalProvisions AddTransitionalProvision(
  string title, int? id = null,  int? position = null)
         { 
@@ -81,6 +88,11 @@ namespace LawEditor.Models.ChangableSourse {
         }
 
         // SourceDocumentsList
+        public SourceDocumentsList AddPhantomSourceDocument(
+       string title, int? id = null, string? linkText = null, string? url = null, int? position = null)
+        {
+            return null;
+        }
         public SourceDocumentsList AddSourceDocument(
         string title, int? id = null, string? linkText = null, string? url = null, int? position = null) {
             var list = Source.Cast<SourceDocumentsList>().ToList();
@@ -140,6 +152,11 @@ namespace LawEditor.Models.ChangableSourse {
         }
 
         // ConstitutionalAmendment
+        public ConstitutionalAmendment AddPhantomConstitutionalAmendment(string title, string id = null, string? linkText = null, string? url = null, int? position = null)
+        {
+            return null;
+        }
+
         public ConstitutionalAmendment AddConstitutionalAmendment(string title, string id = null, string? linkText = null, string? url = null, int? position = null) {
             var list = Source.Cast<ConstitutionalAmendment>().ToList();
             var newItem = new ConstitutionalAmendment(id, title, linkText, url);

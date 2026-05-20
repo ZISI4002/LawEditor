@@ -50,6 +50,10 @@ namespace LawEditor.Models.ChangableData
             return maxId;
 
         }
+        public Article AddPhantomArticle(decimal id, string title, Laws laws, string? endnoteId = null)
+        {
+            return null;
+        }
         public Article AddArticle(decimal id, string title, Laws laws, string? endnoteId = null) {
             bool isSubArticle = id % 1 != 0;
 

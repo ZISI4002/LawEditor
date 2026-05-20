@@ -37,9 +37,23 @@ namespace LawEditor.Views
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (LineNumbersBox == null || MainTextBox == null) return;
+            if (LineNumbersBox == null || MainTextBox == null || LineNumbersPanel == null || SeparatorLine == null) return;
 
-            // Считаем количество явных переносов строк (так как TextWrapping="NoWrap")
+            // Проверяем реальное наличие текста. 
+            // Если окно только открылось и текст NULL — скрываем панель номеров строк полностью.
+            if (MainTextBox.Text == null)
+            {
+                LineNumbersPanel.Visibility = Visibility.Collapsed;
+                SeparatorLine.Visibility = Visibility.Collapsed;
+                LineNumbersBox.Text = string.Empty;
+                return;
+            }
+
+            // Если элемент выбран (даже если текст внутри пустой "" при редактировании) — показываем ЧЕРНУЮ панель
+            LineNumbersPanel.Visibility = Visibility.Visible;
+            SeparatorLine.Visibility = Visibility.Visible;
+
+            // Считаем перенос строк
             string[] lines = MainTextBox.Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
             int lineCount = lines.Length;
 

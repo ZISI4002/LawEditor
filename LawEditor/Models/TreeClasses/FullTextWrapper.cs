@@ -42,10 +42,7 @@ namespace LawEditor.Models.TreeClasses
             };
         }
 
-        private static int GetIndent(string line)
-        {
-            return line.TakeWhile(c => c == ' ').Count();
-        }
+        
 
         // ==================== GET ====================
 
@@ -325,7 +322,7 @@ namespace LawEditor.Models.TreeClasses
                 if (countSection >= 2)
                 {
                     errorLine = i + 1;
-                    errorMessage = $"Sətir {i + 1}: fəsil fəsil daxilində ola bilməz — '{line}'";
+                    errorMessage = $"Sətir {i + 1}: Be element fəsil daxilində ola bilməz — '{line}'";
                     return false;
                 }
 
@@ -374,7 +371,7 @@ namespace LawEditor.Models.TreeClasses
                     if (coutArticle >= 2)
                     {
                         errorLine = i + 1;
-                        errorMessage = $"Sətir {i + 1}: maddə maddə  daxilində ola bilməz — '{line}'";
+                        errorMessage = $"Sətir {i + 1}: Bu element maddə  daxilində ola bilməz — '{line}'";
                         return false;
                     } 
                     else 
@@ -424,10 +421,11 @@ namespace LawEditor.Models.TreeClasses
                         return false;
                     }
                 }
-                 else
+                 
 
                 if (Regex.IsMatch(line, @"^\{[0-9]+\}\s+.*$") ||
-                    Regex.IsMatch(line, @"^\[[0-9.]+\]\s+.*$")
+                    Regex.IsMatch(line, @"^\[[0-9.]+\]\s+.*$") ||
+                    coutClause >= 2
                     )
                 {
                     errorLine = i + 1;
@@ -436,36 +434,31 @@ namespace LawEditor.Models.TreeClasses
                 }
 
 
-                if ( coutClause >= 2)
-                {
-                    errorLine = i + 1;
-                    errorMessage = $"Sətir {i + 1}: bir bənd daxilində yalnız bir bənd ola bilər — '{line}'";
-                    return false;
-                }
-
-            }
+             }
             return true;
         }
 
         private static bool VerifySubClause(string[] lines, out int errorLine, out string errorMessage)
         {
             errorLine = -1; errorMessage = "";
+            int coutSubClause = 0;
             for (int i = 0; i < lines.Length; i++)
             {
                 var line = lines[i].Trim();
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 if (Regex.IsMatch(line, @"^\d+\)\s+.*$"))
                 {
-                    continue;
+                    coutSubClause++;
                 }
-                else
+                
                     if (Regex.IsMatch(line, @"^\{[0-9]+\}\s+.*$") ||
                         Regex.IsMatch(line, @"^\[[0-9.]+\]\s+.*$")||
-                        Regex.IsMatch(line, @"^\d+\.\s+.*$")
+                        Regex.IsMatch(line, @"^\d+\.\s+.*$") ||
+                        coutSubClause >= 2
                         )
                     {
                     errorLine = i + 1;
-                    errorMessage = $"Sətir {i + 1}: alt bənd səviyyəsində yalnız 'n) text' formatı qəbul edilir — '{line}'";
+                    errorMessage = $"Sətir {i + 1}:  bu element altbənd daxilində ola bilməz — '{line}'";
                     return false;
                 }
                 else
@@ -977,7 +970,7 @@ namespace LawEditor.Models.TreeClasses
                 }
                 else
                 {
-                    chapter.AddSection("", IdesofSections[PositionOfChangedSectionElement]);
+                    chapter.AddPhantomSection("", IdesofSections[PositionOfChangedSectionElement]);
                     chapter.DeleteSection(IdesofSections[PositionOfChangedSectionElement]);
                 }
 
@@ -1352,7 +1345,7 @@ namespace LawEditor.Models.TreeClasses
                 }
                 else
                 {
-                    section.AddArticle(
+                    section.AddPhantomArticle(
                         IdesofArticles[PositionOfChangedArticleElement],
                         "",
                         laws);
@@ -1435,11 +1428,7 @@ namespace LawEditor.Models.TreeClasses
                 }
                 else
                 {
-                    subClausesTargetClause.SubClauses.Add(new SubClause
-                    {
-                        Number = idsOfSubClausesSnapshot[positionOfChangedSubClauseElement],
-                        Text = ""
-                    });
+                    subClausesTargetClause.AddPhantomSubClause("", idsOfSubClausesSnapshot[positionOfChangedSubClauseElement]);
                     subClausesTargetClause.DeleteSubClause(idsOfSubClausesSnapshot[positionOfChangedSubClauseElement]);
                 }
 
@@ -1616,11 +1605,7 @@ namespace LawEditor.Models.TreeClasses
                 }
                 else
                 {
-                    article.Clauses.Add(new Clause
-                    {
-                        Number = IdesofClauses[PositionOfChangedClauseElement],
-                        Text = ""
-                    });
+                    article.AddPhantomClause("", IdesofClauses[PositionOfChangedClauseElement]);
                     article.DeleteClause(IdesofClauses[PositionOfChangedClauseElement]);
                 }
 
@@ -1752,11 +1737,7 @@ namespace LawEditor.Models.TreeClasses
                 else
                 {
                     // Элемент удалён — добавляем пустышку и удаляем через DeleteSubClause
-                    clause.SubClauses.Add(new SubClause
-                    {
-                        Number = IdesofSubclauses[PositionOfChangedSubclauseElement],
-                        Text = ""
-                    });
+                    clause.AddPhantomSubClause("", IdesofSubclauses[PositionOfChangedSubclauseElement]);
                     clause.DeleteSubClause(IdesofSubclauses[PositionOfChangedSubclauseElement]);
                 }
 
@@ -1766,39 +1747,53 @@ namespace LawEditor.Models.TreeClasses
 
         private static void ParseSubClause(SubClause sub, string text)
         {
-            // Формат GET: "N) текст  (EndnoteId: xxx)"
-            var trimmed = text.Trim();
-            var endnoteMatch = Regex.Match(trimmed, @"\(EndnoteId:\s*([^)]+)\)\s*$");
+            var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
+                            .Where(l => !string.IsNullOrWhiteSpace(l))
+                            .Select(l => l.Trim())
+                            .ToArray();
+
+            if (lines.Length == 0) return;
+
+            // EndnoteId из последней строки
+            var lastLine = lines[^1];
+            var endnoteMatch = Regex.Match(lastLine, @"\(EndnoteId:\s*([^)]+)\)\s*$");
             if (endnoteMatch.Success)
             {
                 sub.EndnoteId = endnoteMatch.Groups[1].Value.Trim();
-                trimmed = trimmed.Substring(0, endnoteMatch.Index).Trim();
+                // убираем последнюю строку если она только EndnoteId
+                lines = lines[..^1];
             }
             else
             {
                 sub.EndnoteId = null;
             }
 
-            var match = Regex.Match(trimmed, @"^(\d+)\)\s+(.*)$");
-            int OldNumber = sub.Number;
+            if (lines.Length == 0) return;
+
+            var firstLine = lines[0];
+            var match = Regex.Match(firstLine, @"^(\d+)\)\s+(.*)$");
+            int oldNumber = sub.Number;
+
             if (match.Success)
             {
-                if (OldNumber != int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
+                if (oldNumber != int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
                 {
                     MessageBox.Show(
-                         "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
-                         "Xəbərdarlıq",
-                          MessageBoxButton.OK,
-                          MessageBoxImage.Information
-                           );
-                    CanRefresh = true;  
-
+                        "Bu səviyyədə nömrə dəyişdirmək olmaz. Zəhmət olmasa səviyənizi artırın",
+                        "Xəbərdarlıq",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                    CanRefresh = true;
                 }
-                sub.Text = match.Groups[2].Value;
+
+                var textAfterNumber = match.Groups[2].Value;
+                sub.Text = lines.Length > 1
+                    ? textAfterNumber + "\n" + string.Join("\n", lines.Skip(1))
+                    : textAfterNumber;
             }
             else
             {
-                sub.Text = trimmed;
+                sub.Text = string.Join("\n", lines);
             }
             
         }
@@ -2391,7 +2386,7 @@ namespace LawEditor.Models.TreeClasses
                 }
                 else
                 {
-                    sourceData.AddTransitionalProvision(
+                    sourceData.AddPhantomTransitionalProvision(
                         title: "",
                         id: TransitionalProvisionsIds[PositionOfChangedTransitionalElement]);
                     sourceData.DeleteTransitionalProvision(
@@ -2413,7 +2408,7 @@ namespace LawEditor.Models.TreeClasses
                 }
                 else
                 {
-                    sourceData.AddSourceDocument(
+                    sourceData.AddPhantomSourceDocument(
                         title: "",
                         id: SourceDocumentsIds[PositionOfChangedSourceDocumentElement]);
                     sourceData.DeleteSourceDocument(
@@ -2436,7 +2431,7 @@ namespace LawEditor.Models.TreeClasses
                 }
                 else
                 {
-                    sourceData.AddConstitutionalAmendment(
+                    sourceData.AddPhantomConstitutionalAmendment(
                         title: "",
                         id: ConstitutionalAmendmentIds[PositionOfChangedConstitutionalAmendmentElement]);
                     sourceData.DeleteConstitutionalAmendment(

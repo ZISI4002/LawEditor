@@ -137,8 +137,7 @@
                         </DataTemplate>
 
                         <HierarchicalDataTemplate DataType="{x:Type src:TransitionalProvisionsDateNote}" ItemsSource="{x:Null}">
-                            <TextBlock Text="{Binding DisplayText}" Foreground="#5DADE2"
-                                       />
+                            <TextBlock Text="{Binding DisplayText}" Foreground="#5DADE2"/>
                         </HierarchicalDataTemplate>
 
                         <DataTemplate DataType="{x:Type src:SourceDocumentsList}">
@@ -195,8 +194,8 @@
 
                 <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="8" Padding="0">
                     <ScrollViewer x:Name="SharedScrollViewer" 
-                  VerticalScrollBarVisibility="Auto" 
-                  HorizontalScrollBarVisibility="Auto">
+                                  VerticalScrollBarVisibility="Auto" 
+                                  HorizontalScrollBarVisibility="Auto">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -204,46 +203,49 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" 
-                    Background="#000000"
-                    CornerRadius="8,0,0,8" 
-                    Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
+                            <Border x:Name="LineNumbersPanel"
+                                    Grid.Column="0" 
+                                    Background="#000000"
+                                    CornerRadius="8,0,0,8" 
+                                    IsHitTestVisible="False"
+                                    Visibility="Collapsed">
                                 <TextBox x:Name="LineNumbersBox"
-                         Background="Transparent"
-                         Foreground="#2B91AF"
-                         BorderThickness="0"
-                         FontSize="14"
-                         FontFamily="Consolas, Monaco, Courier New"
-                         Padding="8,5,5,5"
-                         TextAlignment="Right"
-                         IsReadOnly="True"
-                         IsTabStop="False"
-                         Focusable="False"
-                         VerticalScrollBarVisibility="Disabled"
-                         HorizontalScrollBarVisibility="Disabled"/>
+                                         Background="Transparent"
+                                         Foreground="#2B91AF"
+                                         BorderThickness="0"
+                                         FontSize="14"
+                                         FontFamily="Consolas, Monaco, Courier New"
+                                         Padding="8,5,5,5"
+                                         TextAlignment="Right"
+                                         IsReadOnly="True"
+                                         IsTabStop="False"
+                                         Focusable="False"
+                                         VerticalScrollBarVisibility="Disabled"
+                                         HorizontalScrollBarVisibility="Disabled"/>
                             </Border>
 
-                            <Rectangle Grid.Column="1" 
-                       Fill="#CCCCCC" 
-                       VerticalAlignment="Stretch"
-                       Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}"/>
+                            <Rectangle x:Name="SeparatorLine"
+                                       Grid.Column="1" 
+                                       Fill="#CCCCCC" 
+                                       VerticalAlignment="Stretch"
+                                       Visibility="Collapsed"/>
 
                             <TextBox Grid.Column="2"
-                     x:Name="MainTextBox"
-                     Text="{Binding SelectedText, UpdateSourceTrigger=PropertyChanged}"
-                     Background="Transparent"
-                     Foreground="#1A1A1A"
-                     CaretBrush="Black"
-                     BorderThickness="0"
-                     AcceptsReturn="True"
-                     TextWrapping="NoWrap"
-                     FontSize="14"
-                     FontFamily="Consolas, Monaco, Courier New"
-                     Padding="5"
-                     VerticalScrollBarVisibility="Disabled"
-                     HorizontalScrollBarVisibility="Disabled"
-                     IsEnabled="{Binding HasSelection}"
-                     TextChanged="TextBox_TextChanged"/>
+                                     x:Name="MainTextBox"
+                                     Text="{Binding SelectedText, UpdateSourceTrigger=PropertyChanged}"
+                                     Background="Transparent"
+                                     Foreground="#1A1A1A"
+                                     CaretBrush="Black"
+                                     BorderThickness="0"
+                                     AcceptsReturn="True"
+                                     TextWrapping="NoWrap"
+                                     FontSize="14"
+                                     FontFamily="Consolas, Monaco, Courier New"
+                                     Padding="5"
+                                     VerticalScrollBarVisibility="Disabled"
+                                     HorizontalScrollBarVisibility="Disabled"
+                                     IsEnabled="{Binding HasSelection}"
+                                     TextChanged="TextBox_TextChanged"/>
                         </Grid>
                     </ScrollViewer>
                 </Border>

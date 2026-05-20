@@ -38,6 +38,11 @@ namespace LawEditor.Models.ChangableData
         public void ResetSectionCounter() {
             Section.ResetCounter();
         }
+
+        public Section AddPhantomSection(string title, int? position = null)
+        {
+            return null;
+        }
         public Section AddSection(string title, int? position = null) {
             var newSection = new Section(title);
 

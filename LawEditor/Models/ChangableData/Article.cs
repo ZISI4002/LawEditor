@@ -17,6 +17,10 @@ namespace LawEditor.Models.ChangableData
             Title = title;
             EndnoteId = endnoteId;
         }
+        public Clause AddPhantomClause(string text, int? position = null, string? endnoteId = null)
+        {
+            return null;
+        }
         public Clause AddClause(string text, int? position = null, string? endnoteId = null) {
             var newClause = new Clause(text, endnoteId);
 
