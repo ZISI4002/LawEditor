@@ -52,7 +52,21 @@ namespace LawEditor.Models.ChangableData
         }
         public Article AddPhantomArticle(decimal id, string title, Laws laws, string? endnoteId = null)
         {
-            return null;
+            var newArticle = new Article(id, title, endnoteId);
+
+            Articles.Add(newArticle);
+
+            // Сортировка
+            foreach (var chapter in laws.Chapters) {
+                foreach (var section in chapter.Sections) {
+                    var sorted = section.Articles.OrderBy(a => a.Id).ToList();
+                    section.Articles.Clear();
+                    foreach (var a in sorted)
+                        section.Articles.Add(a);
+                }
+            }
+
+            return newArticle;
         }
         public Article AddArticle(decimal id, string title, Laws laws, string? endnoteId = null) {
             bool isSubArticle = id % 1 != 0;
