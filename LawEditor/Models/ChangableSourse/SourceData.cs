@@ -194,7 +194,23 @@ namespace LawEditor.Models.ChangableSourse {
         // ConstitutionalAmendment
         public ConstitutionalAmendment AddPhantomConstitutionalAmendment(string title, string id = null, string? linkText = null, string? url = null, int? position = null)
         {
-            return null;
+            var list = Source.Cast<ConstitutionalAmendment>().ToList();
+            var newItem = new ConstitutionalAmendment(id, title, linkText, url);
+
+            if (position == null && id != null) {
+                newItem.Id = id;
+                Source.Add(newItem);
+                return newItem;
+            }
+
+            if ((position == null && id == null) || position >= list.Count) {
+                newItem.Id = id ?? (list.Any() ? list.Max(c => int.TryParse(c.Id, out int numId) ? numId : 0) + 1 : 1).ToString();
+                Source.Add(newItem);
+                return newItem;
+            }
+
+            Source.Insert(position.Value, newItem);
+            return newItem;
         }
 
         public ConstitutionalAmendment AddConstitutionalAmendment(string title, string id = null, string? linkText = null, string? url = null, int? position = null) {
