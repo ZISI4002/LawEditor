@@ -19,7 +19,19 @@ namespace LawEditor.Models.ChangableData
         }
         public Clause AddPhantomClause(string text, int? position = null, string? endnoteId = null)
         {
-            return null;
+            var newClause = new Clause(text, endnoteId);
+
+            if (position == null || position >= Clauses.Count) {
+                newClause.Number = Clauses.Count + 1;
+                Clauses.Add(newClause);
+                return newClause;
+            }
+
+            int insertNumber = Clauses[position.Value].Number;
+
+            newClause.Number = insertNumber;
+            Clauses.Insert(position.Value, newClause);
+            return newClause;
         }
         public Clause AddClause(string text, int? position = null, string? endnoteId = null) {
             var newClause = new Clause(text, endnoteId);
