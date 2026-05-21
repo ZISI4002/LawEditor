@@ -113,7 +113,25 @@ namespace LawEditor.Models.ChangableSourse {
         public SourceDocumentsList AddPhantomSourceDocument(
        string title, int? id = null, string? linkText = null, string? url = null, int? position = null)
         {
-            return null;
+            var list = Source.Cast<SourceDocumentsList>().ToList();
+            var newItem = new SourceDocumentsList(title, linkText, url);
+
+            if (position == null && id != null) {
+                newItem.Id = id.Value;
+                Source.Add(newItem);
+                return newItem;
+            }
+
+            if (position == null || position >= list.Count) {
+                Source.Add(newItem);
+                return newItem;
+            }
+
+            int insertId = list[position.Value].Id;
+
+            newItem.Id = insertId;
+            Source.Insert(position.Value, newItem);
+            return newItem;
         }
         public SourceDocumentsList AddSourceDocument(
         string title, int? id = null, string? linkText = null, string? url = null, int? position = null) {
