@@ -23,7 +23,19 @@ namespace LawEditor.Models.ChangableData
 
         public SubClause AddPhantomSubClause(string text, int? position = null, string? endnoteId = null)
         {
-            return null;
+            var newSub = new SubClause(0, text, endnoteId);
+
+            if (position == null || position >= SubClauses.Count) {
+                newSub.Number = SubClauses.Count + 1;
+                SubClauses.Add(newSub);
+                return newSub;
+            }
+
+            int insertNumber = SubClauses[position.Value].Number;
+
+            newSub.Number = insertNumber;
+            SubClauses.Insert(position.Value, newSub);
+            return newSub;
         }
 
         public SubClause AddSubClause(string text, int? position = null, string? endnoteId = null) {
