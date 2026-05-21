@@ -41,7 +41,19 @@ namespace LawEditor.Models.ChangableData
 
         public Section AddPhantomSection(string title, int? position = null)
         {
-            return null;
+            var newSection = new Section(title);
+
+            if (position == null || position >= Sections.Count) {
+                Sections.Add(newSection);
+                return newSection;
+            }
+
+            int insertId = Sections[position.Value].Id;
+
+            newSection.Id = insertId;
+            Sections.Insert(position.Value, newSection);
+
+            return newSection;
         }
         public Section AddSection(string title, int? position = null) {
             var newSection = new Section(title);
