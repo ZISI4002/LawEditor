@@ -19,7 +19,29 @@ namespace LawEditor.Models.ChangableSourse {
         public TransitionalProvisions AddPhantomTransitionalProvision(
  string title, int? id = null, int? position = null)
         {
-            return null;
+            var list = Source.OfType<TransitionalProvisions>().OrderBy(x => x.Id).ToList();
+            var newItem = new TransitionalProvisions(title);
+            var dateNode = Source.OfType<TransitionalProvisionsDateNote>().FirstOrDefault();
+
+            if (position == null && id != null) {
+                newItem.Id = id.Value;
+                Source.Add(newItem);
+                return newItem;
+            }
+            if (position == null || position >= list.Count) {
+                newItem.Id = list.Any() ? list.Max(x => x.Id) + 1 : 1;
+                if (dateNode != null)
+                    Source.Insert(Source.IndexOf(dateNode), newItem);
+                else
+                    Source.Add(newItem);
+                return newItem;
+            }
+
+            int insertId = list[position.Value].Id;
+
+            newItem.Id = insertId;
+            Source.Insert(position.Value, newItem);
+            return newItem;
         }
 
         public TransitionalProvisions AddTransitionalProvision(
