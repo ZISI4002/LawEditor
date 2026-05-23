@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
 
@@ -21,21 +22,16 @@ namespace LawEditor.Models.ChangableData
             EndnoteId = endnoteId;
         }
 
-        public SubClause AddPhantomSubClause(string text, int? position = null, string? endnoteId = null)
+        public SubClause AddPhantomSubClause(string text, int id, string? endnoteId = null)
         {
-            var newSub = new SubClause(0, text, endnoteId);
+            var newSubClause = new SubClause(id, text, endnoteId);
 
-            if (position == null || position >= SubClauses.Count) {
-                newSub.Number = SubClauses.Count + 1;
-                SubClauses.Add(newSub);
-                return newSub;
-            }
+            SubClauses.Add(newSubClause);
 
-            int insertNumber = SubClauses[position.Value].Number;
+            // Сортировка
+            SubClauses.OrderBy(i => i.Number);
 
-            newSub.Number = insertNumber;
-            SubClauses.Insert(position.Value, newSub);
-            return newSub;
+            return newSubClause;
         }
 
         public SubClause AddSubClause(string text, int? position = null, string? endnoteId = null) {
