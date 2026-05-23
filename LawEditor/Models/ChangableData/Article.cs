@@ -17,20 +17,14 @@ namespace LawEditor.Models.ChangableData
             Title = title;
             EndnoteId = endnoteId;
         }
-        public Clause AddPhantomClause(string text, int? position = null, string? endnoteId = null)
-        {
-            var newClause = new Clause(text, endnoteId);
+        public Clause AddPhantomClause(string text, int id, string? endnoteId = null) {
+            var newClause = new Clause(id, text, endnoteId);
 
-            if (position == null || position >= Clauses.Count) {
-                newClause.Number = Clauses.Count + 1;
-                Clauses.Add(newClause);
-                return newClause;
-            }
+            Clauses.Add(newClause);
 
-            int insertNumber = Clauses[position.Value].Number;
+            // Сортировка
+            Clauses.OrderBy(i => i.Number);
 
-            newClause.Number = insertNumber;
-            Clauses.Insert(position.Value, newClause);
             return newClause;
         }
         public Clause AddClause(string text, int? position = null, string? endnoteId = null) {
