@@ -35,7 +35,7 @@
                                 <Setter TargetName="border" Property="Opacity" Value="0.7"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="border" Property="Background" Value="#333333"/>
+                                <Setter Property="Border.Background" Value="#333333"/>
                                 <Setter Property="Foreground" Value="#666666"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -76,10 +76,49 @@
             <Setter Property="Background" Value="#C0392B"/>
         </Style>
 
+        <Style x:Key="HelpQuestionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="#A0A0A0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Help"/>
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="circle" Background="{TemplateBinding Background}" CornerRadius="13" BorderBrush="#444444" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#3498DB"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="circle" Property="BorderBrush" Value="#5DADE2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="BorderBrush" Value="#3498DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Placement" Value="Left"/>
+            <Setter Property="HasDropShadow" Value="True"/>
+        </Style>
+
         <Style TargetType="TreeView">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         </Style>
     </Window.Resources>
 
@@ -96,59 +135,65 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Border Background="#1E1E1E" CornerRadius="12" Padding="10">
-                <TreeView x:Name="treeView" ItemsSource="{Binding TreeRoots}"
-                          SelectedItemChanged="TreeView_SelectedItemChanged">
-                    <TreeView.Resources>
-                        <HierarchicalDataTemplate DataType="{x:Type local:UpperObject}" ItemsSource="{Binding Headers}">
-                            <TextBlock Text="{Binding ObjectName}" FontWeight="Bold" Foreground="#FF7700" Margin="0,2"/>
-                        </HierarchicalDataTemplate>
+            <Border Background="#1E1E1E" CornerRadius="12" Padding="5">
+                <ScrollViewer x:Name="TreeScrollViewer"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto"
+                              PreviewMouseWheel="TouchpadScroll_PreviewMouseWheel">
 
-                        <DataTemplate DataType="{x:Type local:Header}">
-                            <TextBlock Text="{Binding FullText}" Foreground="#B2BEC3"/>
-                        </DataTemplate>
+                    <TreeView x:Name="treeView" ItemsSource="{Binding TreeRoots}"
+                              SelectedItemChanged="TreeView_SelectedItemChanged">
+                        <TreeView.Resources>
+                            <HierarchicalDataTemplate DataType="{x:Type local:UpperObject}" ItemsSource="{Binding Headers}">
+                                <TextBlock Text="{Binding ObjectName}" FontWeight="Bold" Foreground="#FF7700" Margin="0,2"/>
+                            </HierarchicalDataTemplate>
 
-                        <HierarchicalDataTemplate DataType="{x:Type local:Chapter}" ItemsSource="{Binding Sections}">
-                            <TextBlock Text="{Binding Title}" FontWeight="Bold" Foreground="#FF9F43"/>
-                        </HierarchicalDataTemplate>
+                            <DataTemplate DataType="{x:Type local:Header}">
+                                <TextBlock Text="{Binding FullText}" Foreground="#B2BEC3"/>
+                            </DataTemplate>
 
-                        <HierarchicalDataTemplate DataType="{x:Type local:Section}" ItemsSource="{Binding Articles}">
-                            <TextBlock Text="{Binding Title}" Foreground="#FFEAA7" FontWeight="SemiBold"/>
-                        </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type local:Chapter}" ItemsSource="{Binding Sections}">
+                                <TextBlock Text="{Binding Title}" FontWeight="Bold" Foreground="#FF9F43"/>
+                            </HierarchicalDataTemplate>
 
-                        <HierarchicalDataTemplate DataType="{x:Type local:Article}" ItemsSource="{Binding Clauses}">
-                            <TextBlock Text="{Binding Title}" Foreground="#DFE6E9"/>
-                        </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type local:Section}" ItemsSource="{Binding Articles}">
+                                <TextBlock Text="{Binding Title}" Foreground="#FFEAA7" FontWeight="SemiBold"/>
+                            </HierarchicalDataTemplate>
 
-                        <HierarchicalDataTemplate DataType="{x:Type local:Clause}" ItemsSource="{Binding SubClauses}">
-                            <TextBlock Text="{Binding Text}" Foreground="#BDC3C7" TextWrapping="NoWrap" MaxWidth="250"/>
-                        </HierarchicalDataTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type local:Article}" ItemsSource="{Binding Clauses}">
+                                <TextBlock Text="{Binding Title}" Foreground="#DFE6E9"/>
+                            </HierarchicalDataTemplate>
 
-                        <DataTemplate DataType="{x:Type local:SubClause}">
-                            <TextBlock Text="{Binding Text}" Foreground="#95A5A6" Opacity="0.8"/>
-                        </DataTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type local:Clause}" ItemsSource="{Binding SubClauses}">
+                                <TextBlock Text="{Binding Text}" Foreground="#BDC3C7" TextWrapping="NoWrap"/>
+                            </HierarchicalDataTemplate>
 
-                        <HierarchicalDataTemplate DataType="{x:Type src:SourceData}" ItemsSource="{Binding Source}">
-                            <TextBlock Text="{Binding Type}" FontWeight="Bold" Foreground="#D4AF37"/>
-                        </HierarchicalDataTemplate>
+                            <DataTemplate DataType="{x:Type local:SubClause}">
+                                <TextBlock Text="{Binding Text}" Foreground="#95A5A6" Opacity="0.8"/>
+                            </DataTemplate>
 
-                        <DataTemplate DataType="{x:Type src:TransitionalProvisions}">
-                            <TextBlock Text="{Binding Title}" Foreground="#2E86AB" FontWeight="Bold"/>
-                        </DataTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type src:SourceData}" ItemsSource="{Binding Source}">
+                                <TextBlock Text="{Binding Type}" FontWeight="Bold" Foreground="#D4AF37"/>
+                            </HierarchicalDataTemplate>
 
-                        <HierarchicalDataTemplate DataType="{x:Type src:TransitionalProvisionsDateNote}" ItemsSource="{x:Null}">
-                            <TextBlock Text="{Binding DisplayText}" Foreground="#5DADE2"/>
-                        </HierarchicalDataTemplate>
+                            <DataTemplate DataType="{x:Type src:TransitionalProvisions}">
+                                <TextBlock Text="{Binding Title}" Foreground="#2E86AB" FontWeight="Bold"/>
+                            </DataTemplate>
 
-                        <DataTemplate DataType="{x:Type src:SourceDocumentsList}">
-                            <TextBlock Text="{Binding Title}" Foreground= "#C0392B" FontWeight="Bold"/>
-                        </DataTemplate>
+                            <HierarchicalDataTemplate DataType="{x:Type src:TransitionalProvisionsDateNote}" ItemsSource="{x:Null}">
+                                <TextBlock Text="{Binding DisplayText}" Foreground="#5DADE2"/>
+                            </HierarchicalDataTemplate>
 
-                        <DataTemplate DataType="{x:Type src:ConstitutionalAmendment}">
-                            <TextBlock Text="{Binding Title}" Foreground="#27AE60" FontWeight="Bold"/>
-                        </DataTemplate>
-                    </TreeView.Resources>
-                </TreeView>
+                            <DataTemplate DataType="{x:Type src:SourceDocumentsList}">
+                                <TextBlock Text="{Binding Title}" Foreground= "#C0392B" FontWeight="Bold"/>
+                            </DataTemplate>
+
+                            <DataTemplate DataType="{x:Type src:ConstitutionalAmendment}">
+                                <TextBlock Text="{Binding Title}" Foreground="#27AE60" FontWeight="Bold"/>
+                            </DataTemplate>
+                        </TreeView.Resources>
+                    </TreeView>
+                </ScrollViewer>
             </Border>
 
             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,15,0,0" HorizontalAlignment="Center">
@@ -189,8 +234,51 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="{Binding SelectedTypeName}"
-                           Foreground="#3498DB" FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                <Grid Grid.Row="0" Margin="0,0,0,12">
+                    <TextBlock Text="{Binding SelectedTypeName}"
+                               Foreground="#3498DB" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+
+                    <Button Content="?" Style="{StaticResource HelpQuestionButtonStyle}" HorizontalAlignment="Right">
+                        <Button.ToolTip>
+                            <ToolTip Placement="Left" HasDropShadow="True">
+                                <StackPanel Margin="5" MinWidth="220">
+                                    <TextBlock Text="Formatlaşdırma Qaydaları" 
+                                               Foreground="#3498DB" 
+                                               FontWeight="Bold" 
+                                               FontSize="13" 
+                                               Margin="0,0,0,8"/>
+
+                                    <Rectangle Height="1" Fill="#444444" Margin="0,0,0,10"/>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Fəsil:" Foreground="#FF9F43" FontWeight="SemiBold" Margin="0,0,10,6"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text=" {1}" Foreground="#E0E0E0" FontFamily="Consolas" Margin="0,0,0,6"/>
+
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Maddə:" Foreground="#DFE6E9" FontWeight="SemiBold" Margin="0,0,10,6"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text=" [1]" Foreground="#E0E0E0" FontFamily="Consolas" Margin="0,0,0,6"/>
+
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Bənd:" Foreground="#BDC3C7" FontWeight="SemiBold" Margin="0,0,10,6"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text=" 1." Foreground="#E0E0E0" FontFamily="Consolas" Margin="0,0,0,6"/>
+
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Altbənd:" Foreground="#95A5A6" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Text=" 1)" Foreground="#E0E0E0" FontFamily="Consolas" Margin="0,0,0,0"/>
+                                    </Grid>
+                                </StackPanel>
+                            </ToolTip>
+                        </Button.ToolTip>
+                    </Button>
+                </Grid>
 
                 <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="8" Padding="0">
                     <Grid>
@@ -201,56 +289,59 @@
                         </Grid.ColumnDefinitions>
 
                         <Border x:Name="LineNumbersPanel"
-                Grid.Column="0" 
-                Background="#000000"
-                CornerRadius="8,0,0,8" 
-                IsHitTestVisible="False"
-                Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
+                                Grid.Column="0" 
+                                Background="#000000"
+                                CornerRadius="8,0,0,8" 
+                                IsHitTestVisible="False"
+                                Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
                             <ScrollViewer x:Name="LineNumbersScrollViewer"
-                          VerticalScrollBarVisibility="Hidden"
-                          HorizontalScrollBarVisibility="Disabled">
+                                          VerticalScrollBarVisibility="Hidden"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          PreviewMouseWheel="TouchpadScroll_PreviewMouseWheel">
                                 <TextBox x:Name="LineNumbersBox"
-                         Background="Transparent"
-                         Foreground="#2B91AF"
-                         BorderThickness="0"
-                         FontSize="14"
-                         FontFamily="Consolas, Monaco, Courier New"
-                         Padding="8,5,5,5"
-                         TextAlignment="Right"
-                         IsReadOnly="True"
-                         IsTabStop="False"
-                         Focusable="False"/>
+                                         Background="Transparent"
+                                         Foreground="#2B91AF"
+                                         BorderThickness="0"
+                                         FontSize="14"
+                                         FontFamily="Consolas, Monaco, Courier New"
+                                         Padding="8,5,5,5"
+                                         TextAlignment="Right"
+                                         IsReadOnly="True"
+                                         IsTabStop="False"
+                                         Focusable="False"/>
                             </ScrollViewer>
                         </Border>
 
                         <Rectangle Grid.Column="1" 
-                   Fill="#CCCCCC" 
-                   VerticalAlignment="Stretch"
-                   IsHitTestVisible="False"
-                   Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}"/>
+                                   Fill="#CCCCCC" 
+                                   VerticalAlignment="Stretch"
+                                   IsHitTestVisible="False"
+                                   Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}"/>
 
                         <Border Grid.Column="2" Background="Transparent">
                             <ScrollViewer x:Name="MainScrollViewer"
-                          VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Auto"
-                          ScrollChanged="MainScrollViewer_ScrollChanged">
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Auto"
+                                          ScrollChanged="MainScrollViewer_ScrollChanged"
+                                          PreviewMouseWheel="TouchpadScroll_PreviewMouseWheel">
                                 <TextBox x:Name="MainTextBox"
-                         Text="{Binding SelectedText, UpdateSourceTrigger=PropertyChanged}"
-                         Background="Transparent"
-                         Foreground="#1A1A1A"
-                         CaretBrush="Black"
-                         BorderThickness="0"
-                         AcceptsReturn="True"
-                         TextWrapping="NoWrap"
-                         FontSize="14"
-                         FontFamily="Consolas, Monaco, Courier New"
-                         Padding="5"
-                         IsEnabled="{Binding HasSelection}"
-                         TextChanged="TextBox_TextChanged"/>
+                                         Text="{Binding SelectedText, UpdateSourceTrigger=PropertyChanged}"
+                                         Background="Transparent"
+                                         Foreground="#1A1A1A"
+                                         CaretBrush="Black"
+                                         BorderThickness="0"
+                                         AcceptsReturn="True"
+                                         TextWrapping="NoWrap"
+                                         FontSize="14"
+                                         FontFamily="Consolas, Monaco, Courier New"
+                                         Padding="5"
+                                         IsEnabled="{Binding HasSelection}"
+                                         TextChanged="TextBox_TextChanged"/>
                             </ScrollViewer>
                         </Border>
                     </Grid>
                 </Border>
+
                 <Button Grid.Row="2" Content="✔ Save Changes" Width="140" Height="40"
                         Style="{StaticResource SaveButtonStyle}"
                         HorizontalAlignment="Right" Margin="0,15,0,0"
