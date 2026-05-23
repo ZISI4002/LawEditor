@@ -39,19 +39,14 @@ namespace LawEditor.Models.ChangableData
             Section.ResetCounter();
         }
 
-        public Section AddPhantomSection(string title, int? position = null)
+        public Section AddPhantomSection(string title, int id)
         {
-            var newSection = new Section(title);
+            var newSection = new Section(id, title);
 
-            if (position == null || position >= Sections.Count) {
-                Sections.Add(newSection);
-                return newSection;
-            }
+            Sections.Add(newSection);
 
-            int insertId = Sections[position.Value].Id;
-
-            newSection.Id = insertId;
-            Sections.Insert(position.Value, newSection);
+            // Сортировка
+            Sections.OrderBy(i => i.Id);
 
             return newSection;
         }

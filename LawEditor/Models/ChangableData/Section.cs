@@ -30,6 +30,10 @@ namespace LawEditor.Models.ChangableData
             Id = counter++;
             Title = title;
         }
+        public Section(int id, string title) {
+            Id = id;
+            Title = title;
+        }
         public static void DecreaseCounter() {
             if (counter > 1)
                 counter--;
