@@ -618,6 +618,20 @@ namespace LawEditor.Models.TreeClasses
                 if (articlesFinalResult != MessageBoxResult.Yes || articlesTargetSection == null)
                     return;
 
+                // ── Проверяем следующий после изменённого element ──
+                int nextPos = positionOfChangedArticleElement + 1;
+
+                bool nextIsFractional =
+                    nextPos < articlesTargetSection.Articles.Count &&
+                    articlesTargetSection.Articles[nextPos].Id !=
+                    Math.Floor(articlesTargetSection.Articles[nextPos].Id);
+
+                if (!nextIsFractional)
+                    articlesFinalResult = MessageBoxResult.No;
+
+                if (articlesFinalResult != MessageBoxResult.Yes)
+                    return;
+
                 var currentArticleList = articlesTargetSection.Articles.ToList();
 
                 if (currentArticleList.Count >= idsOfArticlesSnapshot.Count)
@@ -633,6 +647,7 @@ namespace LawEditor.Models.TreeClasses
                         idsOfArticlesSnapshot[positionOfChangedArticleElement],
                         "",
                         laws);
+
                     articlesTargetSection.DeleteArticle(
                         idsOfArticlesSnapshot[positionOfChangedArticleElement],
                         laws);
@@ -771,26 +786,69 @@ namespace LawEditor.Models.TreeClasses
 
                     if (articlesFinalResult == MessageBoxResult.No && !articlesAsked)
                     {
-                        if (idCounterOfArticles < idsOfArticles.Count)
+                        if (articlesFinalResult == MessageBoxResult.No && !articlesAsked)
                         {
-                            decimal oldArtId = idsOfArticles[idCounterOfArticles];
-                            bool oldIsWhole = oldArtId == Math.Floor(oldArtId);
-                            bool newIsWhole = artId == Math.Floor(artId);
+                            decimal prevArtId = idCounterOfArticles > 0
+                                ? idsOfArticles[idCounterOfArticles - 1]
+                                : -1;
 
-                            // Запрет: целое → дробное
-                            if (oldIsWhole && !newIsWhole)
+                            // ── Проверка корректности дробного ID ──
+                            if (artId != Math.Floor(artId))
                             {
-                                MessageBox.Show(
-                                    "Bu səviyyədə tam ədədi kəsr ədədə çevirmək olmaz.",
-                                    "Xəbərdarlıq",
-                                    MessageBoxButton.OK,
-                                    MessageBoxImage.Information);
-                                CanRefresh = true;
-                                artId = oldArtId;
+                                decimal expectedBase = Math.Floor(artId);
+                                decimal expectedPrev = Math.Round(artId - 0.1m, 1);
+
+                                bool isFirstFractional =
+                                    prevArtId == expectedBase &&
+                                    Math.Round(artId - expectedBase, 1) == 0.1m;
+
+                                bool isContinuation =
+                                    Math.Round(prevArtId, 1) == expectedPrev;
+
+                                if (!isFirstFractional && !isContinuation)
+                                {
+                                    MessageBox.Show(
+                                        "Bu rəqəmi yazmaq uyğun deyil.",
+                                        "Xəbərdarlıq",
+                                        MessageBoxButton.OK,
+                                        MessageBoxImage.Information);
+
+                                    artId = Math.Round(prevArtId + 0.1m, 1);
+                                    CanRefresh = true;
+
+                                    goto skipArticleIdCheck;
+                                }
                             }
-                            else if (oldArtId != artId)
+
+                            if (idCounterOfArticles < idsOfArticles.Count)
+                            {
+                                decimal oldArtId = idsOfArticles[idCounterOfArticles];
+
+                                if (oldArtId != artId)
+                                {
+                                    articlesAsked = true;
+
+                                    var articlesResult = MessageBox.Show(
+                                        "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                        "Təsdiqləmə",
+                                        MessageBoxButton.YesNo,
+                                        MessageBoxImage.Question);
+
+                                    if (articlesResult == MessageBoxResult.Yes)
+                                    {
+                                        oldIdOfChangedArticleElement = oldArtId;
+                                        idOfChangedArticleElement = artId;
+                                        positionOfChangedArticleElement = idCounterOfArticles;
+                                        articlesFinalResult = MessageBoxResult.Yes;
+                                        articlesTargetSection = currentSection;
+                                        idsOfArticlesSnapshot = new List<decimal>(idsOfArticles);
+                                    }
+                                }
+                            }
+                            else
                             {
                                 articlesAsked = true;
+
                                 var articlesResult = MessageBox.Show(
                                     "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
                                     "Təsdiqləmə",
@@ -799,7 +857,10 @@ namespace LawEditor.Models.TreeClasses
 
                                 if (articlesResult == MessageBoxResult.Yes)
                                 {
-                                    oldIdOfChangedArticleElement = oldArtId;
+                                    oldIdOfChangedArticleElement = idsOfArticles.Count > 0
+                                        ? idsOfArticles[idsOfArticles.Count - 1]
+                                        : 0;
+
                                     idOfChangedArticleElement = artId;
                                     positionOfChangedArticleElement = idCounterOfArticles;
                                     articlesFinalResult = MessageBoxResult.Yes;
@@ -808,28 +869,8 @@ namespace LawEditor.Models.TreeClasses
                                 }
                             }
                         }
-                        else
-                        {
-                            // Новый элемент добавлен в конец
-                            articlesAsked = true;
-                            var articlesResult = MessageBox.Show(
-                                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                                "Təsdiqləmə",
-                                MessageBoxButton.YesNo,
-                                MessageBoxImage.Question);
 
-                            if (articlesResult == MessageBoxResult.Yes)
-                            {
-                                oldIdOfChangedArticleElement = idsOfArticles.Count > 0
-                                    ? idsOfArticles[idsOfArticles.Count - 1]
-                                    : 0;
-                                idOfChangedArticleElement = artId;
-                                positionOfChangedArticleElement = idCounterOfArticles;
-                                articlesFinalResult = MessageBoxResult.Yes;
-                                articlesTargetSection = currentSection;
-                                idsOfArticlesSnapshot = new List<decimal>(idsOfArticles);
-                            }
-                        }
+                    skipArticleIdCheck:;
                     }
 
                     currentArticle = new Article { Id = artId, Title = articleMatch.Groups[2].Value };
@@ -1073,7 +1114,6 @@ namespace LawEditor.Models.TreeClasses
             int positionOfChangedSubClauseElement = 0;
             SubClause currentSubClause = null;
 
-            // ── Применяем SubClause изменения ──
             void ApplySubClauseChanges()
             {
                 if (subClausesFinalResult != MessageBoxResult.Yes || subClausesTargetClause == null)
@@ -1082,14 +1122,11 @@ namespace LawEditor.Models.TreeClasses
                 var currentSubList = subClausesTargetClause.SubClauses.ToList();
 
                 if (currentSubList.Count >= idsOfSubClausesSnapshot.Count)
-                {
                     subClausesTargetClause.UpdateSubClause(idOfChangedSubClauseElement);
-                }
                 else
                 {
                     subClausesTargetClause.AddPhantomSubClause("", idsOfSubClausesSnapshot[positionOfChangedSubClauseElement]);
-                    subClausesTargetClause.DeleteSubClause(
-                        idsOfSubClausesSnapshot[positionOfChangedSubClauseElement]);
+                    subClausesTargetClause.DeleteSubClause(idsOfSubClausesSnapshot[positionOfChangedSubClauseElement]);
                 }
 
                 subClausesFinalResult = MessageBoxResult.No;
@@ -1097,7 +1134,6 @@ namespace LawEditor.Models.TreeClasses
                 CanRefresh = true;
             }
 
-            // ── Применяем Clause изменения ──
             void ApplyClauseChanges()
             {
                 ApplySubClauseChanges();
@@ -1108,14 +1144,11 @@ namespace LawEditor.Models.TreeClasses
                 var currentClauseList = clausesTargetArticle.Clauses.ToList();
 
                 if (currentClauseList.Count >= idsOfClausesSnapshot.Count)
-                {
                     clausesTargetArticle.UpdateClause(idOfChangedClauseElement);
-                }
                 else
                 {
                     clausesTargetArticle.AddPhantomClause("", idsOfClausesSnapshot[positionOfChangedClauseElement]);
-                    clausesTargetArticle.DeleteClause(
-                        idsOfClausesSnapshot[positionOfChangedClauseElement]);
+                    clausesTargetArticle.DeleteClause(idsOfClausesSnapshot[positionOfChangedClauseElement]);
                 }
 
                 clausesFinalResult = MessageBoxResult.No;
@@ -1123,7 +1156,6 @@ namespace LawEditor.Models.TreeClasses
                 CanRefresh = true;
             }
 
-            // ── Сброс SubClause счётчиков при смене Clause ──
             void ResetSubClauseCounters(decimal artId, int clauseNumber)
             {
                 if (oldSubClauseIds.TryGetValue(artId, out var subDict) &&
@@ -1139,7 +1171,6 @@ namespace LawEditor.Models.TreeClasses
                 currentSubClause = null;
             }
 
-            // ── Сброс Clause счётчиков при смене Article ──
             void ResetClauseCounters(decimal artId)
             {
                 idsOfClauses = oldClauseIds.TryGetValue(artId, out var oldCls)
@@ -1169,26 +1200,41 @@ namespace LawEditor.Models.TreeClasses
 
                     decimal.TryParse(articleMatch.Groups[1].Value, NumberStyles.Float,
                         CultureInfo.InvariantCulture, out decimal artId);
+
                     if (ArticlesResult == MessageBoxResult.No && !articlesAsked)
                     {
-                        if (IdcounterofArticles < IdesofArticles.Count)
-                        {
-                            decimal oldArtId = IdesofArticles[IdcounterofArticles];
-                            bool oldIsWhole = oldArtId == Math.Floor(oldArtId);
-                            bool newIsWhole = artId == Math.Floor(artId);
+                        decimal prevArtId = IdcounterofArticles > 0
+                            ? IdesofArticles[IdcounterofArticles - 1]
+                            : -1;
 
-                            // Запрет: целое → дробное
-                            if (oldIsWhole && !newIsWhole)
+                        // ── Проверка корректности дробного ID ──
+                        if (artId != Math.Floor(artId))
+                        {
+                            decimal expectedBase = Math.Floor(artId);
+                            decimal expectedPrev = Math.Round(artId - 0.1m, 1);
+
+                            bool isFirstFractional = prevArtId == expectedBase &&
+                                                     Math.Round(artId - expectedBase, 1) == 0.1m;
+                            bool isContinuation = Math.Round(prevArtId, 1) == expectedPrev;
+
+                            if (!isFirstFractional && !isContinuation)
                             {
                                 MessageBox.Show(
-                                    "Bu səviyyədə tam ədədi kəsr ədədə çevirmək olmaz.",
+                                    "Bu rəqəmi yazmaq uyğun deyil.",
                                     "Xəbərdarlıq",
                                     MessageBoxButton.OK,
                                     MessageBoxImage.Information);
+                                artId = Math.Round(prevArtId + 0.1m, 1);
                                 CanRefresh = true;
-                                artId = oldArtId;
+                                goto skipArticleIdCheck;
                             }
-                            else if (oldArtId != artId)
+                        }
+
+                        // ── Проверка изменения ID ──
+                        if (IdcounterofArticles < IdesofArticles.Count)
+                        {
+                            decimal oldArtId = IdesofArticles[IdcounterofArticles];
+                            if (oldArtId != artId)
                             {
                                 articlesAsked = true;
                                 ArticlesResult = MessageBox.Show(
@@ -1207,7 +1253,6 @@ namespace LawEditor.Models.TreeClasses
                         }
                         else
                         {
-                            // Новый элемент добавлен в конец
                             articlesAsked = true;
                             ArticlesResult = MessageBox.Show(
                                 "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
@@ -1225,6 +1270,7 @@ namespace LawEditor.Models.TreeClasses
                             }
                         }
                     }
+                skipArticleIdCheck:;
 
                     currentArticle = new Article { Id = artId, Title = articleMatch.Groups[2].Value };
                     section.Articles.Add(currentArticle);
@@ -1259,9 +1305,9 @@ namespace LawEditor.Models.TreeClasses
                     int newClauseNumber = int.Parse(clauseMatch.Groups[1].Value, CultureInfo.InvariantCulture);
 
                     if (clausesFinalResult == MessageBoxResult.No &&
-                          !clausesAsked &&
-                          (idCounterOfClauses >= idsOfClauses.Count ||
-                          idsOfClauses[idCounterOfClauses] != newClauseNumber))
+                        !clausesAsked &&
+                        (idCounterOfClauses >= idsOfClauses.Count ||
+                         idsOfClauses[idCounterOfClauses] != newClauseNumber))
                     {
                         clausesAsked = true;
                         var clausesResult = MessageBox.Show(
@@ -1280,9 +1326,7 @@ namespace LawEditor.Models.TreeClasses
                         }
                     }
 
-                    // Используем AddClause
                     currentClause = currentArticle.AddClause(clauseMatch.Groups[2].Value);
-                    // Исправляем номер на распарсенный
                     currentClause.Number = newClauseNumber;
                     idCounterOfClauses++;
 
@@ -1300,7 +1344,6 @@ namespace LawEditor.Models.TreeClasses
                         var rest = Regex.Match(line, @"^\.\s+(.*)$").Groups[1].Value;
                         int restoredClauseNum = idsOfClauses[idCounterOfClauses];
 
-                        // Используем AddClause
                         currentClause = currentArticle.AddClause(rest);
                         currentClause.Number = restoredClauseNum;
                         clausesAsked = true;
@@ -1318,9 +1361,9 @@ namespace LawEditor.Models.TreeClasses
                     int newSubNumber = int.Parse(subMatch.Groups[1].Value, CultureInfo.InvariantCulture);
 
                     if (subClausesFinalResult == MessageBoxResult.No &&
-                           !subClausesAsked &&
-                           (idCounterOfSubClauses >= idsOfSubClauses.Count ||
-                           idsOfSubClauses[idCounterOfSubClauses] != newSubNumber))
+                        !subClausesAsked &&
+                        (idCounterOfSubClauses >= idsOfSubClauses.Count ||
+                         idsOfSubClauses[idCounterOfSubClauses] != newSubNumber))
                     {
                         subClausesAsked = true;
                         var subClausesResult = MessageBox.Show(
@@ -1339,7 +1382,6 @@ namespace LawEditor.Models.TreeClasses
                         }
                     }
 
-                    // Используем AddSubClause
                     currentSubClause = currentClause.AddSubClause(subMatch.Groups[2].Value);
                     currentSubClause.Number = newSubNumber;
                     idCounterOfSubClauses++;
@@ -1372,6 +1414,17 @@ namespace LawEditor.Models.TreeClasses
 
             // Применяем Clause изменения для последней Article
             ApplyClauseChanges();
+
+            // ── Проверяем следующий после изменённого элемент ──
+            if (ArticlesResult == MessageBoxResult.Yes)
+            {
+                int nextPos = PositionOfChangedArticleElement + 1;
+                bool nextIsFractional = nextPos < section.Articles.Count &&
+                                        section.Articles[nextPos].Id != Math.Floor(section.Articles[nextPos].Id);
+
+                if (!nextIsFractional)
+                    ArticlesResult = MessageBoxResult.No;
+            }
 
             // Обработка изменения Article ID
             if (ArticlesResult == MessageBoxResult.Yes)
