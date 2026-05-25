@@ -14,6 +14,7 @@ namespace LawEditor.Models.ChangableData
         public int Id { get; set; }
 
         private string? title;
+        public int? TableId { get; set; }
 
         public string? Title {
             get { return title; }

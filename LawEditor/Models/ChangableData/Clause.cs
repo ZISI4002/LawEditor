@@ -9,6 +9,7 @@ namespace LawEditor.Models.ChangableData
     {
         public int Number { get; set; }
         public string? Text { get; set; }
+        public int? TableId { get; set; }
         public string? EndnoteId { get; set; }
         public ObservableCollection<SubClause> SubClauses { get; set; } = new();
         public Clause() { }

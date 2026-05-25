@@ -20,6 +20,7 @@ namespace LawEditor.Models.ChangableData
                 title = value?.ToUpper(); 
             }
         }
+        public int? TableId { get; set; }
         public ObservableCollection<Section> Sections { get; set; } = new();
 
         public Chapter() { }  
