@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace LawEditor.Models.SpecialElements
 {
-    public class Row
+    public class Column
     {
-        string RowId { get; set; }
+        string ColumnId { get; set; }
+        string ColumnName { get; set; }
         ObservableCollection<Cell> Cells { get; set; }= new ObservableCollection<Cell>();
     }
 }

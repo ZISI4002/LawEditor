@@ -9,7 +9,6 @@ namespace LawEditor.Models.SpecialElements
 {
     public class Cell
     {
-       string ColumnName { get; set; }
-        string ColumnValue { get; set; }
+        string Value { get; set; }
     }
 }

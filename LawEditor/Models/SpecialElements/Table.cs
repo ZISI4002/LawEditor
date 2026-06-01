@@ -10,6 +10,6 @@ namespace LawEditor.Models.SpecialElements
     public class Table
     {
         int Id;
-        ObservableCollection<Row> Rows { get; set; } = new ObservableCollection<Row>();
+        ObservableCollection<Column> Columns { get; set; } = new ObservableCollection<Column>();
     }
 }
