@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using LawEditor.Models.ChangableData;
 using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
+using LawEditor.Models.SpecialElements;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -97,7 +98,6 @@ namespace LawEditor.Services.WordServises {
                 var endRef = run.GetFirstChild<EndnoteReference>();
                 if (endRef == null) continue;
 
-                // Если customMarkFollows="1" — кастомный маркер (KM1, KQ1...)
                 if (endRef.CustomMarkFollows != null && endRef.CustomMarkFollows.Value) {
                     string customMark = string.Concat(
                         run.Elements<Text>().Select(t => t.Text ?? "")
@@ -106,7 +106,6 @@ namespace LawEditor.Services.WordServises {
                         return customMark;
                 }
 
-                // Числовой — переводим xmlId в amendmentId через маппинг
                 string xmlId = endRef.Id?.Value.ToString() ?? "";
                 return endnoteIdMap.TryGetValue(xmlId, out var mappedId) ? mappedId : xmlId;
             }
@@ -128,7 +127,6 @@ namespace LawEditor.Services.WordServises {
 
                 string text = run.GetFirstChild<Text>()?.Text ?? "";
 
-                // Если суперскрипт и предыдущий текст был числом — вставляем точку
                 if (isSuperscript && prevText != null && prevText.TrimEnd().Last() is >= '0' and <= '9')
                     sb.Append('.');
 
@@ -154,6 +152,43 @@ namespace LawEditor.Services.WordServises {
                     map[rel.Id] = rel.Uri?.ToString() ?? "";
             }
             return map;
+        }
+
+        // ── Читаем таблицу Word и строим объект Table ─────────────────────────
+        // Первая строка таблицы считается заголовком (Headers),
+        // остальные строки — данными (Rows).
+        private Models.SpecialElements.Table ReadTable(
+            DocumentFormat.OpenXml.Wordprocessing.Table wordTable) {
+
+            // В качестве «title» берём пустую строку — при необходимости
+            // можно передавать предшествующий текст снаружи.
+            var table = new Models.SpecialElements.Table(string.Empty);
+
+            var rows = wordTable.Elements<TableRow>().ToList();
+            if (rows.Count == 0)
+                return table;
+
+            // ── Вспомогательная функция: достаём текст всех параграфов ячейки
+            string GetCellText(TableCell cell) {
+                var parts = cell.Elements<Paragraph>()
+                                .Select(p => GetParagraphText(p))
+                                .Where(t => !string.IsNullOrWhiteSpace(t));
+                return string.Join(" ", parts).Trim();
+            }
+
+            // Первая строка → заголовки
+            foreach (var cell in rows[0].Elements<TableCell>())
+                table.Headers.Add(GetCellText(cell));
+
+            // Остальные строки → данные
+            for (int i = 1; i < rows.Count; i++) {
+                var rowData = new TableRowData();
+                foreach (var cell in rows[i].Elements<TableCell>())
+                    rowData.Cells.Add(GetCellText(cell));
+                table.Rows.Add(rowData);
+            }
+
+            return table;
         }
 
         // ── Основной метод ────────────────────────────────────────────────────
@@ -187,7 +222,27 @@ namespace LawEditor.Services.WordServises {
             // ── Строим маппинг xmlId → amendmentId ДО парсинга параграфов ──
             var endnoteIdMap = BuildEndnoteIdMap(doc);
 
-            foreach (var para in body.Elements<Paragraph>()) {
+            // ── Итерируем по всем дочерним элементам body (Paragraph И Table) ──
+            foreach (var element in body.ChildElements) {
+
+                // ════════════════════════════════════════════════════════════
+                // ТАБЛИЦА
+                // ════════════════════════════════════════════════════════════
+                if (element is DocumentFormat.OpenXml.Wordprocessing.Table wordTable) {
+                    // Таблицы обрабатываем только в режиме Chapters
+                    // и только если уже есть текущая статья
+                    if (mode == Mode.Chapters && currentArticle != null) {
+                        currentArticle.Table = ReadTable(wordTable);
+                    }
+                    continue;
+                }
+
+                // ════════════════════════════════════════════════════════════
+                // ПАРАГРАФ — вся прежняя логика без изменений
+                // ════════════════════════════════════════════════════════════
+                if (element is not Paragraph para)
+                    continue;
+
                 var line = GetParagraphText(para);
 
                 if (string.IsNullOrWhiteSpace(line) && mode != Mode.Transitional)
@@ -355,14 +410,13 @@ namespace LawEditor.Services.WordServises {
                 headers[0].FullText = headerBuilder.ToString().Trim();
 
             ReadAmendmentsFromEndnotes(doc, amendments);
-            // Копируем коллекции в law.UpperObjects
+
             law.UpperObjects.Add(new UpperObject {
                 Id = 1,
                 ObjectName = "HEADER",
                 Headers = headers,
             });
 
-            // Копируем коллекции в law.SourcesData
             law.SourcesData.Add(new SourceData {
                 Id = 1,
                 Type = "KEÇİD MÜDDƏALARI",

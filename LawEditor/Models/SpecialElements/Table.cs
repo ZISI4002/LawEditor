@@ -9,7 +9,13 @@ namespace LawEditor.Models.SpecialElements
 {
     public class Table
     {
-        int Id;
-        ObservableCollection<Column> Columns { get; set; } = new ObservableCollection<Column>();
+        private static int counter = 1;
+
+        public int Id { get; set; }
+        public List<string> Headers { get; set; } = new();
+        public List<TableRowData> Rows { get; set; } = new();
+        public Table(string title) {
+            Id = counter++;
+        }
     }
 }

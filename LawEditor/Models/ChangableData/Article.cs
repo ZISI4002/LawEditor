@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Documents;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -10,7 +11,7 @@ namespace LawEditor.Models.ChangableData
         public decimal Id { get; set; }
         public string? Title { get; set; }
         public string? EndnoteId { get; set; }
-        public int? TableId { get; set; } 
+        public Models.SpecialElements.Table? Table { get; set; } = null;
         public ObservableCollection<Clause> Clauses { get; set; } = new();
         public Article() { }
         public Article(decimal id, string title, string? endnoteId = null) {
