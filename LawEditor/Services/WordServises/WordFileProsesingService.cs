@@ -155,20 +155,15 @@ namespace LawEditor.Services.WordServises {
         }
 
         // ── Читаем таблицу Word и строим объект Table ─────────────────────────
-        // Первая строка таблицы считается заголовком (Headers),
-        // остальные строки — данными (Rows).
         private Models.SpecialElements.Table ReadTable(
             DocumentFormat.OpenXml.Wordprocessing.Table wordTable) {
 
-            // В качестве «title» берём пустую строку — при необходимости
-            // можно передавать предшествующий текст снаружи.
             var table = new Models.SpecialElements.Table(string.Empty);
 
             var rows = wordTable.Elements<TableRow>().ToList();
             if (rows.Count == 0)
                 return table;
 
-            // ── Вспомогательная функция: достаём текст всех параграфов ячейки
             string GetCellText(TableCell cell) {
                 var parts = cell.Elements<Paragraph>()
                                 .Select(p => GetParagraphText(p))
@@ -219,27 +214,18 @@ namespace LawEditor.Services.WordServises {
             var docRelationships = BuildRelationshipMap(
                 doc.MainDocumentPart.HyperlinkRelationships);
 
-            // ── Строим маппинг xmlId → amendmentId ДО парсинга параграфов ──
             var endnoteIdMap = BuildEndnoteIdMap(doc);
 
-            // ── Итерируем по всем дочерним элементам body (Paragraph И Table) ──
             foreach (var element in body.ChildElements) {
 
-                // ════════════════════════════════════════════════════════════
-                // ТАБЛИЦА
-                // ════════════════════════════════════════════════════════════
+                // ── ТАБЛИЦА ──────────────────────────────────────────────────
                 if (element is DocumentFormat.OpenXml.Wordprocessing.Table wordTable) {
-                    // Таблицы обрабатываем только в режиме Chapters
-                    // и только если уже есть текущая статья
-                    if (mode == Mode.Chapters && currentArticle != null) {
+                    if (mode == Mode.Chapters && currentArticle != null)
                         currentArticle.Table = ReadTable(wordTable);
-                    }
                     continue;
                 }
 
-                // ════════════════════════════════════════════════════════════
-                // ПАРАГРАФ — вся прежняя логика без изменений
-                // ════════════════════════════════════════════════════════════
+                // ── ПАРАГРАФ ─────────────────────────────────────────────────
                 if (element is not Paragraph para)
                     continue;
 
@@ -274,6 +260,7 @@ namespace LawEditor.Services.WordServises {
                 var header = new Models.ChangableData.Header();
                 if (mode == Mode.Header) {
                     if (IsChapterLine(line)) {
+                        // Документ с bölmə — стандартная логика
                         header.Id = 1;
                         header.FullText = headerBuilder.ToString().Trim();
                         headers.Add(header);
@@ -281,8 +268,25 @@ namespace LawEditor.Services.WordServises {
                         expectChapterTitle = true;
                         continue;
                     }
-                    headerBuilder.AppendLine(line);
-                    continue;
+
+                    if (Regex.IsMatch(line, @"^Maddə\s+[\d\.]+\.")) {
+                        // Документ без bölmə/fəsil — создаём дефолтные Chapter и Section
+                        header.Id = 1;
+                        header.FullText = headerBuilder.ToString().Trim();
+                        headers.Add(header);
+                        mode = Mode.Chapters;
+
+                        currentChapter = new Chapter("AZƏRBAYCAN RESPUBLİKASININ QANUNU");
+                        law.Chapters.Add(currentChapter);
+                        currentSection = new Section("Qanunlar");
+                        currentChapter.Sections.Add(currentSection);
+
+                        // Не делаем continue — строка обрабатывается ниже как Article
+                    }
+                    else {
+                        headerBuilder.AppendLine(line);
+                        continue;
+                    }
                 }
 
                 // --- ожидаем название Chapter ---
@@ -335,7 +339,7 @@ namespace LawEditor.Services.WordServises {
                         continue;
                     }
 
-                    // CLAUSE (I. II.)
+                    // CLAUSE (I. II. III.)
                     if (Regex.IsMatch(line, @"^[IVX]+\.\s")) {
                         string text = Regex.Replace(line, @"^[IVX]+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
@@ -343,7 +347,7 @@ namespace LawEditor.Services.WordServises {
                         continue;
                     }
 
-                    // SUBCLAUSE (1)
+                    // SUBCLAUSE (1) (2) (3)
                     if (Regex.IsMatch(line, @"^\d+\)")) {
                         string text = Regex.Replace(line, @"^\d+\)\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
@@ -351,7 +355,31 @@ namespace LawEditor.Services.WordServises {
                         continue;
                     }
 
-                    // обычный текст — если уже есть Clause, то это SubClause
+                    // SUBCLAUSE (1.1.1. / 1.2.3. — три+ сегмента)
+                    if (Regex.IsMatch(line, @"^\d+\.\d+\.\d+\.\s")) {
+                        string text = Regex.Replace(line, @"^\d+\.\d+\.\d+\.\s*", "");
+                        string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
+                        currentClause?.AddSubClause(text, endnoteId: endnoteRefId);
+                        continue;
+                    }
+
+                    // CLAUSE (1.1. / 1.2. — два сегмента)
+                    if (Regex.IsMatch(line, @"^\d+\.\d+\.\s")) {
+                        string text = Regex.Replace(line, @"^\d+\.\d+\.\s*", "");
+                        string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
+                        currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId);
+                        continue;
+                    }
+
+                    // CLAUSE (1. / 2. / 3. — одиночная цифра с точкой)
+                    if (Regex.IsMatch(line, @"^\d+\.\s")) {
+                        string text = Regex.Replace(line, @"^\d+\.\s*", "");
+                        string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
+                        currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId);
+                        continue;
+                    }
+
+                    // обычный текст
                     if (currentArticle != null) {
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         if (currentClause == null)
