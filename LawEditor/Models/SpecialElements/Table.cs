@@ -12,8 +12,8 @@ namespace LawEditor.Models.SpecialElements
         private static int counter = 1;
 
         public int Id { get; set; }
-        public List<string> Headers { get; set; } = new();
-        public List<TableRowData> Rows { get; set; } = new();
+        public ObservableCollection<string> Headers { get; set; } = new ObservableCollection<string>();
+        public ObservableCollection<TableRowData> Rows { get; set; } = new ObservableCollection<TableRowData>();
         public Table(string title) {
             Id = counter++;
         }
