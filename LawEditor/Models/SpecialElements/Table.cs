@@ -10,7 +10,6 @@ namespace LawEditor.Models.SpecialElements
     public class Table
     {
         private static int counter = 1;
-
         public int Id { get; set; }
         public string Title { get; set; }
         public ObservableCollection<string> Headers { get; set; } = new ObservableCollection<string>();
@@ -19,8 +18,21 @@ namespace LawEditor.Models.SpecialElements
             Id = counter++;
             Title = $"Table {Id}";
         }
+
+        // Приватный конструктор — без счётчика, для ручного создания
+        private Table(bool manual) { }
+
+        public static Table CreateManual() => new Table(true);
+
         public static void ResetCounter() {
             counter = 1;
         }
+        public static void IncreaseCounter() {
+            counter++;
+        }
+        public static void DecreaseCounter() {
+            if (counter > 1) counter--;
+        }
+
     }
 }

@@ -1,8 +1,11 @@
-﻿using System;
+﻿using LawEditor.Models.RootClasses;
+using LawEditor.Models.SpecialElements;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Documents;
+using Table = LawEditor.Models.SpecialElements.Table;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -11,7 +14,7 @@ namespace LawEditor.Models.ChangableData
         public decimal Id { get; set; }
         public string? Title { get; set; }
         public string? EndnoteId { get; set; }
-        public Models.SpecialElements.Table? Table { get; set; } = null;
+        public Table? Table { get; set; } = null;
         public ObservableCollection<Clause> Clauses { get; set; } = new();
         public Article() { }
         public Article(decimal id, string title, string? endnoteId = null) {
@@ -78,7 +81,65 @@ namespace LawEditor.Models.ChangableData
                 c.Number--;
             }
         }
-       
+        public void AddTable(Laws law) {
+            if (Table != null) return; // таблица уже есть
+
+            // Плоский список всех статей в порядке дерева
+            var allArticles = law.Chapters
+                .SelectMany(ch => ch.Sections)
+                .SelectMany(s => s.Articles)
+                .ToList();
+
+            // Индекс текущей статьи
+            int myIndex = allArticles.IndexOf(this);
+
+            // Статьи после текущей у которых есть таблица — сдвигаем Id вперёд
+            var articlesAfter = allArticles
+                .Skip(myIndex + 1)
+                .Where(a => a.Table != null);
+
+            foreach (var article in articlesAfter) {
+                article.Table!.Id++;
+                article.Table.Title = $"Table {article.Table.Id}";
+            }
+
+            // Определяем Id для новой таблицы
+            // Ищем максимальный Id среди статей ДО текущей
+            var articlesBefore = allArticles
+                .Take(myIndex)
+                .Where(a => a.Table != null);
+
+            int newId = articlesBefore.Any()
+                ? articlesBefore.Max(a => a.Table!.Id) + 1
+                : 1;
+
+            // Создаём таблицу вручную, минуя счётчик
+            var table = Table.CreateManual();
+            table.Id = newId;
+            table.Title = $"Table {newId}";
+            table.Headers.Add("Column 1");
+            table.Rows.Add(new TableRowData { Cells = { "" } });
+
+            Table = table;
+            Table.IncreaseCounter();
+        }
+        public void DeleteTable(Laws law) {
+            if (Table == null) return;
+
+            int deletedId = Table.Id;
+            Table = null;
+
+            var allArticles = law.Chapters
+                .SelectMany(ch => ch.Sections)
+                .SelectMany(s => s.Articles);
+
+            foreach (var article in allArticles.Where(a => a.Table != null && a.Table.Id > deletedId)) {
+                article.Table!.Id--;
+                article.Table.Title = $"Table {article.Table.Id}";
+            }
+
+            Table.DecreaseCounter();
+        }
 
     }
 }
