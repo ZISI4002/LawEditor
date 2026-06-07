@@ -158,7 +158,7 @@ namespace LawEditor.Services.WordServises {
         private Models.SpecialElements.Table ReadTable(
             DocumentFormat.OpenXml.Wordprocessing.Table wordTable) {
 
-            var table = new Models.SpecialElements.Table(string.Empty);
+            var table = new Models.SpecialElements.Table();
 
             var rows = wordTable.Elements<TableRow>().ToList();
             if (rows.Count == 0)
