@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Table = LawEditor.Models.SpecialElements.Table;
 
 
 namespace LawEditor.Services.WordServises {
@@ -158,7 +159,7 @@ namespace LawEditor.Services.WordServises {
         private Models.SpecialElements.Table ReadTable(
             DocumentFormat.OpenXml.Wordprocessing.Table wordTable) {
 
-            var table = new Models.SpecialElements.Table();
+            var table = new Table();
 
             var rows = wordTable.Elements<TableRow>().ToList();
             if (rows.Count == 0)
@@ -189,6 +190,8 @@ namespace LawEditor.Services.WordServises {
         // ── Основной метод ────────────────────────────────────────────────────
         public Laws ReadWordFile(string filePath) {
             var law = new Laws();
+
+            Table.ResetCounter();
 
             ObservableCollection<TransitionalProvisions> transitional = new ObservableCollection<TransitionalProvisions>();
             ObservableCollection<SourceDocumentsList> sources = new ObservableCollection<SourceDocumentsList>();
