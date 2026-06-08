@@ -1,26 +1,45 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics.Metrics;
 
 namespace LawEditor.Models.SpecialElements
 {
     public class Table
     {
-        private static int _counter = 1;
+        private static int counter = 1;
 
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public ObservableCollection<string> Headers { get; set; } = new();
         public ObservableCollection<TableRowData> Rows { get; set; } = new();
 
-        public Table(string title = "")
+        public Table()
         {
-            Id = _counter++;
-            Title = title;
+            Id = counter++;
+            Title = $"Table {Id}";
         }
+        // Приватный конструктор — без счётчика, для ручного создания
+        private Table(bool manual) { }
+
+        public static Table CreateManual() => new Table(true);
+
+        public static void ResetCounter()
+        {
+            counter = 1;
+        }
+        public static void IncreaseCounter()
+        {
+            counter++;
+        }
+        public static void DecreaseCounter()
+        {
+            if (counter > 1) counter--;
+        }
+
 
         /// <summary>Глубокая копия для редактирования без мутации оригинала до Save</summary>
         public Table Clone()
         {
-            var clone = new Table(Title) { Id = this.Id };
+            var clone = new Table() { Id = this.Id, Title = this.Title };
 
             foreach (var h in Headers)
                 clone.Headers.Add(h);
