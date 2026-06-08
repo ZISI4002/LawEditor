@@ -47,7 +47,7 @@ namespace LawEditor.Services.LawServises
                     var newSection = new Section { Id = sec.Id, Title = sec.Title };
                     foreach (var art in sec.Articles)
                     {
-                        var newArticle = new Article { Id = art.Id, Title = art.Title , EndnoteId=art.EndnoteId};
+                        var newArticle = new Article { Id = art.Id, Title = art.Title , EndnoteId=art.EndnoteId, Table = art.Table };
                         foreach (var cl in art.Clauses)
                         {
                             var newClause = new Clause { Number = cl.Number, Text = cl.Text , EndnoteId = cl.EndnoteId};
