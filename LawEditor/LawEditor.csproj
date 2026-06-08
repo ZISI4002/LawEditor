@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <Resource Include="Assets\Logo_of_the_National_Assembly_of_Azerbaijan.svg.ico" />
+    <Resource Include="Assets\TableIcon2.ico" />
     <Resource Include="Assets\Writing_laws2.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

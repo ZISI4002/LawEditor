@@ -18,7 +18,6 @@ namespace LawEditor.Views
 {
     public partial class LawEditorWindow : Window
     {
-
         private const int WM_MOUSEHWHEEL = 0x020E;
         private bool _isUpdatingRichText = false;
 
@@ -37,16 +36,17 @@ namespace LawEditor.Views
                     vm.OnSelectedItemChanged = SetRichTextContent;
             };
         }
+
         private IntPtr HwndMessageHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             if (msg == WM_MOUSEHWHEEL)
             {
                 int tilt = (short)((long)wParam >> 16);
-                double scrollFactor = tilt / 3.0; // Ваша исходная скорость прокрутки
+                double scrollFactor = tilt / 3.0;
 
                 ScrollViewer? targetScrollViewer = null;
 
-                // 1. Проверяем левую панель (дерево) — ваша исходная рабочая логика
+                // 1. Проверяем левую панель (дерево)
                 if (TreeScrollViewer != null && TreeScrollViewer.IsMouseOver)
                 {
                     targetScrollViewer = TreeScrollViewer;
@@ -57,7 +57,7 @@ namespace LawEditor.Views
                     targetScrollViewer = FindVisualChild<ScrollViewer>(MainRichTextBox);
                 }
 
-                // 3. Если определили целевой скроллер — плавно двигаем его по горизонтали
+                // 3. Выполняем горизонтальный скролл тачпада
                 if (targetScrollViewer != null)
                 {
                     double newOffset = Math.Clamp(
@@ -71,6 +71,7 @@ namespace LawEditor.Views
             }
             return IntPtr.Zero;
         }
+
         private T? FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
@@ -83,6 +84,7 @@ namespace LawEditor.Views
             }
             return null;
         }
+
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (DataContext is LawEditorWindowViewModel vm)
@@ -113,11 +115,6 @@ namespace LawEditor.Views
             }
         }
 
-        private void MainScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
-        {
-           
-        }
-
         public void SetRichTextContent(object? selectedItem)
         {
             _isUpdatingRichText = true;
@@ -127,8 +124,8 @@ namespace LawEditor.Views
             Table? table = selectedItem switch
             {
                 Article a => a.Table,
-               // Clause cl => cl.Table,
-               //SubClause sc => sc.Table,
+                // Clause cl => cl.Table,
+                // SubClause sc => sc.Table,
                 _ => null
             };
 
@@ -147,11 +144,33 @@ namespace LawEditor.Views
 
             if (table != null)
             {
-                var btn = BuildTableButton(table, selectedItem);
-                paragraph.Inlines.Add(new InlineUIContainer(btn)
+                var link = new Hyperlink(new Run($" [📋 Cədvəl #{table.Id}]"))
                 {
-                    BaselineAlignment = BaselineAlignment.Center
-                });
+                    Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x98, 0xDB)),
+                    FontWeight = FontWeights.SemiBold,
+                    Cursor = Cursors.Hand,
+                    TextDecorations = TextDecorations.Underline
+                };
+
+                // ИСПОЛЬЗУЕМ MouseLeftButtonDown вместо Click
+                link.MouseLeftButtonDown += (s, e) =>
+                {
+                    e.Handled = true; // Глушим событие, чтобы каретка RichTextBox не прыгала на ссылку
+
+                    var win = new TableEditorWindow(table, () =>
+                    {
+                        switch (selectedItem)
+                        {
+                            case Article a: a.Table = null; break;
+                        }
+                        SetRichTextContent(selectedItem);
+                    })
+                    { Owner = this };
+
+                    win.ShowDialog();
+                };
+
+                paragraph.Inlines.Add(link);
             }
 
             doc.Blocks.Add(paragraph);
@@ -159,55 +178,6 @@ namespace LawEditor.Views
             UpdateLineNumbers();
 
             _isUpdatingRichText = false;
-        }
-
-        private Button BuildTableButton(LawEditor.Models.SpecialElements.Table table, object? parent)
-        {
-            var btn = new Button
-            {
-                Content = $"  📋 Cədvəl #{table.Id}  ",
-                Margin = new Thickness(8, 0, 0, 0),
-                Padding = new Thickness(8, 3, 8, 3),
-                Background = new SolidColorBrush(Color.FromRgb(0x34, 0x98, 0xDB)),
-                Foreground = Brushes.White,
-                FontSize = 12,
-                FontWeight = FontWeights.SemiBold,
-                Cursor = Cursors.Hand
-            };
-
-            var template = new ControlTemplate(typeof(Button));
-            var border = new FrameworkElementFactory(typeof(Border));
-            border.SetBinding(Border.BackgroundProperty,
-                new System.Windows.Data.Binding("Background")
-                {
-                    RelativeSource = new System.Windows.Data.RelativeSource(
-                        System.Windows.Data.RelativeSourceMode.TemplatedParent)
-                });
-            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(5));
-            var content = new FrameworkElementFactory(typeof(ContentPresenter));
-            content.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
-            content.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
-            border.AppendChild(content);
-            template.VisualTree = border;
-            btn.Template = template;
-
-            btn.PreviewMouseLeftButtonDown += (s, e) =>
-            {
-                e.Handled = true;
-                var win = new TableEditorWindow(table, () =>
-                {
-                    switch (parent)
-                    {
-                        case Article a: a.Table = null; break;
-                    }
-                    SetRichTextContent(parent);
-                })
-                { Owner = this };
-
-                win.ShowDialog();
-            };
-
-            return btn;
         }
 
         private void RichTextBox_TextChanged(object sender, TextChangedEventArgs e)

@@ -6,8 +6,8 @@
         MinHeight="400" MinWidth="600"
         WindowStartupLocation="CenterOwner"
         Background="#121212"
-        ResizeMode="CanResize">
-
+        ResizeMode="CanResize"
+    Icon="/Assets/TableIcon2.ico">
     <Window.Resources>
         <Style x:Key="ToolBtn" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
@@ -81,24 +81,34 @@
         <!-- DataGrid -->
         <Border Grid.Row="2" BorderBrush="#333" BorderThickness="1" CornerRadius="8">
             <DataGrid x:Name="Grid"
-                      ItemsSource="{Binding Rows}"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False"
-                      CanUserDeleteRows="False"
-                      Background="#1E1E1E"
-                      Foreground="#E0E0E0"
-                      RowBackground="#1E1E1E"
-                      AlternatingRowBackground="#252525"
-                      BorderThickness="0"
-                      GridLinesVisibility="All"
-                      HorizontalGridLinesBrush="#2A2A2A"
-                      VerticalGridLinesBrush="#2A2A2A"
-                      FontSize="13"
-                      FontFamily="Consolas"
-                      SelectionMode="Single"
-                      SelectionUnit="FullRow"
-                      Loaded="DataGrid_Loaded"
-                      CurrentCellChanged="DataGrid_CurrentCellChanged"/>
+              ItemsSource="{Binding Rows}"
+              AutoGenerateColumns="False"
+              CanUserAddRows="False"
+              CanUserDeleteRows="False"
+              Background="#1E1E1E"
+              Foreground="#111111" 
+              RowBackground="#FFFFFF" 
+              AlternatingRowBackground="#E0E0E0" 
+              RowHeight="60"
+              MinRowHeight="60"
+              BorderThickness="0"
+              GridLinesVisibility="All"
+              HorizontalGridLinesBrush="#CCCCCC" 
+              VerticalGridLinesBrush="#CCCCCC"
+              FontSize="20" 
+              FontFamily="Consolas"
+              SelectionMode="Single"
+              SelectionUnit="FullRow"
+              Loaded="DataGrid_Loaded"
+              CurrentCellChanged="DataGrid_CurrentCellChanged">
+
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                    </Style>
+                </DataGrid.CellStyle>
+
+            </DataGrid>
         </Border>
 
         <!-- Footer -->
