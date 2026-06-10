@@ -4,6 +4,7 @@ using LawEditor.Models.RootClasses;
 using LawEditor.Models.TreeClasses;
 using LawEditor.Services.Intefase;
 using LawEditor.Services.LawServises;
+using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -18,10 +19,9 @@ namespace LawEditor.ViewModels
             this.Laws = mainWindowViewModel.Laws;
 
             EditedLaws = new Laws();
-            // Инициализируем UpperObjects перед копированием данных
             if (EditedLaws.UpperObjects == null)
                 EditedLaws.UpperObjects = new ObservableCollection<UpperObject>();
-                
+
             CopyLawsServise.CopyLawsData(Laws, EditedLaws);
 
             BuildTreeRoots();
@@ -29,15 +29,15 @@ namespace LawEditor.ViewModels
             this.SaveCommand = new Commands.LawEditorWindowCommands.SaveCommand(this);
             this.DeleteCommand = new Commands.LawEditorWindowCommands.DeleteCommand(this);
             this.AddItemCommand = new Commands.LawEditorWindowCommands.AddItemCommand(this);
-
         }
+
+        public Action<object?>? OnSelectedItemChanged { get; set; }
 
         public MainWindowViewModel MainWindowModel { get; set; }
         public Laws Laws { get; set; }
         public Laws EditedLaws { get; set; }
         public LawAnchor CurrentAnchor { get; set; } = new();
 
-        // Единая коллекция для TreeView
         public ObservableCollection<object> TreeRoots { get; } = new();
 
         public void BuildTreeRoots()
@@ -51,7 +51,7 @@ namespace LawEditor.ViewModels
                 TreeRoots.Add(ch);
 
             foreach (var container in EditedLaws.SourcesData)
-                TreeRoots.Add(container); 
+                TreeRoots.Add(container);
         }
 
         private bool _isMenuOpen;
@@ -60,9 +60,10 @@ namespace LawEditor.ViewModels
             get => _isMenuOpen;
             set => Set(ref _isMenuOpen, value);
         }
-        
+
         public bool HasUnsavedChanges { get; set; } = false;
         public bool IsMesageSaving { get; set; } = false;
+
         public bool CanClose()
         {
             if (!HasUnsavedChanges)
@@ -81,16 +82,12 @@ namespace LawEditor.ViewModels
             {
                 IsMesageSaving = true;
                 SaveCommand.Execute(null);
-               
             }
 
             return true;
         }
 
-        public void OnClosing()
-        {
-            // если нужно — очистка, логирование и т.д.
-        }
+        public void OnClosing() { }
 
         public ICommand SaveCommand { get; set; }
         public ICommand DeleteCommand { get; set; }
@@ -119,20 +116,21 @@ namespace LawEditor.ViewModels
                 Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et", "İçəridə bənd əlavə et", "Yuxarıda hissə əlavə et", "Aşağıda hissə əlavə et"),
                 Clause => ("Yuxarıda bənd əlavə et", "Aşağıda bənd əlavə et", "İçəridə altbənd əlavə et", null, null, null),
                 SubClause => ("Yuxarıda altbənd əlavə et", "Aşağıda altbənd əlavə et", null, null, null, null),
-                SourceData sr when sr.Type== "KEÇİD MÜDDƏALARI" => ("İçəridə yeni Keçid Müddəası əlavə elə", null, null, null, null, null),
-                SourceData sr when sr.Type== "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI" => ("İçəridə yeni İstifadə olunmuş mənbə əlavə elə", null, null, null, null, null),
+                SourceData sr when sr.Type == "KEÇİD MÜDDƏALARI" => ("İçəridə yeni Keçid Müddəası əlavə elə", null, null, null, null, null),
+                SourceData sr when sr.Type == "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI" => ("İçəridə yeni İstifadə olunmuş mənbə əlavə elə", null, null, null, null, null),
                 SourceData sr when sr.Type == "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI" => ("İçəridə yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", null, null, null, null, null),
                 TransitionalProvisions => ("Yuxarıda yeni Keçid Müddəası əlavə elə", "Aşağıda yeni Keçid Müddəası əlavə elə", null, null, null, null),
-               TransitionalProvisionsDateNote=> (null, null, null, null, null, null),
+                TransitionalProvisionsDateNote => (null, null, null, null, null, null),
                 SourceDocumentsList => ("Yuxarıda yeni İstifadə olunmuş mənbə əlavə elə", "Aşağıda yeni İstifadə olunmuş mənbə əlavə elə", null, null, null, null),
                 ConstitutionalAmendment => ("Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", "Aşağıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", null, null, null, null),
-                Models.RootClasses. Laws => ("Bölmə əlavə et", null, null, null, null, null),
+                Models.RootClasses.Laws => ("Bölmə əlavə et", null, null, null, null, null),
                 _ => ("Bölmə əlavə et", null, null, null, null, null),
             };
         }
 
         private object? _selectedItem;
         private string _selectedText = "";
+
         public object? SelectedItem
         {
             get => _selectedItem;
@@ -140,7 +138,7 @@ namespace LawEditor.ViewModels
             {
                 Set(ref _selectedItem, value);
                 _selectedText = FullTextWrapper.GetFullText(value);
-                OnPropertyChanged(nameof(SelectedText));
+                OnSelectedItemChanged?.Invoke(value);
                 OnPropertyChanged(nameof(SelectedTypeName));
                 OnPropertyChanged(nameof(HasSelection));
                 OnPropertyChanged(nameof(MenuItem1Text));
@@ -158,6 +156,7 @@ namespace LawEditor.ViewModels
                 UpdateAnchor(value);
             }
         }
+
         public string SelectedText
         {
             get => _selectedText;
@@ -170,16 +169,15 @@ namespace LawEditor.ViewModels
                 if (FullTextWrapper.CanRefresh)
                 {
                     RefreshSelectedText();
-                    FullTextWrapper.CanRefresh=false;
+                    FullTextWrapper.CanRefresh = false;
                 }
-               
             }
         }
 
         public void RefreshSelectedText()
         {
             _selectedText = FullTextWrapper.GetFullText(_selectedItem);
-            OnPropertyChanged(nameof(SelectedText));
+            OnSelectedItemChanged?.Invoke(_selectedItem);
         }
 
         private void UpdateAnchor(object? item)
@@ -188,8 +186,6 @@ namespace LawEditor.ViewModels
 
             switch (item)
             {
-               
-
                 case UpperObject uo:
                     CurrentAnchor.UpperObject = uo;
                     break;
@@ -248,9 +244,10 @@ namespace LawEditor.ViewModels
                                         CurrentAnchor.SubClause = sc;
                                     }
                     break;
-                    case SourceData sd:
-                        CurrentAnchor.SourceData = sd;
-                        break;
+
+                case SourceData sd:
+                    CurrentAnchor.SourceData = sd;
+                    break;
 
                 case TransitionalProvisions tp:
                     CurrentAnchor.TransitionalProvision = tp;
@@ -269,13 +266,8 @@ namespace LawEditor.ViewModels
             }
         }
 
-       
-
-       
-
         public string SelectedTypeName => _selectedItem switch
         {
-           
             UpperObject => "Qanunun başlığı (Header)",
             Header => "Başlıq mətn (Header Text)",
             Chapter => "Bölmə (Chapter)",

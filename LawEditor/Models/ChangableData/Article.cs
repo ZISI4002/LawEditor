@@ -81,7 +81,8 @@ namespace LawEditor.Models.ChangableData
                 c.Number--;
             }
         }
-        public void AddTable(Laws law) {
+        public void AddTable(Laws law)
+        {
             if (Table != null) return; // таблица уже есть
 
             // Плоский список всех статей в порядке дерева
@@ -98,7 +99,8 @@ namespace LawEditor.Models.ChangableData
                 .Skip(myIndex + 1)
                 .Where(a => a.Table != null);
 
-            foreach (var article in articlesAfter) {
+            foreach (var article in articlesAfter)
+            {
                 article.Table!.Id++;
                 article.Table.Title = $"Table {article.Table.Id}";
             }
@@ -123,7 +125,8 @@ namespace LawEditor.Models.ChangableData
             Table = table;
             Table.IncreaseCounter();
         }
-        public void DeleteTable(Laws law) {
+        public void DeleteTable(Laws law)
+        {
             if (Table == null) return;
 
             int deletedId = Table.Id;
@@ -133,7 +136,8 @@ namespace LawEditor.Models.ChangableData
                 .SelectMany(ch => ch.Sections)
                 .SelectMany(s => s.Articles);
 
-            foreach (var article in allArticles.Where(a => a.Table != null && a.Table.Id > deletedId)) {
+            foreach (var article in allArticles.Where(a => a.Table != null && a.Table.Id > deletedId))
+            {
                 article.Table!.Id--;
                 article.Table.Title = $"Table {article.Table.Id}";
             }
