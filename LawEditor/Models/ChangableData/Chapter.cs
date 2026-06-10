@@ -4,6 +4,7 @@ using LawEditor.Models.RootClasses;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
+using Table = LawEditor.Models.SpecialElements.Table;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -13,13 +14,13 @@ namespace LawEditor.Models.ChangableData
 
         public int Id { get; set; }
         private string? title;
-
         public string? Title {
             get { return title; }
             set { 
                 title = value?.ToUpper(); 
             }
         }
+        public Table? Table { get; set; }
         public ObservableCollection<Section> Sections { get; set; } = new();
 
         public Chapter() { }  
