@@ -26,6 +26,7 @@ namespace LawEditor.Commands.TableEditorWindowCommands
             for (int i = 0; i < _viewModel.Headers.Count; i++)
                 row.Cells.Add(string.Empty);
             _viewModel.Rows.Add(row);
+            _viewModel.WorkingCopy.Rows = _viewModel.Rows;
         }
     
     }

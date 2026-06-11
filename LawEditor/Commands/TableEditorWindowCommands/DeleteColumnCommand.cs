@@ -30,6 +30,8 @@ namespace LawEditor.Commands.TableEditorWindowCommands
                     row.Cells.RemoveAt(idx);
 
             _viewModel.SelectedColumnIndex = -1;
+            _viewModel.WorkingCopy.Headers = _viewModel.Headers;
+            _viewModel.WorkingCopy.Rows = _viewModel.Rows;
         }
     }
 }

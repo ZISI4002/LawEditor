@@ -10,7 +10,7 @@ namespace LawEditor.ViewModels
     public class TableEditorViewModel : BaseViewModel
     {
        
-        public TableEditorViewModel(Window window,LawEditor.Models.SpecialElements.Table original, Action onDeleteTable)
+        public TableEditorViewModel(Window window,LawEditor.Models.SpecialElements.Table original)
             : base(window)
         {
             OriginalTable = original;

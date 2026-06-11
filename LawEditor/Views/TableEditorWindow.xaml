@@ -79,34 +79,58 @@
         </StackPanel>
 
         <!-- DataGrid -->
-        <Border Grid.Row="2" BorderBrush="#333" BorderThickness="1" CornerRadius="8">
+        <Border Grid.Row="2" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
             <DataGrid x:Name="Grid"
               ItemsSource="{Binding Rows}"
               AutoGenerateColumns="False"
               CanUserAddRows="False"
               CanUserDeleteRows="False"
-              Background="#1E1E1E"
-              Foreground="#111111" 
-              RowBackground="#FFFFFF" 
-              AlternatingRowBackground="#E0E0E0" 
+              Background="#121212" 
+              Foreground="#E2E8F0" 
+              RowBackground="#1A233D" 
+              AlternatingRowBackground="#111827" 
               RowHeight="60"
               MinRowHeight="60"
               BorderThickness="0"
               GridLinesVisibility="All"
-              HorizontalGridLinesBrush="#CCCCCC" 
-              VerticalGridLinesBrush="#CCCCCC"
+              HorizontalGridLinesBrush="#1E293B" 
+              VerticalGridLinesBrush="#1E293B"
+              
+              ColumnWidth="SizeToCells" 
+              
+              HorizontalScrollBarVisibility="Auto" 
+              
               FontSize="20" 
               FontFamily="Consolas"
               SelectionMode="Single"
               SelectionUnit="FullRow"
-              Loaded="DataGrid_Loaded"
-              CurrentCellChanged="DataGrid_CurrentCellChanged">
+              Loaded="DataGrid_Loaded" >
+
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#0F172A"/>
+                        <Setter Property="Foreground" Value="#38BDF8"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="Padding" Value="15,10,15,10"/>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
 
                 <DataGrid.CellStyle>
                     <Style TargetType="DataGridCell">
-                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        <Setter Property="Padding" Value="15,0,15,0"/>
+
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#2563EB"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </Style.Triggers>
                     </Style>
                 </DataGrid.CellStyle>
+
+                <DataGrid.Columns>
+                </DataGrid.Columns>
 
             </DataGrid>
         </Border>

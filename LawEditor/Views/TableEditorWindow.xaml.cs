@@ -22,10 +22,10 @@ namespace LawEditor.Views
     {
         private readonly TableEditorViewModel _vm;
 
-        public TableEditorWindow(LawEditor.Models.SpecialElements.Table table, Action onDeleteTable)
+        public TableEditorWindow(LawEditor.Models.SpecialElements.Table table)
         {
             InitializeComponent();
-            _vm = new TableEditorViewModel(this, table, onDeleteTable);
+            _vm = new TableEditorViewModel(this, table);
             DataContext = _vm;
         }
         public TableEditorWindow()
@@ -37,10 +37,37 @@ namespace LawEditor.Views
 
         private void DataGrid_Loaded(object sender, RoutedEventArgs e)
         {
+            var grid = (DataGrid)sender;
+            if (DataContext is TableEditorViewModel vm)
+            {
+                GenerateColumns(grid, vm);
+                vm.Headers.CollectionChanged += (s, args) => GenerateColumns(grid, vm);
+            }
         }
 
-        private void DataGrid_CurrentCellChanged(object sender, EventArgs e)
+        private void GenerateColumns(DataGrid grid, TableEditorViewModel vm)
         {
+            grid.Columns.Clear();
+
+            for (int i = 0; i < vm.Headers.Count; i++)
+            {
+                int colIndex = i;
+
+                var column = new DataGridTextColumn
+                {
+                    Header = vm.Headers[i],
+                    Binding = new Binding($"[{colIndex}]")
+                    {
+                        Mode = BindingMode.TwoWay,
+                        UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                    },
+                    Width = new DataGridLength(1, DataGridLengthUnitType.Star)
+                };
+
+                grid.Columns.Add(column);
+            }
         }
+
+        
     }
 }

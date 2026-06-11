@@ -22,7 +22,12 @@ namespace LawEditor.Commands.TableEditorWindowCommands
         public void Execute(object? parameter)
         {
             if (parameter is TableRowData row)
+            {
                 _viewModel.Rows.Remove(row);
+                _viewModel.WorkingCopy.Rows.Remove(row);
+                _viewModel.Headers.RemoveAt(_viewModel.Headers.Count - 1);
+                _viewModel.WorkingCopy.Headers.RemoveAt(_viewModel.WorkingCopy.Headers.Count - 1);
+            }
         }
     
     }

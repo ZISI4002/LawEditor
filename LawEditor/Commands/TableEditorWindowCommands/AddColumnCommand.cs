@@ -25,7 +25,11 @@ namespace LawEditor.Commands.TableEditorWindowCommands
         {
             _viewModel.Headers.Add($"Column {_viewModel.Headers.Count + 1}");
             foreach (var row in _viewModel.Rows)
+            {
                 row.Cells.Add(string.Empty);
+            }
+            _viewModel.WorkingCopy.Headers = _viewModel.Headers;
+            _viewModel.WorkingCopy.Rows = _viewModel.Rows;
         }
     }
 }

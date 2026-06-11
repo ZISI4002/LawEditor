@@ -157,14 +157,7 @@ namespace LawEditor.Views
                 {
                     e.Handled = true; // Глушим событие, чтобы каретка RichTextBox не прыгала на ссылку
 
-                    var win = new TableEditorWindow(table, () =>
-                    {
-                        switch (selectedItem)
-                        {
-                            case Article a: a.Table = null; break;
-                        }
-                        SetRichTextContent(selectedItem);
-                    })
+                    var win = new TableEditorWindow(table)
                     { Owner = this };
 
                     win.ShowDialog();
