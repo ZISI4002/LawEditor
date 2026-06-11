@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
+using Table = LawEditor.Models.SpecialElements.Table;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -22,6 +23,7 @@ namespace LawEditor.Models.ChangableData
                 title = value?.ToUpper();
             }
         }
+        public Table? Table { get; set; }
 
         public ObservableCollection<Article> Articles { get; set; } = new();
 

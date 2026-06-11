@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
+using Table = LawEditor.Models.SpecialElements.Table;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -9,7 +10,7 @@ namespace LawEditor.Models.ChangableData
     {
         public int Number { get; set; }
         public string? Text { get; set; }
-        public int? TableId { get; set; }
+        public Table? Table { get; set; }
         public string? EndnoteId { get; set; }
         public ObservableCollection<SubClause> SubClauses { get; set; } = new();
         public Clause() { }

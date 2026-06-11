@@ -43,6 +43,16 @@ namespace LawEditor.Services.WordServises {
             Sources
         }
 
+        // ── Отслеживаем последний объект, которому можно назначить таблицу ───
+        enum LastContext {
+            None,
+            Chapter,
+            Section,
+            Article,
+            Clause,
+            SubClause
+        }
+
         // ── Получить текст гиперссылки из параграфа ───────────────────────────
         private (string? linkText, string? rId) ExtractHyperlink(Paragraph para) {
             var hyperlink = para.Elements<Hyperlink>().FirstOrDefault();
@@ -156,8 +166,7 @@ namespace LawEditor.Services.WordServises {
         }
 
         // ── Читаем таблицу Word и строим объект Table ─────────────────────────
-        private Models.SpecialElements.Table ReadTable(
-            DocumentFormat.OpenXml.Wordprocessing.Table wordTable) {
+        private Table ReadTable(DocumentFormat.OpenXml.Wordprocessing.Table wordTable) {
 
             var table = new Table();
 
@@ -187,6 +196,35 @@ namespace LawEditor.Services.WordServises {
             return table;
         }
 
+        // ── Назначаем таблицу последнему активному объекту ────────────────────
+        private void AssignTable(
+            Table table,
+            LastContext lastContext,
+            Chapter? currentChapter,
+            Section? currentSection,
+            Article? currentArticle,
+            Clause? currentClause,
+            SubClause? currentSubClause) {
+
+            switch (lastContext) {
+                case LastContext.SubClause:
+                    if (currentSubClause != null) currentSubClause.Table = table;
+                    break;
+                case LastContext.Clause:
+                    if (currentClause != null) currentClause.Table = table;
+                    break;
+                case LastContext.Article:
+                    if (currentArticle != null) currentArticle.Table = table;
+                    break;
+                case LastContext.Section:
+                    if (currentSection != null) currentSection.Table = table;
+                    break;
+                case LastContext.Chapter:
+                    if (currentChapter != null) currentChapter.Table = table;
+                    break;
+            }
+        }
+
         // ── Основной метод ────────────────────────────────────────────────────
         public Laws ReadWordFile(string filePath) {
             var law = new Laws();
@@ -202,8 +240,11 @@ namespace LawEditor.Services.WordServises {
             Section currentSection = null;
             Article currentArticle = null;
             Clause currentClause = null;
+            SubClause currentSubClause = null;
             TransitionalProvisions currentTransitional = null;
             TransitionalProvisions.Date = null;
+
+            LastContext lastContext = LastContext.None;
 
             Mode mode = Mode.Header;
             var headerBuilder = new StringBuilder();
@@ -223,8 +264,12 @@ namespace LawEditor.Services.WordServises {
 
                 // ── ТАБЛИЦА ──────────────────────────────────────────────────
                 if (element is DocumentFormat.OpenXml.Wordprocessing.Table wordTable) {
-                    if (mode == Mode.Chapters && currentArticle != null)
-                        currentArticle.Table = ReadTable(wordTable);
+                    if (mode == Mode.Chapters && lastContext != LastContext.None) {
+                        var table = ReadTable(wordTable);
+                        AssignTable(table, lastContext,
+                            currentChapter, currentSection, currentArticle,
+                            currentClause, currentSubClause);
+                    }
                     continue;
                 }
 
@@ -263,7 +308,6 @@ namespace LawEditor.Services.WordServises {
                 var header = new Models.ChangableData.Header();
                 if (mode == Mode.Header) {
                     if (IsChapterLine(line)) {
-                        // Документ с bölmə — стандартная логика
                         header.Id = 1;
                         header.FullText = headerBuilder.ToString().Trim();
                         headers.Add(header);
@@ -273,7 +317,6 @@ namespace LawEditor.Services.WordServises {
                     }
 
                     if (Regex.IsMatch(line, @"^Maddə\s+[\d\.]+\.")) {
-                        // Документ без bölmə/fəsil — создаём дефолтные Chapter и Section
                         header.Id = 1;
                         header.FullText = headerBuilder.ToString().Trim();
                         headers.Add(header);
@@ -283,6 +326,7 @@ namespace LawEditor.Services.WordServises {
                         law.Chapters.Add(currentChapter);
                         currentSection = new Section("Qanunlar");
                         currentChapter.Sections.Add(currentSection);
+                        lastContext = LastContext.Section;
 
                         // Не делаем continue — строка обрабатывается ниже как Article
                     }
@@ -297,6 +341,7 @@ namespace LawEditor.Services.WordServises {
                     currentChapter = new Chapter(line);
                     law.Chapters.Add(currentChapter);
                     expectChapterTitle = false;
+                    lastContext = LastContext.Chapter;
                     continue;
                 }
 
@@ -305,6 +350,7 @@ namespace LawEditor.Services.WordServises {
                     currentSection = new Section(line);
                     currentChapter?.Sections.Add(currentSection);
                     expectSectionTitle = false;
+                    lastContext = LastContext.Section;
                     continue;
                 }
 
@@ -313,12 +359,18 @@ namespace LawEditor.Services.WordServises {
                     if (IsChapterLine(line)) {
                         expectChapterTitle = true;
                         currentSection = null;
+                        currentArticle = null;
+                        currentClause = null;
+                        currentSubClause = null;
                         continue;
                     }
 
                     // I fəsil
                     if (Regex.IsMatch(line, @"^[IVX]+\s*fəsil", RegexOptions.IgnoreCase)) {
                         expectSectionTitle = true;
+                        currentArticle = null;
+                        currentClause = null;
+                        currentSubClause = null;
                         continue;
                     }
 
@@ -339,6 +391,8 @@ namespace LawEditor.Services.WordServises {
                         currentArticle = new Article(id, title, endnoteRefId);
                         currentSection?.Articles.Add(currentArticle);
                         currentClause = null;
+                        currentSubClause = null;
+                        lastContext = LastContext.Article;
                         continue;
                     }
 
@@ -347,6 +401,8 @@ namespace LawEditor.Services.WordServises {
                         string text = Regex.Replace(line, @"^[IVX]+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId);
+                        currentSubClause = null;
+                        lastContext = LastContext.Clause;
                         continue;
                     }
 
@@ -354,7 +410,8 @@ namespace LawEditor.Services.WordServises {
                     if (Regex.IsMatch(line, @"^\d+\)")) {
                         string text = Regex.Replace(line, @"^\d+\)\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
-                        currentClause?.AddSubClause(text, endnoteId: endnoteRefId);
+                        currentSubClause = currentClause?.AddSubClause(text, endnoteId: endnoteRefId);
+                        lastContext = LastContext.SubClause;
                         continue;
                     }
 
@@ -362,7 +419,8 @@ namespace LawEditor.Services.WordServises {
                     if (Regex.IsMatch(line, @"^\d+\.\d+\.\d+\.\s")) {
                         string text = Regex.Replace(line, @"^\d+\.\d+\.\d+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
-                        currentClause?.AddSubClause(text, endnoteId: endnoteRefId);
+                        currentSubClause = currentClause?.AddSubClause(text, endnoteId: endnoteRefId);
+                        lastContext = LastContext.SubClause;
                         continue;
                     }
 
@@ -371,6 +429,8 @@ namespace LawEditor.Services.WordServises {
                         string text = Regex.Replace(line, @"^\d+\.\d+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId);
+                        currentSubClause = null;
+                        lastContext = LastContext.Clause;
                         continue;
                     }
 
@@ -379,16 +439,22 @@ namespace LawEditor.Services.WordServises {
                         string text = Regex.Replace(line, @"^\d+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId);
+                        currentSubClause = null;
+                        lastContext = LastContext.Clause;
                         continue;
                     }
 
                     // обычный текст
                     if (currentArticle != null) {
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
-                        if (currentClause == null)
+                        if (currentClause == null) {
                             currentClause = currentArticle.AddClause(line, endnoteId: endnoteRefId);
-                        else
-                            currentClause.AddSubClause(line, endnoteId: endnoteRefId);
+                            lastContext = LastContext.Clause;
+                        }
+                        else {
+                            currentSubClause = currentClause.AddSubClause(line, endnoteId: endnoteRefId);
+                            lastContext = LastContext.SubClause;
+                        }
                         continue;
                     }
                 }
