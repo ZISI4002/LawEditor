@@ -12,16 +12,22 @@ namespace LawEditor.Models.ChangableData
         public string? Text { get; set; }
         public Table? Table { get; set; }
         public string? EndnoteId { get; set; }
+        public string? LinkText { get; set; }
+        public string? Url { get; set; }
         public ObservableCollection<SubClause> SubClauses { get; set; } = new();
         public Clause() { }
-        public Clause(int number, string text, string? endnoteId = null) {
+        public Clause(int number, string text, string? endnoteId = null, string? linkText = null, string? url = null) {
             Number = number;
             Text = text;
             EndnoteId = endnoteId;
+            LinkText = linkText;
+            Url = url;
         }
-        public Clause(string text, string? endnoteId = null) {
+        public Clause(string text, string? endnoteId = null, string? linkText = null, string? url = null) {
             Text = text;
             EndnoteId = endnoteId;
+            LinkText = linkText;
+            Url = url;
         }
 
         public SubClause AddPhantomSubClause(string text, int id, string? endnoteId = null)

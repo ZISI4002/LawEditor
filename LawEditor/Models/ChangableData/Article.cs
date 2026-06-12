@@ -22,25 +22,20 @@ namespace LawEditor.Models.ChangableData
             Title = title;
             EndnoteId = endnoteId;
         }
-        public Clause AddPhantomClause(string text, int id, string? endnoteId = null) {
-            var newClause = new Clause(id, text, endnoteId);
-
+        public Clause AddPhantomClause(string text, int id, string? endnoteId = null, string? linkText = null, string? url = null) {
+            var newClause = new Clause(id, text, endnoteId, linkText, url);
             Clauses.Add(newClause);
-
             // Сортировка
             Clauses.OrderBy(i => i.Number);
-
             return newClause;
         }
-        public Clause AddClause(string text, int? position = null, string? endnoteId = null) {
-            var newClause = new Clause(text, endnoteId);
-
+        public Clause AddClause(string text, int? position = null, string? endnoteId = null, string? linkText = null, string? url = null) {
+            var newClause = new Clause(text, endnoteId, linkText, url);
             if (position == null || position >= Clauses.Count) {
                 newClause.Number = Clauses.Count + 1;
                 Clauses.Add(newClause);
                 return newClause;
             }
-
             int insertNumber = Clauses[position.Value].Number;
             foreach (var clause in Clauses.Where(c => c.Number >= insertNumber)) {
                 clause.Number++;
