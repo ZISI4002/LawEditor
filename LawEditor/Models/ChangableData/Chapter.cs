@@ -109,5 +109,6 @@ namespace LawEditor.Models.ChangableData
 
             Section.DecreaseCounter();
         }
+        public void AddTable(Laws law) => law.AddTableFor(this);
     }
 }

@@ -296,5 +296,7 @@ namespace LawEditor.Models.ChangableData
 
         }
 
+        public void AddTable(Laws law) => law.AddTableFor(this);
+
     }
 }

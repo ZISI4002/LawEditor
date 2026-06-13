@@ -1,4 +1,5 @@
-﻿using Table = LawEditor.Models.SpecialElements.Table;
+﻿using LawEditor.Models.RootClasses;
+using Table = LawEditor.Models.SpecialElements.Table;
 
 namespace LawEditor.Models.ChangableData
 {
@@ -14,6 +15,6 @@ namespace LawEditor.Models.ChangableData
             Text = text;
             EndnoteId = endnoteId;
         }
-
+        public void AddTable(Laws law) => law.AddTableFor(this);
     }
 }
