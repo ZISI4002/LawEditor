@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using LawEditor.Models.RootClasses;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -92,5 +93,6 @@ namespace LawEditor.Models.ChangableData
             }
         }
 
+        public void AddTable(Laws law) => law.AddTableFor(this);
     }
 }
