@@ -12,6 +12,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using Section = LawEditor.Models.ChangableData.Section;
 using Table = LawEditor.Models.SpecialElements.Table;
 
 namespace LawEditor.Views
@@ -123,9 +124,11 @@ namespace LawEditor.Views
 
             Table? table = selectedItem switch
             {
+                Chapter ch => ch.Table,
+                Section section => section.Table,
                 Article a => a.Table,
-                // Clause cl => cl.Table,
-                // SubClause sc => sc.Table,
+                 Clause cl => cl.Table,
+                 SubClause sc => sc.Table,
                 _ => null
             };
 
@@ -157,7 +160,7 @@ namespace LawEditor.Views
                 {
                     e.Handled = true; // Глушим событие, чтобы каретка RichTextBox не прыгала на ссылку
 
-                    var win = new TableEditorWindow(table)
+                    var win = new TableEditorWindow(table, _vm)
                     { Owner = this };
 
                     win.ShowDialog();

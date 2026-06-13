@@ -1,16 +1,13 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
+﻿// AddRowCommand.cs
+using DocumentFormat.OpenXml.Spreadsheet;
 using LawEditor.Models.SpecialElements;
 using LawEditor.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace LawEditor.Commands.TableEditorWindowCommands
 {
-   public class AddRowCommand : ICommand
+    public class AddRowCommand : ICommand
     {
         public event EventHandler? CanExecuteChanged;
         public readonly TableEditorViewModel _viewModel;
@@ -25,9 +22,18 @@ namespace LawEditor.Commands.TableEditorWindowCommands
             var row = new TableRowData();
             for (int i = 0; i < _viewModel.Headers.Count; i++)
                 row.Cells.Add(string.Empty);
-            _viewModel.Rows.Add(row);
+
+            if (parameter is TableRowData selected)
+            {
+                int index = _viewModel.Rows.IndexOf(selected);
+                _viewModel.Rows.Insert(index + 1, row);
+            }
+            else
+            {
+                _viewModel.Rows.Add(row);
+            }
+
             _viewModel.WorkingCopy.Rows = _viewModel.Rows;
         }
-    
     }
 }

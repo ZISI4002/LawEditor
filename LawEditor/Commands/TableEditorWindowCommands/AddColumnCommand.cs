@@ -1,10 +1,8 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
+﻿// AddColumnCommand.cs
+using DocumentFormat.OpenXml.Spreadsheet;
 using LawEditor.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace LawEditor.Commands.TableEditorWindowCommands
@@ -23,11 +21,16 @@ namespace LawEditor.Commands.TableEditorWindowCommands
 
         public void Execute(object? parameter)
         {
-            _viewModel.Headers.Add($"Column {_viewModel.Headers.Count + 1}");
+            int insertIndex = _viewModel.Headers.Count;
+
+            if (parameter is DataGridColumn col)
+                insertIndex = Math.Min(col.DisplayIndex + 1, _viewModel.Headers.Count);
+
+            _viewModel.Headers.Insert(insertIndex, $"Column {_viewModel.Headers.Count + 1}");
+
             foreach (var row in _viewModel.Rows)
-            {
-                row.Cells.Add(string.Empty);
-            }
+                row.Cells.Insert(insertIndex, string.Empty);
+
             _viewModel.WorkingCopy.Headers = _viewModel.Headers;
             _viewModel.WorkingCopy.Rows = _viewModel.Rows;
         }

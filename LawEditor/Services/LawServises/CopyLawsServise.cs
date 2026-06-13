@@ -41,18 +41,18 @@ namespace LawEditor.Services.LawServises
             // Копируем главы
             foreach (var ch in source.Chapters)
             {
-                var newChapter = new Chapter { Id = ch.Id, Title = ch.Title };
+                var newChapter = new Chapter { Id = ch.Id, Title = ch.Title , Table = ch.Table };
                 foreach (var sec in ch.Sections)
                 {
-                    var newSection = new Section { Id = sec.Id, Title = sec.Title };
+                    var newSection = new Section { Id = sec.Id, Title = sec.Title , Table = sec.Table };
                     foreach (var art in sec.Articles)
                     {
                         var newArticle = new Article { Id = art.Id, Title = art.Title , EndnoteId=art.EndnoteId, Table = art.Table };
                         foreach (var cl in art.Clauses)
                         {
-                            var newClause = new Clause { Number = cl.Number, Text = cl.Text , EndnoteId = cl.EndnoteId};
+                            var newClause = new Clause { Number = cl.Number, Text = cl.Text , Table = cl.Table, EndnoteId = cl.EndnoteId};
                             foreach (var sc in cl.SubClauses)
-                                newClause.SubClauses.Add(new SubClause { Number = sc.Number, Text = sc.Text , EndnoteId = sc.EndnoteId});
+                                newClause.SubClauses.Add(new SubClause { Number = sc.Number, Text = sc.Text , Table = sc.Table, EndnoteId = sc.EndnoteId});
                             newArticle.Clauses.Add(newClause);
                         }
                         newSection.Articles.Add(newArticle);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// TableEditorViewModel.cs
+using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -9,13 +10,13 @@ namespace LawEditor.ViewModels
 {
     public class TableEditorViewModel : BaseViewModel
     {
-       
-        public TableEditorViewModel(Window window,LawEditor.Models.SpecialElements.Table original)
+        public TableEditorViewModel(Window window, LawEditor.Models.SpecialElements.Table original,LawEditorWindowViewModel parentViewModel)
             : base(window)
         {
             OriginalTable = original;
             WorkingCopy = original.Clone();
             Title = WorkingCopy.Title;
+            ParentViewModel = parentViewModel;
 
             SaveTableCommand = new SaveTableCommand(this);
             AddRowCommand = new AddRowCommand(this);
@@ -25,7 +26,6 @@ namespace LawEditor.ViewModels
         }
 
         public Table OriginalTable { get; set; }
-
         public Table WorkingCopy { get; set; }
 
         private string _title = string.Empty;
@@ -38,21 +38,12 @@ namespace LawEditor.ViewModels
         public ObservableCollection<string> Headers => WorkingCopy.Headers;
         public ObservableCollection<TableRowData> Rows => WorkingCopy.Rows;
 
-        private int _selectedColumnIndex = -1;
-        public int SelectedColumnIndex
-        {
-            get => _selectedColumnIndex;
-            set => Set(ref _selectedColumnIndex, value);
-        }
-
+        public LawEditorWindowViewModel ParentViewModel { get; set; }
         public ICommand SaveTableCommand { get; }
         public ICommand AddRowCommand { get; }
         public ICommand DeleteRowCommand { get; }
         public ICommand AddColumnCommand { get; }
         public ICommand DeleteColumnCommand { get; }
         public ICommand DeleteTableCommand { get; }
-
-
-
     }
 }

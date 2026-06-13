@@ -26,6 +26,7 @@ namespace LawEditor.Commands.TableEditorWindowCommands
 
             _viewModel.WorkingCopy.Title = _viewModel.Title;
             _viewModel.OriginalTable.ApplyFrom(_viewModel.WorkingCopy);
+            _viewModel.ParentViewModel.HasUnsavedChanges = true;
             _viewModel.Window.Close();
 
         }

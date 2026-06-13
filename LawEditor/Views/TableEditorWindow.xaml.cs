@@ -22,10 +22,10 @@ namespace LawEditor.Views
     {
         private readonly TableEditorViewModel _vm;
 
-        public TableEditorWindow(LawEditor.Models.SpecialElements.Table table)
+        public TableEditorWindow(LawEditor.Models.SpecialElements.Table table, LawEditor.ViewModels.LawEditorWindowViewModel parentViewModel)
         {
             InitializeComponent();
-            _vm = new TableEditorViewModel(this, table);
+            _vm = new TableEditorViewModel(this, table, parentViewModel);
             DataContext = _vm;
         }
         public TableEditorWindow()
@@ -67,7 +67,10 @@ namespace LawEditor.Views
                 grid.Columns.Add(column);
             }
         }
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }   
 
-        
     }
 }
