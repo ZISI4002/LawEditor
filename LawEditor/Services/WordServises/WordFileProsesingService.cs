@@ -53,53 +53,40 @@ namespace LawEditor.Services.WordServises {
             SubClause
         }
 
-        // ── Получить текст и URL ссылки из параграфа (HYPERLINK field code) ──
-        private (string? linkText, string? url) ExtractHyperlink(Paragraph para) {
-            var runs = para.Elements<Run>().ToList();
+        // ── Получить текст и URL ссылки из параграфа ──────────────────────────
+        // Поддерживает ДВА механизма гиперссылок в Word:
+        //  1) <w:hyperlink r:id="..."> — реальная связь через relationships
+        //  2) HYPERLINK field code (fldChar begin/separate/end + instrText)
+        // relationships может быть null, если ссылок этого типа в данном
+        // контексте не предполагается (например, при чтении endnotes можно
+        // передать relationships эндноутов).
+        private (string? linkText, string? url) ExtractHyperlink(
+            Paragraph para,
+            Dictionary<string, string>? relationships = null) {
 
-            bool insideField = false;
-            string? url = null;
-            var linkTextSb = new StringBuilder();
+            // ── Механизм 1: <w:hyperlink r:id="..."> ────────────────────────
+            var hyperlinkElement = para.Elements<Hyperlink>().FirstOrDefault();
+            if (hyperlinkElement != null) {
+                string? rId = hyperlinkElement.Id?.Value;
+                string text = string.Concat(
+                    hyperlinkElement.Elements<Run>()
+                                    .Select(r => r.GetFirstChild<Text>()?.Text ?? "")
+                ).Trim();
 
-            foreach (var run in runs) {
-                var fldChar = run.Descendants<FieldChar>().FirstOrDefault();
-                var instrText = run.Descendants<FieldCode>().FirstOrDefault();
+                string? linkUrl = null;
+                if (rId != null && relationships != null && relationships.TryGetValue(rId, out var u))
+                    linkUrl = u;
 
-                if (fldChar != null) {
-                    if (fldChar.FieldCharType == FieldCharValues.Begin) {
-                        insideField = true;
-                        continue;
-                    }
-                    if (fldChar.FieldCharType == FieldCharValues.Separate) {
-                        continue;
-                    }
-                    if (fldChar.FieldCharType == FieldCharValues.End) {
-                        insideField = false;
-                        continue;
-                    }
-                }
-
-                if (instrText != null) {
-                    string instr = instrText.Text ?? "";
-                    var match = Regex.Match(instr, @"HYPERLINK\s+""([^""]+)""");
-                    if (match.Success)
-                        url = match.Groups[1].Value;
-                    continue;
-                }
-
-                // Текст ссылки идёт ПОСЛЕ separate, ДО end —
-                // т.е. когда url уже найден (поле открыто и instrText распознан),
-                // но fldChar end ещё не встретился.
-                if (url != null && insideField == false) {
-                    // separate уже встретился (insideField сброшен на нём не должен быть)
-                }
+                if (!string.IsNullOrWhiteSpace(text))
+                    return (text, linkUrl);
             }
 
-            // Второй проход: текст ссылки — это runs между separate и end.
-            // Переделаем логику линейно с состоянием.
-            url = null;
-            linkTextSb.Clear();
-            int state = 0; // 0=outside, 1=afterBegin(reading instrText), 2=afterSeparate(reading link text)
+            // ── Механизм 2: HYPERLINK field code ────────────────────────────
+            var runs = para.Elements<Run>().ToList();
+
+            string? url = null;
+            var linkTextSb = new StringBuilder();
+            int state = 0; // 0=outside, 1=afterBegin(instrText), 2=afterSeparate(link text)
 
             foreach (var run in runs) {
                 var fldChar = run.Descendants<FieldChar>().FirstOrDefault();
@@ -148,10 +135,8 @@ namespace LawEditor.Services.WordServises {
                     continue;
 
                 var sb = new StringBuilder();
-                foreach (var run in endnote.Descendants<Run>()) {
-                    if (run.GetFirstChild<EndnoteReferenceMark>() != null) continue;
-                    sb.Append(run.InnerText);
-                }
+                foreach (var para in endnote.Elements<Paragraph>())
+                    sb.Append(GetEndnoteParagraphText(para));
 
                 string content = sb.ToString().Trim();
                 if (string.IsNullOrWhiteSpace(content)) continue;
@@ -192,9 +177,21 @@ namespace LawEditor.Services.WordServises {
         private string GetParagraphText(Paragraph para) {
             var sb = new StringBuilder();
             string? prevText = null;
+            int fieldState = 0; // 0=normal, 1=insideInstrText (HYPERLINK "...")
 
             foreach (var run in para.Elements<Run>()) {
                 if (run.Descendants<EndnoteReference>().Any())
+                    continue;
+
+                var fldChar = run.Descendants<FieldChar>().FirstOrDefault();
+                if (fldChar != null) {
+                    if (fldChar.FieldCharType == FieldCharValues.Begin) { fieldState = 1; continue; }
+                    if (fldChar.FieldCharType == FieldCharValues.Separate) { fieldState = 0; continue; }
+                    if (fldChar.FieldCharType == FieldCharValues.End) { fieldState = 0; continue; }
+                }
+
+                // Пропускаем instrText (саму формулу HYPERLINK "url" \o "...")
+                if (fieldState == 1)
                     continue;
 
                 var rPr = run.GetFirstChild<RunProperties>();
@@ -217,6 +214,41 @@ namespace LawEditor.Services.WordServises {
             }
 
             return sb.ToString().Trim();
+        }
+
+        // ── Текст параграфа эндноута: исключаем EndnoteReferenceMark и field codes ──
+        private string GetEndnoteParagraphText(Paragraph para) {
+            var sb = new StringBuilder();
+            int fieldState = 0; // 0=normal, 1=insideInstrText
+
+            foreach (var run in para.Elements<Run>()) {
+                if (run.GetFirstChild<EndnoteReferenceMark>() != null)
+                    continue;
+                if (run.Descendants<EndnoteReference>().Any())
+                    continue;
+
+                var fldChar = run.Descendants<FieldChar>().FirstOrDefault();
+                if (fldChar != null) {
+                    if (fldChar.FieldCharType == FieldCharValues.Begin) { fieldState = 1; continue; }
+                    if (fldChar.FieldCharType == FieldCharValues.Separate) { fieldState = 0; continue; }
+                    if (fldChar.FieldCharType == FieldCharValues.End) { fieldState = 0; continue; }
+                }
+
+                // Пропускаем instrText (саму формулу HYPERLINK "url" \o "...")
+                if (fieldState == 1)
+                    continue;
+
+                string text = run.GetFirstChild<Text>()?.Text ?? "";
+                sb.Append(text);
+            }
+
+            // <w:hyperlink> внутри эндноута — видимый текст ссылки
+            foreach (var hl in para.Elements<Hyperlink>()) {
+                foreach (var run in hl.Elements<Run>())
+                    sb.Append(run.GetFirstChild<Text>()?.Text ?? "");
+            }
+
+            return sb.ToString();
         }
 
         // ── Строим словарь rId → URL из коллекции relationships ──────────────
@@ -320,6 +352,7 @@ namespace LawEditor.Services.WordServises {
             using var doc = WordprocessingDocument.Open(filePath, false);
             var body = doc.MainDocumentPart.Document.Body;
 
+            // rId → URL для <w:hyperlink> в основном документе (SOURCES, Clause и т.д.)
             var docRelationships = BuildRelationshipMap(
                 doc.MainDocumentPart.HyperlinkRelationships);
 
@@ -465,7 +498,7 @@ namespace LawEditor.Services.WordServises {
                     if (Regex.IsMatch(line, @"^[IVX]+\.\s")) {
                         string text = Regex.Replace(line, @"^[IVX]+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
-                        var (linkText1, url1) = ExtractHyperlink(para);
+                        var (linkText1, url1) = ExtractHyperlink(para, docRelationships);
                         currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId, linkText: linkText1, url: url1);
                         currentSubClause = null;
                         lastContext = LastContext.Clause;
@@ -494,7 +527,7 @@ namespace LawEditor.Services.WordServises {
                     if (Regex.IsMatch(line, @"^\d+\.\d+\.\s")) {
                         string text = Regex.Replace(line, @"^\d+\.\d+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
-                        var (linkText2, url2) = ExtractHyperlink(para);
+                        var (linkText2, url2) = ExtractHyperlink(para, docRelationships);
                         currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId, linkText: linkText2, url: url2);
                         currentSubClause = null;
                         lastContext = LastContext.Clause;
@@ -505,7 +538,7 @@ namespace LawEditor.Services.WordServises {
                     if (Regex.IsMatch(line, @"^\d+\.\s")) {
                         string text = Regex.Replace(line, @"^\d+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
-                        var (linkText3, url3) = ExtractHyperlink(para);
+                        var (linkText3, url3) = ExtractHyperlink(para, docRelationships);
                         currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId, linkText: linkText3, url: url3);
                         currentSubClause = null;
                         lastContext = LastContext.Clause;
@@ -515,7 +548,7 @@ namespace LawEditor.Services.WordServises {
                     // обычный текст
                     if (currentArticle != null) {
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
-                        var (linkText4, url4) = ExtractHyperlink(para);
+                        var (linkText4, url4) = ExtractHyperlink(para, docRelationships);
                         if (currentClause == null) {
                             currentClause = currentArticle.AddClause(line, endnoteId: endnoteRefId, linkText: linkText4, url: url4);
                             lastContext = LastContext.Clause;
@@ -560,7 +593,7 @@ namespace LawEditor.Services.WordServises {
 
                 // SOURCES
                 if (mode == Mode.Sources) {
-                    var (linkText, url) = ExtractHyperlink(para);
+                    var (linkText, url) = ExtractHyperlink(para, docRelationships);
 
                     string cleanedLine = Regex.Replace(line, @"^\d+[\.\)]\s*", "");
 
@@ -609,6 +642,7 @@ namespace LawEditor.Services.WordServises {
             if (endnotesPart == null)
                 return;
 
+            // rId → URL для <w:hyperlink> внутри эндноутов
             var endnoteRelationships = BuildRelationshipMap(
                 endnotesPart.HyperlinkRelationships);
 
@@ -622,10 +656,19 @@ namespace LawEditor.Services.WordServises {
                     continue;
 
                 var sb = new StringBuilder();
-                foreach (var run in endnote.Descendants<Run>()) {
-                    if (run.GetFirstChild<EndnoteReferenceMark>() != null)
-                        continue;
-                    sb.Append(run.InnerText);
+                string? linkText = null;
+                string? url = null;
+
+                foreach (var para in endnote.Elements<Paragraph>()) {
+                    sb.Append(GetEndnoteParagraphText(para));
+
+                    if (linkText == null) {
+                        var (lt, u) = ExtractHyperlink(para, endnoteRelationships);
+                        if (lt != null) {
+                            linkText = lt;
+                            url = u;
+                        }
+                    }
                 }
 
                 string content = sb.ToString().Trim();
@@ -647,29 +690,11 @@ namespace LawEditor.Services.WordServises {
                     numericCounter++;
                 }
 
-                string? linkText = null;
-                string? url = null;
-
-                var firstParaWithLink = endnote.Elements<Paragraph>()
-                    .FirstOrDefault(p => p.Elements<Hyperlink>().Any());
-
-                if (firstParaWithLink != null) {
-                    var hyperlink = firstParaWithLink.Elements<Hyperlink>().First();
-                    string? rId = hyperlink.Id?.Value;
-
-                    linkText = string.Concat(
-                        hyperlink.Elements<Run>().Select(r => r.InnerText)
-                    ).Trim();
-
-                    if (rId != null && endnoteRelationships.TryGetValue(rId, out var u))
-                        url = u;
-                }
-
                 amendments.Add(
                     new ConstitutionalAmendment(
                         amendmentId,
                         amendmentTitle,
-                        string.IsNullOrWhiteSpace(linkText) ? null : linkText,
+                        linkText,
                         url));
             }
         }
