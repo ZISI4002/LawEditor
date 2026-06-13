@@ -21,7 +21,7 @@ namespace LawEditor.Models.SpecialElements
         private Table(bool manual) { }
 
         public static Table CreateManual() => new Table(true);
-
+        public static int GetCounter() => counter;
         public static void ResetCounter()
         {
             counter = 1;
