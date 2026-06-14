@@ -31,7 +31,7 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
             switch (menuText)
             {
-                // Bölüm əlavə etməklə bağlı əmrlər
+                // Bölmə əlavə etməklə bağlı əmrlər
                 case "Yuxarıda bölmə əlavə et":
 
                     _viewModel.EditedLaws.AddChapter("Yeni Bölmə",anchor.Chapter.Id-1);
@@ -52,6 +52,9 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     break;
                 case "Aşağıda fəsil əlavə et":
                     anchor.Chapter.AddSection("Yeni Fəsil", anchor.Section.Id );
+                    break;
+                    case "Bölməyə cədvəl əlavə edin":
+                        anchor.Chapter.AddTable(_viewModel.EditedLaws);
                     break;
                 // Maddə əlavə etməklə bağlı əmrlər
                 case "İçəridə maddə əlavə et":
@@ -92,6 +95,11 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     anchor.Section.AddArticle(cout, "Yeni Maddə", _viewModel.EditedLaws);
 
                     break;
+
+                case "Fəsilə cədvəl əlavə edin":
+                    anchor.Section.AddTable(_viewModel.EditedLaws);
+                    break;
+
                 // Bənd əlavə etməklə bağlı əmrlər
                 case "İçəridə bənd əlavə et":
                     anchor.Article.AddClause("Yeni Bənd");
@@ -102,6 +110,12 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "Aşağıda bənd əlavə et":
                         anchor.Article.AddClause("Yeni Bənd", anchor.Clause.Number);
                     break;
+                case "Maddəyə cədvəl əlavə edin":
+                    anchor.Article.AddTable(_viewModel.EditedLaws);
+                    
+                   break;
+
+
                 // Altbənd əlavə etməklə bağlı əmrlər
                 case "İçəridə altbənd əlavə et":
                     anchor.Clause.AddSubClause("Yeni Altbənd");
@@ -111,6 +125,12 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     break;
                 case "Aşağıda altbənd əlavə et":
                     anchor.Clause.AddSubClause("Yeni Altbənd", anchor.SubClause.Number);
+                    break;
+                    case "Bəndə cədvəl əlavə edin":
+                    anchor.Clause.AddTable(_viewModel.EditedLaws);
+                    break;
+                    case "Altbəndə cədvəl əlavə edin":
+                    anchor.SubClause.AddTable(_viewModel.EditedLaws);
                     break;
                 // Keçid müddəası əlavə etməklə bağlı əmrlər
                 case "İçəridə yeni Keçid Müddəası əlavə elə":

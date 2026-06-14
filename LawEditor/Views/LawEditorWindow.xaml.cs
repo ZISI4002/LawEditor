@@ -21,6 +21,7 @@ namespace LawEditor.Views
     {
         private const int WM_MOUSEHWHEEL = 0x020E;
         private bool _isUpdatingRichText = false;
+       
 
         public LawEditorWindow()
         {
@@ -34,7 +35,11 @@ namespace LawEditor.Views
                 hwndSource?.AddHook(HwndMessageHook);
 
                 if (DataContext is LawEditorWindowViewModel vm)
+                {
+
                     vm.OnSelectedItemChanged = SetRichTextContent;
+                }
+
             };
         }
 
@@ -160,7 +165,7 @@ namespace LawEditor.Views
                 {
                     e.Handled = true; // Глушим событие, чтобы каретка RichTextBox не прыгала на ссылку
 
-                    var win = new TableEditorWindow(table, _vm)
+                    var win = new TableEditorWindow(table, DataContext as LawEditorWindowViewModel)
                     { Owner = this };
 
                     win.ShowDialog();

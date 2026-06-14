@@ -140,17 +140,23 @@
         </Border>
 
         <!-- Footer -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal"
-                    HorizontalAlignment="Right" Margin="0,14,0,0">
-            <Button Content="✔ Save" Background="#27AE60"
-        Style="{StaticResource ToolBtn}"
-        Width="130" Height="36"
-        Command="{Binding SaveTableCommand}"
-        Margin="0,0,10,0"/>
-            <Button Content="Cancel" Background="#555"
-        Style="{StaticResource ToolBtn}"
-        Width="100" Height="36"
-        Click="CancelButton_Click"/>
-        </StackPanel>
+        <Grid Grid.Row="3" Margin="0,14,0,0">
+            <Button Content="🗑 Delete Table" Background="#C0392B"
+            Style="{StaticResource ToolBtn}"
+            Width="130" Height="36"
+            Command="{Binding DeleteTableCommand}"
+            HorizontalAlignment="Left"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="✔ Save" Background="#27AE60"
+                Style="{StaticResource ToolBtn}"
+                Width="130" Height="36"
+                Command="{Binding SaveTableCommand}"
+                Margin="0,0,10,0"/>
+                <Button Content="Cancel" Background="#555"
+                Style="{StaticResource ToolBtn}"
+                Width="100" Height="36"
+                Click="CancelButton_Click"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

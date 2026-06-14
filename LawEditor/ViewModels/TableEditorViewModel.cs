@@ -23,6 +23,7 @@ namespace LawEditor.ViewModels
             DeleteRowCommand = new DeleteRowCommand(this);
             AddColumnCommand = new AddColumnCommand(this);
             DeleteColumnCommand = new DeleteColumnCommand(this);
+            DeleteTableCommand = new DeleteTableCommand(this);
         }
 
         public Table OriginalTable { get; set; }
