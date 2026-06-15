@@ -15,6 +15,7 @@ namespace LawEditor.Models.ChangableData
         public string? Title { get; set; }
         public string? EndnoteId { get; set; }
         public Table? Table { get; set; }
+        public Image? Image { get; set; }
         public ObservableCollection<Clause> Clauses { get; set; } = new();
         public Article() { }
         public Article(decimal id, string title, string? endnoteId = null) {

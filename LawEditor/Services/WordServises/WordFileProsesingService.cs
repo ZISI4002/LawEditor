@@ -7,15 +7,93 @@ using LawEditor.Models.SpecialElements;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Table = LawEditor.Models.SpecialElements.Table;
-
+using A = DocumentFormat.OpenXml.Drawing;
 
 namespace LawEditor.Services.WordServises {
     public class WordFileProsesingService {
+
+        // ── Папка для временных картинок ──────────────────────────────────────
+        private static readonly string SpecialImagesFolder =
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "Downloads", "SpecialImages");
+
+        // ── Проверяет, есть ли в параграфе картинка ───────────────────────────
+        private bool HasImage(Paragraph para) {
+            return para.Descendants<A.Blip>().Any();
+        }
+
+        // ── Извлекает картинку из параграфа, сохраняет в SpecialImages ────────
+        private Image? ExtractImage(Paragraph para, WordprocessingDocument doc) {
+            var blip = para.Descendants<A.Blip>().FirstOrDefault();
+            if (blip == null) return null;
+
+            string? rId = blip.Embed?.Value;
+            if (string.IsNullOrEmpty(rId)) return null;
+
+            var part = doc.MainDocumentPart?.GetPartById(rId);
+            if (part == null) return null;
+
+            string extension = part.ContentType switch {
+                "image/png" => ".png",
+                "image/jpeg" => ".jpg",
+                "image/gif" => ".gif",
+                "image/bmp" => ".bmp",
+                "image/tiff" => ".tiff",
+                "image/x-emf" or "image/emf" => ".emf",
+                "image/x-wmf" or "image/wmf" => ".wmf",
+                _ => ".png"
+            };
+
+            var image = new Image { Extension = extension };
+
+            Directory.CreateDirectory(SpecialImagesFolder);
+            string filePath = Path.Combine(SpecialImagesFolder, image.FileName);
+
+            using (var stream = part.GetStream())
+            using (var fs = File.Create(filePath)) {
+                stream.CopyTo(fs);
+            }
+
+            image.FilePath = filePath;
+            return image;
+        }
+
+        // ── Назначаем картинку последнему активному объекту ───────────────────
+        private void AssignImage(
+            Image image,
+            LastContext lastContext,
+            Chapter? currentChapter,
+            Section? currentSection,
+            Article? currentArticle,
+            Clause? currentClause,
+            SubClause? currentSubClause) {
+
+            switch (lastContext) {
+                case LastContext.SubClause:
+                    if (currentSubClause != null) currentSubClause.Image = image;
+                    break;
+                case LastContext.Clause:
+                    if (currentClause != null) currentClause.Image = image;
+                    break;
+                case LastContext.Article:
+                    if (currentArticle != null) currentArticle.Image = image;
+                    break;
+                case LastContext.Section:
+                    if (currentSection != null) currentSection.Image = image;
+                    break;
+                case LastContext.Chapter:
+                    if (currentChapter != null) currentChapter.Image = image;
+                    break;
+            }
+        }
+
         // ── Проверка строки-заголовка bölmə ───────────────────────────────────
         private bool IsChapterLine(string line) {
             if (string.IsNullOrWhiteSpace(line))
@@ -54,12 +132,6 @@ namespace LawEditor.Services.WordServises {
         }
 
         // ── Получить текст и URL ссылки из параграфа ──────────────────────────
-        // Поддерживает ДВА механизма гиперссылок в Word:
-        //  1) <w:hyperlink r:id="..."> — реальная связь через relationships
-        //  2) HYPERLINK field code (fldChar begin/separate/end + instrText)
-        // relationships может быть null, если ссылок этого типа в данном
-        // контексте не предполагается (например, при чтении endnotes можно
-        // передать relationships эндноутов).
         private (string? linkText, string? url) ExtractHyperlink(
             Paragraph para,
             Dictionary<string, string>? relationships = null) {
@@ -216,7 +288,7 @@ namespace LawEditor.Services.WordServises {
             return sb.ToString().Trim();
         }
 
-        // ── Текст параграфа эндноута: исключаем EndnoteReferenceMark и field codes ──
+        // ── Текст параграфа эндноута ──────────────────────────────────────────
         private string GetEndnoteParagraphText(Paragraph para) {
             var sb = new StringBuilder();
             int fieldState = 0; // 0=normal, 1=insideInstrText
@@ -234,7 +306,6 @@ namespace LawEditor.Services.WordServises {
                     if (fldChar.FieldCharType == FieldCharValues.End) { fieldState = 0; continue; }
                 }
 
-                // Пропускаем instrText (саму формулу HYPERLINK "url" \o "...")
                 if (fieldState == 1)
                     continue;
 
@@ -242,7 +313,6 @@ namespace LawEditor.Services.WordServises {
                 sb.Append(text);
             }
 
-            // <w:hyperlink> внутри эндноута — видимый текст ссылки
             foreach (var hl in para.Elements<Hyperlink>()) {
                 foreach (var run in hl.Elements<Run>())
                     sb.Append(run.GetFirstChild<Text>()?.Text ?? "");
@@ -327,6 +397,7 @@ namespace LawEditor.Services.WordServises {
             var law = new Laws();
 
             Table.ResetCounter();
+            Image.ResetCounter();
 
             ObservableCollection<TransitionalProvisions> transitional = new ObservableCollection<TransitionalProvisions>();
             ObservableCollection<SourceDocumentsList> sources = new ObservableCollection<SourceDocumentsList>();
@@ -352,7 +423,6 @@ namespace LawEditor.Services.WordServises {
             using var doc = WordprocessingDocument.Open(filePath, false);
             var body = doc.MainDocumentPart.Document.Body;
 
-            // rId → URL для <w:hyperlink> в основном документе (SOURCES, Clause и т.д.)
             var docRelationships = BuildRelationshipMap(
                 doc.MainDocumentPart.HyperlinkRelationships);
 
@@ -374,6 +444,16 @@ namespace LawEditor.Services.WordServises {
                 // ── ПАРАГРАФ ─────────────────────────────────────────────────
                 if (element is not Paragraph para)
                     continue;
+
+                // ── КАРТИНКА ─────────────────────────────────────────────────
+                if (HasImage(para) && mode == Mode.Chapters && lastContext != LastContext.None) {
+                    var image = ExtractImage(para, doc);
+                    if (image != null)
+                        AssignImage(image, lastContext,
+                            currentChapter, currentSection, currentArticle,
+                            currentClause, currentSubClause);
+                    continue;
+                }
 
                 var line = GetParagraphText(para);
 
@@ -642,7 +722,6 @@ namespace LawEditor.Services.WordServises {
             if (endnotesPart == null)
                 return;
 
-            // rId → URL для <w:hyperlink> внутри эндноутов
             var endnoteRelationships = BuildRelationshipMap(
                 endnotesPart.HyperlinkRelationships);
 

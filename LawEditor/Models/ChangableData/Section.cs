@@ -1,4 +1,5 @@
 ﻿using LawEditor.Models.RootClasses;
+using LawEditor.Models.SpecialElements;
 using LawEditor.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace LawEditor.Models.ChangableData
             }
         }
         public Table? Table { get; set; }
+        public Image? Image { get; set; }
 
         public ObservableCollection<Article> Articles { get; set; } = new();
 

@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Bibliography;
 using LawEditor.Models.ChangableSourse;
 using LawEditor.Models.RootClasses;
+using LawEditor.Models.SpecialElements;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -21,6 +22,7 @@ namespace LawEditor.Models.ChangableData
             }
         }
         public Table? Table { get; set; }
+        public Image? Image { get; set; }
         public ObservableCollection<Section> Sections { get; set; } = new();
 
         public Chapter() { }  

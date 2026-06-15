@@ -1,5 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Office2010.Excel;
 using LawEditor.Models.RootClasses;
+using LawEditor.Models.SpecialElements;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -15,6 +16,7 @@ namespace LawEditor.Models.ChangableData
         public string? EndnoteId { get; set; }
         public string? LinkText { get; set; }
         public string? Url { get; set; }
+        public Image? Image { get; set; }
         public ObservableCollection<SubClause> SubClauses { get; set; } = new();
         public Clause() { }
         public Clause(int number, string text, string? endnoteId = null, string? linkText = null, string? url = null) {
