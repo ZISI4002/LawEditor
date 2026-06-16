@@ -18,12 +18,6 @@ using A = DocumentFormat.OpenXml.Drawing;
 namespace LawEditor.Services.WordServises {
     public class WordFileProsesingService {
 
-        // ── Папка для временных картинок ──────────────────────────────────────
-        private static readonly string SpecialImagesFolder =
-            Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "Downloads", "SpecialImages");
-
         // ── Проверяет, есть ли в параграфе картинка ───────────────────────────
         private bool HasImage(Paragraph para) {
             return para.Descendants<A.Blip>().Any();
@@ -53,8 +47,8 @@ namespace LawEditor.Services.WordServises {
 
             var image = new Image { Extension = extension };
 
-            Directory.CreateDirectory(SpecialImagesFolder);
-            string filePath = Path.Combine(SpecialImagesFolder, image.FileName);
+            Directory.CreateDirectory(Image.SpecialImagesFolder);
+            string filePath = Path.Combine(Image.SpecialImagesFolder, image.FileName);
 
             using (var stream = part.GetStream())
             using (var fs = File.Create(filePath)) {
@@ -158,7 +152,7 @@ namespace LawEditor.Services.WordServises {
 
             string? url = null;
             var linkTextSb = new StringBuilder();
-            int state = 0; // 0=outside, 1=afterBegin(instrText), 2=afterSeparate(link text)
+            int state = 0;
 
             foreach (var run in runs) {
                 var fldChar = run.Descendants<FieldChar>().FirstOrDefault();
@@ -249,7 +243,7 @@ namespace LawEditor.Services.WordServises {
         private string GetParagraphText(Paragraph para) {
             var sb = new StringBuilder();
             string? prevText = null;
-            int fieldState = 0; // 0=normal, 1=insideInstrText (HYPERLINK "...")
+            int fieldState = 0;
 
             foreach (var run in para.Elements<Run>()) {
                 if (run.Descendants<EndnoteReference>().Any())
@@ -262,7 +256,6 @@ namespace LawEditor.Services.WordServises {
                     if (fldChar.FieldCharType == FieldCharValues.End) { fieldState = 0; continue; }
                 }
 
-                // Пропускаем instrText (саму формулу HYPERLINK "url" \o "...")
                 if (fieldState == 1)
                     continue;
 
@@ -291,7 +284,7 @@ namespace LawEditor.Services.WordServises {
         // ── Текст параграфа эндноута ──────────────────────────────────────────
         private string GetEndnoteParagraphText(Paragraph para) {
             var sb = new StringBuilder();
-            int fieldState = 0; // 0=normal, 1=insideInstrText
+            int fieldState = 0;
 
             foreach (var run in para.Elements<Run>()) {
                 if (run.GetFirstChild<EndnoteReferenceMark>() != null)
@@ -348,11 +341,9 @@ namespace LawEditor.Services.WordServises {
                 return string.Join(" ", parts).Trim();
             }
 
-            // Первая строка → заголовки
             foreach (var cell in rows[0].Elements<TableCell>())
                 table.Headers.Add(GetCellText(cell));
 
-            // Остальные строки → данные
             for (int i = 1; i < rows.Count; i++) {
                 var rowData = new TableRowData();
                 foreach (var cell in rows[i].Elements<TableCell>())
@@ -505,8 +496,6 @@ namespace LawEditor.Services.WordServises {
                         currentSection = new Section("Qanunlar");
                         currentChapter.Sections.Add(currentSection);
                         lastContext = LastContext.Section;
-
-                        // Не делаем continue — строка обрабатывается ниже как Article
                     }
                     else {
                         headerBuilder.AppendLine(line);

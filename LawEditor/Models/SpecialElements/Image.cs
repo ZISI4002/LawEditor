@@ -5,7 +5,10 @@ namespace LawEditor.Models.SpecialElements
     public class Image
     {
         private static int counter = 1;
-
+        public static readonly string SpecialImagesFolder =
+        Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "Downloads", "SpecialImages");
         public int Id { get; set; }
         public string? Title { get; set; }
         public string Extension { get; set; } = string.Empty;

@@ -299,6 +299,7 @@ namespace LawEditor.Models.ChangableData
         }
 
         public void AddTable(Laws law) => law.AddTableFor(this);
+        public void AddImage(Laws law, string sourcePath) => law.AddImageFor(this, sourcePath);
 
     }
 }
