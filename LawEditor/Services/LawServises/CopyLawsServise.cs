@@ -50,7 +50,7 @@ namespace LawEditor.Services.LawServises
                         var newArticle = new Article { Id = art.Id, Title = art.Title , EndnoteId=art.EndnoteId, Table = art.Table };
                         foreach (var cl in art.Clauses)
                         {
-                            var newClause = new Clause { Number = cl.Number, Text = cl.Text , Table = cl.Table, EndnoteId = cl.EndnoteId};
+                            var newClause = new Clause { Number = cl.Number, Text = cl.Text , Table = cl.Table, EndnoteId = cl.EndnoteId, LinkText = cl.LinkText , Url = cl.Url};
                             foreach (var sc in cl.SubClauses)
                                 newClause.SubClauses.Add(new SubClause { Number = sc.Number, Text = sc.Text , Table = sc.Table, EndnoteId = sc.EndnoteId});
                             newArticle.Clauses.Add(newClause);

@@ -21,12 +21,13 @@ namespace LawEditor.Views
     {
         private const int WM_MOUSEHWHEEL = 0x020E;
         private bool _isUpdatingRichText = false;
-       
+        private object? _currentSelectedItem;
 
         public LawEditorWindow()
         {
             InitializeComponent();
             MainRichTextBox.IsEnabledChanged += (s, e) => UpdateLineNumbers();
+            MainRichTextBox.PreviewMouseRightButtonUp += MainRichTextBox_PreviewMouseRightButtonUp;
 
             Loaded += (s, e) =>
             {
@@ -124,6 +125,7 @@ namespace LawEditor.Views
         public void SetRichTextContent(object? selectedItem)
         {
             _isUpdatingRichText = true;
+            _currentSelectedItem = selectedItem; 
 
             string text = Models.TreeClasses.FullTextWrapper.GetFullText(selectedItem);
 
@@ -132,8 +134,8 @@ namespace LawEditor.Views
                 Chapter ch => ch.Table,
                 Section section => section.Table,
                 Article a => a.Table,
-                 Clause cl => cl.Table,
-                 SubClause sc => sc.Table,
+                Clause cl => cl.Table,
+                SubClause sc => sc.Table,
                 _ => null
             };
 
@@ -145,14 +147,68 @@ namespace LawEditor.Views
                 PageWidth = 10000
             };
 
-            var paragraph = new Paragraph(new Run(text))
+            var paragraph = new Paragraph
             {
                 Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A))
             };
 
+            Clause? clauseItem = selectedItem as Clause;
+
+            if (clauseItem != null && !string.IsNullOrEmpty(clauseItem.LinkText))
+            {
+                int linkIndex = text.IndexOf(clauseItem.LinkText, StringComparison.Ordinal);
+
+                if (linkIndex >= 0)
+                {
+                    // текст до ссылки
+                    if (linkIndex > 0)
+                    {
+                        paragraph.Inlines.Add(new Run(text.Substring(0, linkIndex)));
+                    }
+
+                    var linkHyperlink = new Hyperlink(new Run(clauseItem.LinkText))
+                    {
+                        Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x98, 0xDB)),
+                        FontWeight = FontWeights.SemiBold,
+                        Cursor = Cursors.Hand,
+                        TextDecorations = TextDecorations.Underline
+                    };
+
+                    linkHyperlink.MouseLeftButtonDown += (s, e) =>
+                    {
+                        e.Handled = true;
+
+                        var editor = new LinkEditorWindow(clauseItem.Url) { Owner = this };
+                        if (editor.ShowDialog() == true)
+                        {
+                            clauseItem.Url = editor.Url;
+                            SetRichTextContent(selectedItem);
+                        }
+                    };
+
+                    paragraph.Inlines.Add(linkHyperlink);
+
+                    // текст после ссылки
+                    int afterStart = linkIndex + clauseItem.LinkText.Length;
+                    if (afterStart < text.Length)
+                    {
+                        paragraph.Inlines.Add(new Run(text.Substring(afterStart)));
+                    }
+                }
+                else
+                {
+                    // LinkText задан, но в тексте не найден — на всякий случай просто выводим текст целиком
+                    paragraph.Inlines.Add(new Run(text));
+                }
+            }
+            else
+            {
+                paragraph.Inlines.Add(new Run(text));
+            }
+
             if (table != null)
             {
-                var link = new Hyperlink(new Run($" [📋 Cədvəl #{table.Id}]"))
+                var tableHyperlink = new Hyperlink(new Run($" [📋 Cədvəl #{table.Id}]"))
                 {
                     Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0x98, 0xDB)),
                     FontWeight = FontWeights.SemiBold,
@@ -161,7 +217,7 @@ namespace LawEditor.Views
                 };
 
                 // ИСПОЛЬЗУЕМ MouseLeftButtonDown вместо Click
-                link.MouseLeftButtonDown += (s, e) =>
+                tableHyperlink.MouseLeftButtonDown += (s, e) =>
                 {
                     e.Handled = true; // Глушим событие, чтобы каретка RichTextBox не прыгала на ссылку
 
@@ -171,7 +227,7 @@ namespace LawEditor.Views
                     win.ShowDialog();
                 };
 
-                paragraph.Inlines.Add(link);
+                paragraph.Inlines.Add(tableHyperlink);
             }
 
             doc.Blocks.Add(paragraph);
@@ -179,6 +235,35 @@ namespace LawEditor.Views
             UpdateLineNumbers();
 
             _isUpdatingRichText = false;
+        }
+        private void MainRichTextBox_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_currentSelectedItem is not Clause clauseItem)
+                return; // для других типов — стандартное меню остаётся
+
+            string selectedText = MainRichTextBox.Selection.Text;
+
+            if (string.IsNullOrWhiteSpace(selectedText))
+                return; // ничего не выделено — стандартное меню остаётся
+
+            e.Handled = true; // не даём появиться стандартному меню
+
+            var result = MessageBox.Show(
+                $"\"{selectedText}\" mətnini linkə çevirmək istəyirsiniz?",
+                "Link yarat",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            var editor = new LinkEditorWindow(clauseItem.Url) { Owner = this };
+            if (editor.ShowDialog() == true)
+            {
+                clauseItem.LinkText = selectedText;
+                clauseItem.Url = editor.Url;
+                SetRichTextContent(_currentSelectedItem);
+            }
         }
 
         private void RichTextBox_TextChanged(object sender, TextChangedEventArgs e)
