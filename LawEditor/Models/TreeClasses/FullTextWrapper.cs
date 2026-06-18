@@ -138,7 +138,8 @@ namespace LawEditor.Models.TreeClasses
         private static string GetFullSubClause(SubClause sub)
         {
             string endnotePart = string.IsNullOrEmpty(sub.EndnoteId) ? "" : $"  (EndnoteId: {sub.EndnoteId})";
-            return $"{sub.Number}) {sub.Text}  {endnotePart}";
+
+            return $"{sub.Number}) {sub.Text} \n {endnotePart}";
         }
 
         private static string GetFullTransitionalProvisions(TransitionalProvisions tp)

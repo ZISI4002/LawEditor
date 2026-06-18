@@ -41,18 +41,18 @@ namespace LawEditor.Services.LawServises
             // Копируем главы
             foreach (var ch in source.Chapters)
             {
-                var newChapter = new Chapter { Id = ch.Id, Title = ch.Title , Table = ch.Table };
+                var newChapter = new Chapter { Id = ch.Id, Title = ch.Title , Table = ch.Table, Image= ch.Image };
                 foreach (var sec in ch.Sections)
                 {
-                    var newSection = new Section { Id = sec.Id, Title = sec.Title , Table = sec.Table };
+                    var newSection = new Section { Id = sec.Id, Title = sec.Title , Table = sec.Table , Image = sec.Image };
                     foreach (var art in sec.Articles)
                     {
-                        var newArticle = new Article { Id = art.Id, Title = art.Title , EndnoteId=art.EndnoteId, Table = art.Table };
+                        var newArticle = new Article { Id = art.Id, Title = art.Title , EndnoteId=art.EndnoteId, Table = art.Table, Image = art.Image };
                         foreach (var cl in art.Clauses)
                         {
-                            var newClause = new Clause { Number = cl.Number, Text = cl.Text , Table = cl.Table, EndnoteId = cl.EndnoteId, LinkText = cl.LinkText , Url = cl.Url};
+                            var newClause = new Clause { Number = cl.Number, Text = cl.Text , Table = cl.Table, EndnoteId = cl.EndnoteId, LinkText = cl.LinkText , Url = cl.Url , Image = cl.Image };
                             foreach (var sc in cl.SubClauses)
-                                newClause.SubClauses.Add(new SubClause { Number = sc.Number, Text = sc.Text , Table = sc.Table, EndnoteId = sc.EndnoteId});
+                                newClause.SubClauses.Add(new SubClause { Number = sc.Number, Text = sc.Text , Table = sc.Table, EndnoteId = sc.EndnoteId, Image = sc.Image });
                             newArticle.Clauses.Add(newClause);
                         }
                         newSection.Articles.Add(newArticle);

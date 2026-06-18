@@ -6,12 +6,14 @@ using LawEditor.Services.Intefase;
 using LawEditor.ViewModels;
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Section = LawEditor.Models.ChangableData.Section;
 using Table = LawEditor.Models.SpecialElements.Table;
 
@@ -125,7 +127,7 @@ namespace LawEditor.Views
         public void SetRichTextContent(object? selectedItem)
         {
             _isUpdatingRichText = true;
-            _currentSelectedItem = selectedItem; 
+            _currentSelectedItem = selectedItem;
 
             string text = Models.TreeClasses.FullTextWrapper.GetFullText(selectedItem);
 
@@ -139,13 +141,24 @@ namespace LawEditor.Views
                 _ => null
             };
 
+            Models.SpecialElements.Image? image = selectedItem switch
+            {
+                Chapter ch => ch.Image,
+                Section section => section.Image,
+                Article a => a.Image,
+                Clause cl => cl.Image,
+                SubClause sc => sc.Image,
+                _ => null
+            };
+
             var doc = new FlowDocument
             {
                 FontFamily = new FontFamily("Consolas, Monaco, Courier New"),
                 FontSize = 14,
-                PagePadding = new Thickness(5),
-                PageWidth = 10000
+                PagePadding = new Thickness(5)
             };
+
+            doc.PageWidth = double.NaN; // позволяет авто-подстройку под контейнер
 
             var paragraph = new Paragraph
             {
@@ -231,10 +244,108 @@ namespace LawEditor.Views
             }
 
             doc.Blocks.Add(paragraph);
+
+            if (image != null)
+            {
+                AddImageBlock(doc, image);
+            }
+
             MainRichTextBox.Document = doc;
             UpdateLineNumbers();
 
             _isUpdatingRichText = false;
+        }
+
+        private void AddImageBlock(FlowDocument doc, Models.SpecialElements.Image image)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AddImageBlock] FilePath = {image.FilePath}");
+
+            if (string.IsNullOrEmpty(image.FilePath) || !File.Exists(image.FilePath))
+            {
+                var missingParagraph = new Paragraph(new Run($"[Şəkil tapılmadı: {image.FileName}]"))
+                {
+                    Foreground = Brushes.Gray,
+                    FontStyle = FontStyles.Italic
+                };
+
+                doc.Blocks.Add(missingParagraph);
+                return;
+            }
+
+            BitmapImage? bitmap = null;
+
+            try
+            {
+                byte[] fileBytes = File.ReadAllBytes(image.FilePath);
+
+                bitmap = new BitmapImage();
+
+                using (var stream = new MemoryStream(fileBytes))
+                {
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.StreamSource = stream;
+                    bitmap.EndInit();
+                }
+
+                bitmap.Freeze();
+            }
+            catch (Exception ex)
+            {
+                var errorParagraph = new Paragraph(new Run($"[Şəkil yüklənmədi: {ex.Message}]"))
+                {
+                    Foreground = Brushes.Red,
+                    FontStyle = FontStyles.Italic
+                };
+
+                doc.Blocks.Add(errorParagraph);
+                return;
+            }
+
+            var imageControl = new System.Windows.Controls.Image
+            {
+                Source = bitmap,
+                MaxWidth = 600,
+                Stretch = Stretch.Uniform,
+                Cursor = Cursors.Hand,
+                ToolTip = image.Title ?? image.FileName
+            };
+
+            // Кнопка удаления
+            var deleteButton = new Button
+            {
+                Content = "Sil",
+                Margin = new Thickness(10, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Top
+            };
+
+            // Панель для изображения и кнопки
+            var panel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal
+            };
+
+            panel.Children.Add(imageControl);
+            panel.Children.Add(deleteButton);
+
+            var container = new BlockUIContainer(panel)
+            {
+                Margin = new Thickness(0, 8, 0, 8)
+            };
+
+            deleteButton.Click += (s, e) =>
+            {
+                // удалить блок из FlowDocument
+                doc.Blocks.Remove(container);
+
+                // если нужно удалить и сам объект из коллекции:
+                // Images.Remove(image);
+
+                // если нужно удалить файл:
+                // File.Delete(image.FilePath);
+            };
+
+            doc.Blocks.Add(container);
         }
         private void MainRichTextBox_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {

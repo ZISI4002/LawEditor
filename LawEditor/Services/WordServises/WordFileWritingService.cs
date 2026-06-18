@@ -19,12 +19,11 @@ namespace LawEditor.Services.WordServises {
     public class WordFileWritingService {
         private static long _drawingIdCounter = 1;
 
-        public bool CompareEndnoteLists(List<string> list1, List<string> list2) {
-            if (list1.Count != list2.Count)
-                return false;
+        public bool CompareEndnoteLists(List<string> list1, List<string> list2)
+        {
             var set1 = new HashSet<string>(list1);
             var set2 = new HashSet<string>(list2);
-            return set1.SetEquals(set2);
+            return set1.IsSubsetOf(set2);
         }
 
         public void WriteWordFile(string filePath, Laws laws) {

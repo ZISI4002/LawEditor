@@ -100,6 +100,7 @@ namespace LawEditor.ViewModels
         public string MenuItem5Text => GetMenuItems().Item5;
         public string MenuItem6Text => GetMenuItems().Item6;
         public string MenuItem7Text => GetMenuItems().Item7;
+        public string MenuItem8Text => GetMenuItems().Item8;
         public bool MenuItem1Visible => GetMenuItems().Item1 != null;
         public bool MenuItem2Visible => GetMenuItems().Item2 != null;
         public bool MenuItem3Visible => GetMenuItems().Item3 != null;
@@ -107,25 +108,26 @@ namespace LawEditor.ViewModels
         public bool MenuItem5Visible => GetMenuItems().Item5 != null;
         public bool MenuItem6Visible => GetMenuItems().Item6 != null;
         public bool MenuItem7Visible => GetMenuItems().Item7 != null;
+        public bool MenuItem8Visible => GetMenuItems().Item8 != null;
 
-        private (string Item1, string Item2, string Item3, string Item4, string Item5, string Item6, string Item7) GetMenuItems()
+        private (string Item1, string Item2, string Item3, string Item4, string Item5, string Item6, string Item7, string Item8) GetMenuItems()
         {
             return _selectedItem switch
             {
-                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et", "Bölməyə cədvəl əlavə edin", null, null, null),
-                Section => ("Yuxarıda fəsil əlavə et", "Aşağıda fəsil əlavə et", "İçəridə maddə əlavə et", "Fəsilə cədvəl əlavə edin", null, null, null),
-                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et", "İçəridə bənd əlavə et", "Yuxarıda hissə əlavə et", "Aşağıda hissə əlavə et","Maddəyə cədvəl əlavə edin"),
-                Clause => ("Yuxarıda bənd әlavә et", "Aşağıda bәnd әlavә et", "İçәridә altbәnd әlavә et", "Bəndə cədvəl əlavə edin", null, null, null),
-                SubClause => ("Yuxarıda altbәnd әlavә et", "Aşağıda altbәnd әlavә et", "Altbəndə cədvəl əlavə edin", null, null, null, null),
-                SourceData sr when sr.Type == "KEÇİD MÜDDƏALARI" => ("İçәridә yeni Keçid Müddәası әlavә elә",null, null, null, null, null, null),
-                SourceData sr when sr.Type == "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI" => ("İçәridә yeni İstifadе olunmuş mӘnbе әlavе elе",null, null, null, null, null, null),
-                SourceData sr when sr.Type == "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI" => ("İçəridə yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", null, null, null, null, null, null),
-                TransitionalProvisions => ("Yuxarıda yeni Keçid Müddəası əlavə elə", "Aşağıda yeni Keçid Müddəası əlavə elə", null, null, null, null, null),
-                TransitionalProvisionsDateNote => (null, null, null, null, null, null, null),
-                SourceDocumentsList => ("Yuxarıda yeni İstifadə olunmuş mənbə əlavə elə", "Aşağıda yeni İstifadə olunmuş mənbə əlavə elə", null, null, null, null, null),
-                ConstitutionalAmendment => ("Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", "Aşağıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni әlavә elә", null, null, null, null, null),
-                Models.RootClasses.Laws => ("Bölmә әlavә et", null, null, null, null, null, null),
-                _ => ("Bölmә әlavә et", null, null, null, null, null, null),
+                Chapter => ("Yuxarıda bölmə əlavə et", "Aşağıda bölmə əlavə et", "İçəridə fəsil əlavə et", "Bölməyə cədvəl əlavə edin", "Bölməyə şəkil əlavə et", null, null, null),
+                Section => ("Yuxarıda fəsil əlavə et", "Aşağıda fəsil əlavə et", "İçəridə maddə əlavə et", "Fəsilə cədvəl əlavə edin", "Fəsilə şəkil əlavə et", null, null, null),
+                Article => ("Yuxarıda maddə əlavə et", "Aşağıda maddə əlavə et", "Hissə əlavə et", "İçəridə bənd əlavə et", "Yuxarıda hissə əlavə et", "Aşağıda hissə əlavə et","Maddəyə cədvəl əlavə edin","Maddəyə şəkil əlavə et"),
+                Clause => ("Yuxarıda bənd әlavә et", "Aşağıda bәnd әlavә et", "İçәridә altbәnd әlavә et", "Bəndə cədvəl əlavə edin", "Bəndə şəkil əlavə et", null, null, null),
+                SubClause => ("Yuxarıda altbәnd әlavә et", "Aşağıda altbәnd әlavә et", "Altbəndə cədvəl əlavə edin", "Altbəndə şəkil əlavə et", null, null, null, null),
+                SourceData sr when sr.Type == "KEÇİD MÜDDƏALARI" => ("İçәridә yeni Keçid Müddәası әlavә elә",null, null, null, null, null, null, null),
+                SourceData sr when sr.Type == "İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI" => ("İçәridә yeni İstifadе olunmuş mӘnbе әlavе elе",null, null, null, null, null, null, null),
+                SourceData sr when sr.Type == "KONSTİTUSİYAYA EDİLMİŞ DƏYİŞİKLİK VƏ ƏLAVƏLƏRİN SİYAHISI" => ("İçəridə yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", null, null, null, null, null, null, null),
+                TransitionalProvisions => ("Yuxarıda yeni Keçid Müddəası əlavə elə", "Aşağıda yeni Keçid Müddəası əlavə elə", null, null, null, null, null, null),
+                TransitionalProvisionsDateNote => (null, null, null, null, null, null, null, null),
+                SourceDocumentsList => ("Yuxarıda yeni İstifadə olunmuş mənbə əlavə elə", "Aşağıda yeni İstifadə olunmuş mənbə əlavə elə", null, null, null,	null,	null,	null),
+                ConstitutionalAmendment => ("Yuxarıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni əlavə elə", "Aşağıda yeni Konstitusiyaya edilmiş dəyişiklik yada əlavəni әlavә elә", null, null, null,	null,	null,	null),
+                Models.RootClasses.Laws => ("Bölmә әlavә et", null,	null,	null,	null,	null	,null,null ),
+                _ => ("Bölmә әlavә et",	null,	null	,null	,null	,null	,null,null),
             };
         }
 
@@ -149,6 +151,7 @@ namespace LawEditor.ViewModels
                 OnPropertyChanged(nameof(MenuItem5Text));
                 OnPropertyChanged(nameof(MenuItem6Text));
                 OnPropertyChanged(nameof(MenuItem7Text));
+                OnPropertyChanged(nameof(MenuItem8Text));
                 OnPropertyChanged(nameof(MenuItem1Visible));
                 OnPropertyChanged(nameof(MenuItem2Visible));
                 OnPropertyChanged(nameof(MenuItem3Visible));
@@ -156,6 +159,7 @@ namespace LawEditor.ViewModels
                 OnPropertyChanged(nameof(MenuItem5Visible));
                 OnPropertyChanged(nameof(MenuItem6Visible));
                 OnPropertyChanged(nameof(MenuItem7Visible));
+                OnPropertyChanged(nameof(MenuItem8Visible));
                 UpdateAnchor(value);
             }
         }

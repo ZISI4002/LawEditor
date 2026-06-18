@@ -1,11 +1,13 @@
 ﻿using DocumentFormat.OpenXml.Office2010.Excel;
 using LawEditor.Models.ChangableSourse;
 using LawEditor.ViewModels;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace LawEditor.Commands.LawEditorWindowCommands
@@ -53,9 +55,39 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                 case "Aşağıda fəsil əlavə et":
                     anchor.Chapter.AddSection("Yeni Fəsil", anchor.Section.Id );
                     break;
-                    case "Bölməyə cədvəl əlavə edin":
+                   
+                case "Bölməyə cədvəl əlavə edin":
                         anchor.Chapter.AddTable(_viewModel.EditedLaws);
                     break;
+
+                case "Bölməyə şəkil əlavə et":
+                    {
+                        var dialog = new OpenFileDialog
+                        {
+                            Title = "Şəkil seçin",
+                            Filter =
+    "Şəkil faylları (*.png;*.jpg;*.jpeg;*.bmp;*.gif)|" +
+    "*.png;*.jpg;*.jpeg;*.bmp;*.gif|" +
+    "PNG faylları (*.png)|*.png|" +
+    "JPEG faylları (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
+    "Bütün fayllar (*.*)|*.*"
+                        };
+
+                        if (dialog.ShowDialog() == true)
+                        {
+                            try
+                            {
+                                anchor.Chapter.AddImage(_viewModel.EditedLaws,dialog.FileName);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Şəkil əlavə edilərkən xəta baş verdi: {ex.Message}");
+                            }
+                        }
+                        break;
+                    }
+
+
                 // Maddə əlavə etməklə bağlı əmrlər
                 case "İçəridə maddə əlavə et":
                     anchor.Section.AddArticle("Yeni Maddə",_viewModel.EditedLaws);
@@ -100,6 +132,34 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     anchor.Section.AddTable(_viewModel.EditedLaws);
                     break;
 
+                case "Fəsilə şəkil əlavə et":
+                 {
+                        var dialog = new OpenFileDialog
+                        {
+                            Title = "Şəkil seçin",
+                            Filter =
+    "Şəkil faylları (*.png;*.jpg;*.jpeg;*.bmp;*.gif)|" +
+    "*.png;*.jpg;*.jpeg;*.bmp;*.gif|" +
+    "PNG faylları (*.png)|*.png|" +
+    "JPEG faylları (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
+    "Bütün fayllar (*.*)|*.*"
+                        };
+
+                        if (dialog.ShowDialog() == true)
+                        {
+                            try
+                            {
+                                anchor.Section.AddImage(_viewModel.EditedLaws, dialog.FileName);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Şəkil əlavə edilərkən xəta baş verdi: {ex.Message}");
+                            }
+                        }
+                        break;
+                    }
+
+
                 // Bənd əlavə etməklə bağlı əmrlər
                 case "İçəridə bənd əlavə et":
                     anchor.Article.AddClause("Yeni Bənd");
@@ -114,6 +174,33 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     anchor.Article.AddTable(_viewModel.EditedLaws);
                     
                    break;
+                    case "Maddəyə şəkil əlavə et":
+                    {
+                        var dialog = new OpenFileDialog
+                        {
+                            Title = "Şəkil seçin",
+                            Filter =
+    "Şəkil faylları (*.png;*.jpg;*.jpeg;*.bmp;*.gif)|" +
+    "*.png;*.jpg;*.jpeg;*.bmp;*.gif|" +
+    "PNG faylları (*.png)|*.png|" +
+    "JPEG faylları (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
+    "Bütün fayllar (*.*)|*.*"
+                        };
+
+                        if (dialog.ShowDialog() == true)
+                        {
+                            try
+                            {
+                                anchor.Article.AddImage(_viewModel.EditedLaws, dialog.FileName);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Şəkil əlavə edilərkən xəta baş verdi: {ex.Message}");
+                            }
+                        }
+                        break;
+                    }
+
 
 
                 // Altbənd əlavə etməklə bağlı əmrlər
@@ -129,9 +216,64 @@ namespace LawEditor.Commands.LawEditorWindowCommands
                     case "Bəndə cədvəl əlavə edin":
                     anchor.Clause.AddTable(_viewModel.EditedLaws);
                     break;
-                    case "Altbəndə cədvəl əlavə edin":
+                case "Bəndə şəkil əlavə et":
+                    {
+                        var dialog = new OpenFileDialog
+                        {
+                            Title = "Şəkil seçin",
+                            Filter =
+    "Şəkil faylları (*.png;*.jpg;*.jpeg;*.bmp;*.gif)|" +
+    "*.png;*.jpg;*.jpeg;*.bmp;*.gif|" +
+    "PNG faylları (*.png)|*.png|" +
+    "JPEG faylları (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
+    "Bütün fayllar (*.*)|*.*"
+                        };
+
+                        if (dialog.ShowDialog() == true)
+                        {
+                            try
+                            {
+                                anchor.Clause.AddImage(_viewModel.EditedLaws, dialog.FileName);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Şəkil əlavə edilərkən xəta baş verdi: {ex.Message}");
+                            }
+                        }
+                        break;
+                    }
+
+                case "Altbəndə cədvəl əlavə edin":
                     anchor.SubClause.AddTable(_viewModel.EditedLaws);
                     break;
+
+                case "Altbəndə şəkil əlavə et":
+                    {
+                        var dialog = new OpenFileDialog
+                        {
+                            Title = "Şəkil seçin",
+                            Filter =
+    "Şəkil faylları (*.png;*.jpg;*.jpeg;*.bmp;*.gif)|" +
+    "*.png;*.jpg;*.jpeg;*.bmp;*.gif|" +
+    "PNG faylları (*.png)|*.png|" +
+    "JPEG faylları (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
+    "Bütün fayllar (*.*)|*.*"
+                        };
+
+                        if (dialog.ShowDialog() == true)
+                        {
+                            try
+                            {
+                                anchor.SubClause.AddImage(_viewModel.EditedLaws, dialog.FileName);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Şəkil əlavə edilərkən xəta baş verdi: {ex.Message}");
+                            }
+                        }
+                        break;
+                    }
+
                 // Keçid müddəası əlavə etməklə bağlı əmrlər
                 case "İçəridə yeni Keçid Müddəası əlavə elə":
                     anchor.SourceData.AddTransitionalProvision("Yeni Keçid Müddəası");

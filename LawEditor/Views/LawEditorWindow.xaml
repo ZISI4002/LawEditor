@@ -104,6 +104,7 @@
                                 <MenuItem Header="{Binding MenuItem5Text}" Command="{Binding AddItemCommand}" CommandParameter="{Binding MenuItem5Text}" Foreground="White" Visibility="{Binding MenuItem5Visible, Converter={StaticResource BoolToVisibility}}"/>
                                 <MenuItem Header="{Binding MenuItem6Text}" Command="{Binding AddItemCommand}" CommandParameter="{Binding MenuItem6Text}" Foreground="White" Visibility="{Binding MenuItem6Visible, Converter={StaticResource BoolToVisibility}}"/>
                                 <MenuItem Header="{Binding MenuItem7Text}" Command="{Binding AddItemCommand}" CommandParameter="{Binding MenuItem7Text}" Foreground="White" Visibility="{Binding MenuItem7Visible, Converter={StaticResource BoolToVisibility}}"/>
+                                <MenuItem Header="{Binding MenuItem8Text}" Command="{Binding AddItemCommand}" CommandParameter="{Binding MenuItem8Text}" Foreground="White" Visibility="{Binding MenuItem8Visible, Converter={StaticResource BoolToVisibility}}"/>
 
                             </StackPanel>
                         </Border>
