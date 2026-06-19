@@ -30,6 +30,7 @@ namespace LawEditor.Views
             InitializeComponent();
             MainRichTextBox.IsEnabledChanged += (s, e) => UpdateLineNumbers();
             MainRichTextBox.PreviewMouseRightButtonUp += MainRichTextBox_PreviewMouseRightButtonUp;
+            MainRichTextBox.PreviewKeyDown += MainRichTextBox_PreviewKeyDown;
 
             Loaded += (s, e) =>
             {
@@ -267,7 +268,6 @@ namespace LawEditor.Views
                     Foreground = Brushes.Gray,
                     FontStyle = FontStyles.Italic
                 };
-
                 doc.Blocks.Add(missingParagraph);
                 return;
             }
@@ -279,7 +279,6 @@ namespace LawEditor.Views
                 byte[] fileBytes = File.ReadAllBytes(image.FilePath);
 
                 bitmap = new BitmapImage();
-
                 using (var stream = new MemoryStream(fileBytes))
                 {
                     bitmap.BeginInit();
@@ -287,7 +286,6 @@ namespace LawEditor.Views
                     bitmap.StreamSource = stream;
                     bitmap.EndInit();
                 }
-
                 bitmap.Freeze();
             }
             catch (Exception ex)
@@ -297,7 +295,6 @@ namespace LawEditor.Views
                     Foreground = Brushes.Red,
                     FontStyle = FontStyles.Italic
                 };
-
                 doc.Blocks.Add(errorParagraph);
                 return;
             }
@@ -307,46 +304,66 @@ namespace LawEditor.Views
                 Source = bitmap,
                 MaxWidth = 600,
                 Stretch = Stretch.Uniform,
-                Cursor = Cursors.Hand,
                 ToolTip = image.Title ?? image.FileName
             };
 
-            // Кнопка удаления
-            var deleteButton = new Button
-            {
-                Content = "Sil",
-                Margin = new Thickness(10, 0, 0, 0),
-                VerticalAlignment = VerticalAlignment.Top
-            };
-
-            // Панель для изображения и кнопки
-            var panel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal
-            };
-
-            panel.Children.Add(imageControl);
-            panel.Children.Add(deleteButton);
-
-            var container = new BlockUIContainer(panel)
+            var container = new BlockUIContainer(imageControl)
             {
                 Margin = new Thickness(0, 8, 0, 8)
             };
 
-            deleteButton.Click += (s, e) =>
+            doc.Blocks.Add(container);
+            System.Diagnostics.Debug.WriteLine("[AddImageBlock] BlockUIContainer добавлен в doc.Blocks");
+        }
+
+        private void MainRichTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Back)
+                return;
+
+            // Ищем BlockUIContainer с картинкой в текущем документе
+            var doc = MainRichTextBox.Document;
+            BlockUIContainer? imageBlock = doc.Blocks
+                .OfType<BlockUIContainer>()
+                .FirstOrDefault();
+
+            if (imageBlock == null)
+                return;
+
+            // Проверяем: каретка стоит сразу после блока с картинкой?
+            TextPointer caret = MainRichTextBox.CaretPosition;
+            TextPointer blockEnd = imageBlock.ContentEnd.GetNextInsertionPosition(LogicalDirection.Forward)
+                                   ?? imageBlock.ContentEnd;
+
+            bool caretIsAfterImage = caret.CompareTo(blockEnd) <= 0
+                                     && caret.CompareTo(imageBlock.ContentStart) >= 0;
+
+            if (!caretIsAfterImage)
+                return;
+
+            e.Handled = true; // блокируем стандартный Backspace
+
+            // Получаем Image из текущего selectedItem
+            Models.SpecialElements.Image? image = _currentSelectedItem switch
             {
-                // удалить блок из FlowDocument
-                doc.Blocks.Remove(container);
-
-                // если нужно удалить и сам объект из коллекции:
-                // Images.Remove(image);
-
-                // если нужно удалить файл:
-                // File.Delete(image.FilePath);
+                Chapter ch => ch.Image,
+                Section section => section.Image,
+                Article a => a.Image,
+                Clause cl => cl.Image,
+                SubClause subClause => subClause.Image,
+                _ => null
             };
 
-            doc.Blocks.Add(container);
+            if (image == null)
+                return;
+
+            if (DataContext is LawEditorWindowViewModel vm)
+            {
+                vm.EditedLaws.DeleteImage(image.Id);
+                SetRichTextContent(_currentSelectedItem); // перерисовываем
+            }
         }
+
         private void MainRichTextBox_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (_currentSelectedItem is not Clause clauseItem)

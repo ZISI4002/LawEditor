@@ -56,7 +56,7 @@ namespace LawEditor.Commands.MainWindowCommands
                         _viewModel.FileNameRight = _fileName.Replace(".doc", ".xml");
 
                     }
-                    else if (_fileName.EndsWith(".doc"))
+                    else if (_fileName.EndsWith(".docx"))
                     {
                         _viewModel.FileNameRight = _fileName.Replace(".docx", ".xml");
                     }
