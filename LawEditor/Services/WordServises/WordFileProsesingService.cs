@@ -383,6 +383,11 @@ namespace LawEditor.Services.WordServises {
             }
         }
 
+        // ── Проверка: является ли строка началом подписи (İlham ƏLİYEV) ───────
+        private bool IsSignatureLine(string line) {
+            return line.Contains("İlham ƏLİYEV", StringComparison.OrdinalIgnoreCase);
+        }
+
         // ── Основной метод ────────────────────────────────────────────────────
         public Laws ReadWordFile(string filePath) {
             var law = new Laws();
@@ -410,6 +415,14 @@ namespace LawEditor.Services.WordServises {
 
             bool expectChapterTitle = false;
             bool expectSectionTitle = false;
+
+            // ── Флаги для обработки подписи ───────────────────────────────────
+            // isFirstClause: станет false после того, как создан первый Clause
+            bool isFirstClause = true;
+            // signatureDetected: true, когда обнаружена строка İlham ƏLİYEV в первом Clause
+            bool signatureDetected = false;
+            // Накапливаем строки подписи
+            var signatureBuilder = new StringBuilder();
 
             using var doc = WordprocessingDocument.Open(filePath, false);
             var body = doc.MainDocumentPart.Document.Body;
@@ -443,6 +456,34 @@ namespace LawEditor.Services.WordServises {
                         AssignImage(image, lastContext,
                             currentChapter, currentSection, currentArticle,
                             currentClause, currentSubClause);
+                    continue;
+                }
+
+                // ── Если уже обнаружена подпись — собираем оставшиеся строки ─
+                // (включая пустые, пока не дойдём до Transitional/Sources)
+                if (signatureDetected && mode == Mode.Chapters) {
+                    var rawLine = GetParagraphText(para);
+
+                    // Если встретили маркер перехода — прекращаем сбор подписи
+                    if (rawLine.Contains("Keçİd müddəaları", StringComparison.OrdinalIgnoreCase) ||
+                        rawLine.Contains("KEÇİD MÜDDƏALARI", StringComparison.OrdinalIgnoreCase)) {
+                        // Сохраняем накопленное в Date и переходим в Transitional
+                        TransitionalProvisions.Date = signatureBuilder.ToString().TrimEnd();
+                        signatureDetected = false;
+                        mode = Mode.Transitional;
+                        continue;
+                    }
+
+                    if (rawLine.Contains("İSTİFADƏ OLUNMUŞ MƏNBƏ SƏNƏDLƏRİNİN SİYAHISI",
+                            StringComparison.OrdinalIgnoreCase)) {
+                        TransitionalProvisions.Date = signatureBuilder.ToString().TrimEnd();
+                        signatureDetected = false;
+                        mode = Mode.Sources;
+                        continue;
+                    }
+
+                    // Добавляем строку (пустую или нет) в подпись
+                    signatureBuilder.AppendLine(rawLine);
                     continue;
                 }
 
@@ -559,17 +600,28 @@ namespace LawEditor.Services.WordServises {
                         currentSection?.Articles.Add(currentArticle);
                         currentClause = null;
                         currentSubClause = null;
+                        // При создании новой статьи сбрасываем флаг первого Clause
+                        isFirstClause = true;
                         lastContext = LastContext.Article;
                         continue;
                     }
 
                     // CLAUSE (I. II. III.)
                     if (Regex.IsMatch(line, @"^[IVX]+\.\s")) {
+                        // ── Проверяем подпись только в первом Clause ─────────
+                        if (isFirstClause && IsSignatureLine(line)) {
+                            signatureDetected = true;
+                            isFirstClause = false;
+                            signatureBuilder.AppendLine(line);
+                            continue;
+                        }
+
                         string text = Regex.Replace(line, @"^[IVX]+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         var (linkText1, url1) = ExtractHyperlink(para, docRelationships);
                         currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId, linkText: linkText1, url: url1);
                         currentSubClause = null;
+                        isFirstClause = false;
                         lastContext = LastContext.Clause;
                         continue;
                     }
@@ -594,32 +646,59 @@ namespace LawEditor.Services.WordServises {
 
                     // CLAUSE (1.1. / 1.2. — два сегмента)
                     if (Regex.IsMatch(line, @"^\d+\.\d+\.\s")) {
+                        // ── Проверяем подпись только в первом Clause ─────────
+                        if (isFirstClause && IsSignatureLine(line)) {
+                            signatureDetected = true;
+                            isFirstClause = false;
+                            signatureBuilder.AppendLine(line);
+                            continue;
+                        }
+
                         string text = Regex.Replace(line, @"^\d+\.\d+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         var (linkText2, url2) = ExtractHyperlink(para, docRelationships);
                         currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId, linkText: linkText2, url: url2);
                         currentSubClause = null;
+                        isFirstClause = false;
                         lastContext = LastContext.Clause;
                         continue;
                     }
 
                     // CLAUSE (1. / 2. / 3. — одиночная цифра с точкой)
                     if (Regex.IsMatch(line, @"^\d+\.\s")) {
+                        // ── Проверяем подпись только в первом Clause ─────────
+                        if (isFirstClause && IsSignatureLine(line)) {
+                            signatureDetected = true;
+                            isFirstClause = false;
+                            signatureBuilder.AppendLine(line);
+                            continue;
+                        }
+
                         string text = Regex.Replace(line, @"^\d+\.\s*", "");
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         var (linkText3, url3) = ExtractHyperlink(para, docRelationships);
                         currentClause = currentArticle?.AddClause(text, endnoteId: endnoteRefId, linkText: linkText3, url: url3);
                         currentSubClause = null;
+                        isFirstClause = false;
                         lastContext = LastContext.Clause;
                         continue;
                     }
 
                     // обычный текст
                     if (currentArticle != null) {
+                        // ── Проверяем подпись в обычном тексте (первый Clause) ─
+                        if (isFirstClause && IsSignatureLine(line)) {
+                            signatureDetected = true;
+                            isFirstClause = false;
+                            signatureBuilder.AppendLine(line);
+                            continue;
+                        }
+
                         string? endnoteRefId = ExtractEndnoteRefId(para, endnoteIdMap);
                         var (linkText4, url4) = ExtractHyperlink(para, docRelationships);
                         if (currentClause == null) {
                             currentClause = currentArticle.AddClause(line, endnoteId: endnoteRefId, linkText: linkText4, url: url4);
+                            isFirstClause = false;
                             lastContext = LastContext.Clause;
                         }
                         else {
@@ -670,6 +749,11 @@ namespace LawEditor.Services.WordServises {
                         sources.Add(new SourceDocumentsList(cleanedLine, linkText, url));
                     continue;
                 }
+            }
+
+            // ── Если подпись была в самом конце документа — сохраняем ─────────
+            if (signatureDetected && signatureBuilder.Length > 0) {
+                TransitionalProvisions.Date = signatureBuilder.ToString().TrimEnd();
             }
 
             if (headers[0].FullText == null)
