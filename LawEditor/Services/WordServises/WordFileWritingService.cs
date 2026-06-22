@@ -19,8 +19,7 @@ namespace LawEditor.Services.WordServises {
     public class WordFileWritingService {
         private static long _drawingIdCounter = 1;
 
-        public bool CompareEndnoteLists(List<string> list1, List<string> list2)
-        {
+        public bool CompareEndnoteLists(List<string> list1, List<string> list2) {
             var set1 = new HashSet<string>(list1);
             var set2 = new HashSet<string>(list2);
             return set1.IsSubsetOf(set2);
@@ -99,8 +98,6 @@ namespace LawEditor.Services.WordServises {
                 stylePart.Styles = new Styles();
 
                 // ── Строим маппинг: amendmentId (строка) → int endnoteId ──
-                // Числовые ID остаются как есть, нечисловые (KM1, KQ1...) получают
-                // уникальные ID начиная с 1001 чтобы не конфликтовать с числовыми.
                 var amendments = laws.SourcesData.FirstOrDefault(s => s.Id == 3);
                 var idMapping = BuildIdMapping(amendments);
 
@@ -188,17 +185,25 @@ namespace LawEditor.Services.WordServises {
                             body.Append(CreateEmptyParagraph());
 
                             foreach (var clause in article.Clauses) {
-                                Paragraph clausePara;
-
+                                // ── Строим полный текст клоза ──
+                                string clauseFullText;
                                 if (clause.Number > 0)
-                                    clausePara = CreateParagraphWithEndnote(
-                                        $"{ToRoman(clause.Number)}. {clause.Text}",
-                                        clause.EndnoteId, idMapping);
+                                    clauseFullText = $"{ToRoman(clause.Number)}. {clause.Text}";
                                 else if (!string.IsNullOrEmpty(clause.Text))
-                                    clausePara = CreateParagraphWithEndnote(
-                                        clause.Text,
+                                    clauseFullText = clause.Text;
+                                else
+                                    continue;
+
+                                // ── Абзац клоза: с гиперссылкой или без ──
+                                Paragraph clausePara;
+                                if (!string.IsNullOrEmpty(clause.LinkText) && !string.IsNullOrEmpty(clause.Url))
+                                    clausePara = CreateClauseParagraphWithLink(
+                                        mainPart, clauseFullText,
+                                        clause.LinkText, clause.Url,
                                         clause.EndnoteId, idMapping);
-                                else continue;
+                                else
+                                    clausePara = CreateParagraphWithEndnote(
+                                        clauseFullText, clause.EndnoteId, idMapping);
 
                                 body.Append(clausePara);
 
@@ -429,7 +434,6 @@ namespace LawEditor.Services.WordServises {
             catch (Exception ex) {
                 MessageBox.Show(ex.Message);
             }
-
         }
 
         // ── Строим маппинг amendmentId → int endnoteId ──────────────────────
@@ -505,6 +509,84 @@ namespace LawEditor.Services.WordServises {
             Dictionary<string, int> idMapping) {
             var para = CreateParagraph(text, align: JustificationValues.Both);
             AppendEndnoteRef(para, endnoteId, idMapping);
+            return para;
+        }
+
+        // ── Абзац клоза с гиперссылкой: before + [LinkText] + after ─────────
+        private Paragraph CreateClauseParagraphWithLink(
+            MainDocumentPart mainPart,
+            string fullText,
+            string linkText,
+            string url,
+            string? endnoteId,
+            Dictionary<string, int> idMapping) {
+            var para = new Paragraph();
+
+            var pPr = new ParagraphProperties();
+            pPr.Append(new Justification() { Val = JustificationValues.Both });
+            pPr.Append(new SpacingBetweenLines() {
+                Line = "240",
+                LineRule = LineSpacingRuleValues.Auto,
+                Before = "0",
+                After = "0"
+            });
+            pPr.Append(new Indentation() { FirstLine = "720" });
+            para.Append(pPr);
+
+            RunProperties BaseRunProps() => new RunProperties(
+                new RunFonts() {
+                    Ascii = "Palatino Linotype",
+                    HighAnsi = "Palatino Linotype",
+                    ComplexScript = "Palatino Linotype"
+                },
+                new FontSize() { Val = "24" }
+            );
+
+            int linkIndex = fullText.IndexOf(linkText, StringComparison.Ordinal);
+
+            if (linkIndex < 0) {
+                // LinkText не найден в тексте — выводим всё как обычный текст
+                var run = new Run(BaseRunProps(),
+                    new Text(fullText) { Space = SpaceProcessingModeValues.Preserve });
+                para.Append(run);
+            }
+            else {
+                // Текст ДО ссылки
+                if (linkIndex > 0) {
+                    string before = fullText.Substring(0, linkIndex);
+                    para.Append(new Run(BaseRunProps(),
+                        new Text(before) { Space = SpaceProcessingModeValues.Preserve }));
+                }
+
+                // Сама ссылка
+                var rel = mainPart.AddHyperlinkRelationship(new Uri(url), true);
+                var hyperlink = new Hyperlink() { Id = rel.Id };
+                hyperlink.Append(new Run(
+                    new RunProperties(
+                        new RunFonts() {
+                            Ascii = "Palatino Linotype",
+                            HighAnsi = "Palatino Linotype",
+                            ComplexScript = "Palatino Linotype"
+                        },
+                        new FontSize() { Val = "24" },
+                        new Underline() { Val = UnderlineValues.Single },
+                        new Color() { Val = "0000FF" }
+                    ),
+                    new Text(linkText) { Space = SpaceProcessingModeValues.Preserve }
+                ));
+                para.Append(hyperlink);
+
+                // Текст ПОСЛЕ ссылки
+                string after = fullText.Substring(linkIndex + linkText.Length);
+                if (!string.IsNullOrEmpty(after)) {
+                    para.Append(new Run(BaseRunProps(),
+                        new Text(after) { Space = SpaceProcessingModeValues.Preserve }));
+                }
+            }
+
+            // Сноска (endnote ref) — добавляем в конец параграфа
+            AppendEndnoteRef(para, endnoteId, idMapping);
+
             return para;
         }
 
@@ -645,8 +727,7 @@ namespace LawEditor.Services.WordServises {
         }
 
         private (long widthEmu, long heightEmu) GetImageSizeEmu(
-            string filePath, long maxWidthEmu = 5486400) // ~6 дюймов
-        {
+            string filePath, long maxWidthEmu = 5486400) {
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
