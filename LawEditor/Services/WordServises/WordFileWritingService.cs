@@ -246,10 +246,12 @@ namespace LawEditor.Services.WordServises {
                 var transitional = laws.SourcesData.FirstOrDefault(s => s.Id == 1);
 
                 if (transitional?.Source.Count > 0) {
-                    body.Append(CreateParagraph("KEÇİD MÜDDƏALARI",
-                        bold: true, align: JustificationValues.Center, indent: false));
-                    body.Append(CreateEmptyParagraph());
-
+                    if (transitional?.Source.Count > 1)
+                    {
+                        body.Append(CreateParagraph("KEÇİD MÜDDƏALARI",
+                            bold: true, align: JustificationValues.Center, indent: false));
+                        body.Append(CreateEmptyParagraph());
+                    }
                     foreach (var item in transitional.Source.OfType<TransitionalProvisions>())
                         body.Append(CreateParagraph($"{item.Id}. {item.Title}",
                             align: JustificationValues.Both));

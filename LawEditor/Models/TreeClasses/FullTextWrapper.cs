@@ -2041,7 +2041,7 @@ namespace LawEditor.Models.TreeClasses
 
 
 
-            if (sourceData.Id == 1)
+            if (sourceData.Id == 1 && sourceData.Source.Count > 1)
             {
                 TransitionalProvisionsIds = sourceData.Source
                    .OfType<TransitionalProvisions>()

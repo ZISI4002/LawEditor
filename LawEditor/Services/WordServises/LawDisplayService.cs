@@ -234,7 +234,7 @@ namespace LawEditor.Services.WordServises
                     TextAlignment = TextAlignment.Center,
                     Margin = new Thickness(0, 20, 0, 8)
                 });
-
+            }
                 foreach (var tp in transitionalProvisions.Source)
                 {
                     if (tp is TransitionalProvisionsDateNote)
@@ -256,7 +256,7 @@ namespace LawEditor.Services.WordServises
                     TextAlignment = TextAlignment.Right,
                     Margin = new Thickness(0, 10, 16, 2)
                 });
-            }
+            
 
             // SOURCE DOCUMENTS
             var sourceDocumentsLists = laws.SourcesData[1] as dynamic;
