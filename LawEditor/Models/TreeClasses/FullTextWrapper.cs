@@ -12,6 +12,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Documents;
+using Table = LawEditor.Models.SpecialElements.Table;
+using Image = LawEditor.Models.SpecialElements.Image;
 
 namespace LawEditor.Models.TreeClasses
 {
@@ -1488,6 +1490,35 @@ namespace LawEditor.Models.TreeClasses
             var oldSubClauseIds = article.Clauses
                 .ToDictionary(c => c.Number, c => c.SubClauses.Select(s => s.Number).ToList());
 
+
+            //Speshial Elements of SubClauses
+            List<(int IdofClause, SubClause)> SubclausesWithEndnoteId = article.Clauses
+                .SelectMany(c => c.SubClauses, (c, s) => (IdofClause: c.Number, SubClause: s))
+                .Where(x => !string.IsNullOrEmpty(x.SubClause.EndnoteId))
+                .ToList();
+
+            List < (int IdofClause, SubClause) > SubclausesWithImage = article.Clauses
+                .SelectMany(c => c.SubClauses, (c, s) => (IdofClause: c.Number, SubClause: s))
+                .Where(x => x.SubClause.Image != null)
+                .ToList();
+            List<(int IdofClause, SubClause)> SubclausesWithTable = article.Clauses
+                .SelectMany(c => c.SubClauses, (c, s) => (IdofClause: c.Number, SubClause: s))
+                .Where(x => x.SubClause.Table != null)
+                .ToList();
+            // Speshial Elements of Clauses
+            List<Clause> ClausesWithEndnoteId = article.Clauses
+                .Where(c => !string.IsNullOrEmpty(c.EndnoteId))
+                .ToList();
+            List<Clause> ClausesWithImage = article.Clauses
+                .Where(c => c.Image != null)
+                .ToList();
+            List<Clause> ClausesWithTable = article.Clauses
+                .Where(c => c.Table != null)
+                .ToList(); 
+            List<Clause> ClausesWithLink = article.Clauses
+                .Where(c => !string.IsNullOrEmpty(c.LinkText))
+                .ToList();
+
             article.Clauses.Clear();
 
             // Clause переменные
@@ -1497,6 +1528,14 @@ namespace LawEditor.Models.TreeClasses
             int IdofChangedClauseElement = 0;
             int PositionOfChangedClauseElement = 0;
             Clause currentClause = null;
+            Clause subClausesTargetClause = null;
+           
+            Table ClauseTabletoRestore = null;
+            Image ClauseImagetoRestore = null;
+            string ClauseEndnotetoRestore = null;
+            string ClauseLinkTexttoRestore = null;
+            string ClauseUrltoRestore = null;
+
 
             // SubClause переменные
             List<int> idsOfSubClauses = new List<int>();
@@ -1504,11 +1543,14 @@ namespace LawEditor.Models.TreeClasses
             int idCounterOfSubClauses = 0;
             var subClausesResult = MessageBoxResult.No;
             var subClausesFinalResult = MessageBoxResult.No;
-            Clause subClausesTargetClause = null;
             bool subClausesAsked = false;
             int idOfChangedSubClauseElement = 0;
             int positionOfChangedSubClauseElement = 0;
             SubClause currentSubClause = null;
+
+            Table subClauseTableToRestore = null;
+            Image subClauseImagetoRestore = null;
+            string subClauseEndnotetoRestore = null;
 
             void ApplySubClauseChanges()
             {
@@ -1731,14 +1773,18 @@ namespace LawEditor.Models.TreeClasses
            
             // About SubClauses: 
             List<int> IdesofSubclauses = clause.SubClauses.Select(sc => sc.Number).ToList();
-            clause.SubClauses.Clear();
+            List<SubClause> SubclausesWithTables = clause.SubClauses.Where(sc => sc.Table != null).ToList();
+            List<SubClause> SubclausesWithImages = clause.SubClauses.Where(sc => sc.Image != null).ToList();
+            List<SubClause> SubClausesWithEndnoteIds = clause.SubClauses.Where(sc => sc.EndnoteId != null).ToList();
 
             int IdcounterofSubclauses = 0;
             var SubclausesResult = MessageBoxResult.No;
             bool subclausesAsked = false;
             int IdofChangedSubclauseElement = 0;
             int PositionOfChangedSubclauseElement = 0;
-
+            Table tableToRestore = null;
+            Image imageToRestore = null;
+            string endnoteIdToRestore = null;
             clause.SubClauses.Clear();
             clause.EndnoteId = null;
 
@@ -1779,11 +1825,43 @@ namespace LawEditor.Models.TreeClasses
                         }
                     }
 
-                    clause.SubClauses.Add(new SubClause
+
+                    foreach (var sub in SubclausesWithTables)
+                    {
+                        if (sub.Number == newNumber || sub.Text == subMatch.Groups[2].Value)
+                        {
+                            tableToRestore = sub.Table;
+                            break;
+                        }
+                    }
+                    foreach (var sub in SubclausesWithImages)
+                    {
+                        if (sub.Number == newNumber || sub.Text == subMatch.Groups[2].Value)
+                        {
+                            imageToRestore = sub.Image;
+                            break;
+                        }
+                    }
+                    foreach (var sub in SubClausesWithEndnoteIds)
+                    {
+                        if (sub.Number == newNumber || sub.Text == subMatch.Groups[2].Value)
+                        {
+                            endnoteIdToRestore = sub.EndnoteId;
+                            break;
+                        }
+                    }
+
+                        clause.SubClauses.Add(new SubClause
                     {
                         Number = newNumber,
-                        Text = subMatch.Groups[2].Value
+                        Text = subMatch.Groups[2].Value,
+                        Table = tableToRestore,
+                        Image = imageToRestore,
+                        EndnoteId = endnoteIdToRestore
                     });
+                    endnoteIdToRestore = null;
+                    imageToRestore = null;
+                    tableToRestore = null;
 
                     IdcounterofSubclauses++;
                     continue;
