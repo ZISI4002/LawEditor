@@ -116,12 +116,16 @@ namespace LawEditor.Services.WordServises {
                 foreach (var chapter in laws.Chapters) {
                     string chapterOrdinal = ToAzerbaijaniOrdinal(chapter.Id);
 
-                    body.Append(CreateParagraph($"{chapterOrdinal} BÖLMƏ",
-                        bold: true, align: JustificationValues.Center, indent: false));
+                    bool isSpecialChapter = chapter.Title?.Trim() == "AZƏRBAYCAN RESPUBLİKASININ QANUNU";
 
-                    if (!string.IsNullOrEmpty(chapter.Title))
-                        body.Append(CreateParagraph(chapter.Title,
+                    if (!isSpecialChapter) {
+                        body.Append(CreateParagraph($"{chapterOrdinal} BÖLMƏ",
                             bold: true, align: JustificationValues.Center, indent: false));
+
+                        if (!string.IsNullOrEmpty(chapter.Title))
+                            body.Append(CreateParagraph(chapter.Title,
+                                bold: true, align: JustificationValues.Center, indent: false));
+                    }
 
                     if (chapter.Table != null) {
                         var chapterTable = chapter.Table;
@@ -139,12 +143,16 @@ namespace LawEditor.Services.WordServises {
                     foreach (var section in chapter.Sections) {
                         string sectionRoman = ToRoman(section.Id);
 
-                        body.Append(CreateParagraph($"{sectionRoman} fəsil",
-                            align: JustificationValues.Center, indent: false));
+                        bool isSpecialSection = section.Title?.Trim() == "QANUNLAR";
 
-                        if (!string.IsNullOrEmpty(section.Title))
-                            body.Append(CreateParagraph(section.Title,
+                        if (!isSpecialSection) {
+                            body.Append(CreateParagraph($"{sectionRoman} fəsil",
                                 align: JustificationValues.Center, indent: false));
+
+                            if (!string.IsNullOrEmpty(section.Title))
+                                body.Append(CreateParagraph(section.Title,
+                                    align: JustificationValues.Center, indent: false));
+                        }
 
                         if (section.Table != null) {
                             var sectionTable = section.Table;
@@ -246,12 +254,10 @@ namespace LawEditor.Services.WordServises {
                 var transitional = laws.SourcesData.FirstOrDefault(s => s.Id == 1);
 
                 if (transitional?.Source.Count > 0) {
-                    if (transitional?.Source.Count > 1)
-                    {
-                        body.Append(CreateParagraph("KEÇİD MÜDDƏALARI",
-                            bold: true, align: JustificationValues.Center, indent: false));
-                        body.Append(CreateEmptyParagraph());
-                    }
+                    body.Append(CreateParagraph("KEÇİD MÜDDƏALARI",
+                        bold: true, align: JustificationValues.Center, indent: false));
+                    body.Append(CreateEmptyParagraph());
+
                     foreach (var item in transitional.Source.OfType<TransitionalProvisions>())
                         body.Append(CreateParagraph($"{item.Id}. {item.Title}",
                             align: JustificationValues.Both));
