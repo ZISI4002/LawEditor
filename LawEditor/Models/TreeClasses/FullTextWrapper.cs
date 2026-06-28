@@ -1507,15 +1507,20 @@ namespace LawEditor.Models.TreeClasses
             List<decimal> IdesofArticles = section.Articles.Select(a => a.Id).ToList();
 
             var oldClauseIds = section.Articles
-                .ToDictionary(a => a.Id, a => a.Clauses.Select(c => c.Number).ToList());
+    .GroupBy(a => a.Id)
+    .ToDictionary(
+        g => g.Key,
+        g => g.First().Clauses.Select(c => c.Number).ToList());
 
             var oldSubClauseIds = section.Articles
+                .GroupBy(a => a.Id)
                 .ToDictionary(
-                    a => a.Id,
-                    a => a.Clauses.ToDictionary(
-                        c => c.Number,
-                        c => c.SubClauses.Select(s => s.Number).ToList())
-                );
+                    g => g.Key,
+                    g => g.First().Clauses
+                        .GroupBy(c => c.Number)
+                        .ToDictionary(
+                            cg => cg.Key,
+                            cg => cg.First().SubClauses.Select(s => s.Number).ToList()));
 
             // ── Special Elements of Articles ──
             List<(int Position, Article article)> ArticlesWithEndnoteId = section.Articles
@@ -2235,13 +2240,13 @@ namespace LawEditor.Models.TreeClasses
             article.EndnoteId = null;
 
             List<int> IdesofClauses = article.Clauses.Select(c => c.Number).ToList();
+
+
             var oldSubClauseIds = article.Clauses
-                .ToDictionary(c => c.Number, c => c.SubClauses.Select(s => s.Number).ToList());
-
-
-
-
-
+      .GroupBy(c => c.Number)
+      .ToDictionary(
+          g => g.Key,
+          g => g.First().SubClauses.Select(s => s.Number).ToList());
 
 
             // Special Elements of Clauses
@@ -3115,7 +3120,9 @@ namespace LawEditor.Models.TreeClasses
                                 @"^\d{1,2}\s+(yanvar|fevral|mart|aprel|may|iyun|iyul|avqust|sentyabr|oktyabr|noyabr|dekabr)\s+\d{4}");
                             if (dateMatch.Success)
                             {
-                                TransitionalProvisions.Date = line;
+                                TransitionalProvisions.Date = string.IsNullOrEmpty(TransitionalProvisions.Date)
+                                    ? line
+                                    : TransitionalProvisions.Date + "\n" + line;
                                 break;
                             }
 
@@ -3138,6 +3145,10 @@ namespace LawEditor.Models.TreeClasses
 
                             if (trPending)
                                 tr.Title = tr.Title + "\n" + line;
+                            else
+                                TransitionalProvisions.Date = string.IsNullOrEmpty(TransitionalProvisions.Date)
+                                    ? line
+                                    : TransitionalProvisions.Date + "\n" + line;
 
                             break;
                         }
