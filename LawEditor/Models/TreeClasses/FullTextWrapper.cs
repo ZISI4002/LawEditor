@@ -500,25 +500,39 @@ namespace LawEditor.Models.TreeClasses
 
             List<int> IdesofSections = chapter.Sections.Select(s => s.Id).ToList();
 
-            var oldArticleIds = chapter.Sections
-                .ToDictionary(s => s.Id, s => s.Articles.Select(a => a.Id).ToList());
+          var  oldArticleIds = chapter.Sections
+     .Where(s => true)
+     .GroupBy(s => s.Id)
+     .ToDictionary(
+         g => g.Key,
+         g => g.First().Articles.Select(a => a.Id).ToList());
 
             var oldClauseIds = chapter.Sections
+                .GroupBy(s => s.Id)
                 .ToDictionary(
-                    s => s.Id,
-                    s => s.Articles.ToDictionary(a => a.Id, a => a.Clauses.Select(c => c.Number).ToList())
-                );
+                    g => g.Key,
+                    g => g.First().Articles
+                        .GroupBy(a => a.Id)
+                        .ToDictionary(
+                            ag => ag.Key,
+                            ag => ag.First().Clauses.Select(c => c.Number).ToList()));
 
             var oldSubClauseIds = chapter.Sections
+                .GroupBy(s => s.Id)
                 .ToDictionary(
-                    s => s.Id,
-                    s => s.Articles.ToDictionary(
-                        a => a.Id,
-                        a => a.Clauses.ToDictionary(
-                            c => c.Number,
-                            c => c.SubClauses.Select(sub => sub.Number).ToList())
-                    )
-                );
+                    g => g.Key,
+                    g => g.First().Articles
+                        .GroupBy(a => a.Id)
+                        .ToDictionary(
+                            ag => ag.Key,
+                            ag => ag.First().Clauses
+                                .GroupBy(c => c.Number)
+                                .ToDictionary(
+                                    cg => cg.Key,
+                                    cg => cg.First().SubClauses.Select(sub => sub.Number).ToList())));
+
+
+
 
             // ── Special Elements of Sections ──
             List<(int Position, Models.ChangableData.Section section)> SectionsWithImage = chapter.Sections
