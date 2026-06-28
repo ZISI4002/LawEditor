@@ -197,7 +197,7 @@
                                          BorderThickness="0"
                                          FontSize="14"
                                          FontFamily="Consolas, Monaco, Courier New"
-                                         Padding="8,5,5,5"
+                                         Padding="5,5,5,5"
                                          TextAlignment="Right"
                                          IsReadOnly="True"
                                          IsTabStop="False"

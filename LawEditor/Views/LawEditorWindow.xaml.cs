@@ -43,6 +43,7 @@ namespace LawEditor.Views
 
                     vm.OnSelectedItemChanged = SetRichTextContent;
                 }
+                SetupScrollSynchronization();
 
             };
         }
@@ -434,19 +435,64 @@ namespace LawEditor.Views
         {
             if (LineNumbersBox == null || MainRichTextBox == null) return;
 
-            var text = new TextRange(
-                MainRichTextBox.Document.ContentStart,
-                MainRichTextBox.Document.ContentEnd
-            ).Text ?? string.Empty;
-
-            string[] lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            int lineCount = Math.Max(lines.Length, 1);
+            // Считаем только если документ готов и в нем есть текст
+            if (MainRichTextBox.Document == null) return;
 
             var sb = new System.Text.StringBuilder();
-            for (int i = 1; i <= lineCount; i++)
-                sb.AppendLine(i.ToString());
+
+            // Берем начало документа
+            TextPointer start = MainRichTextBox.Document.ContentStart;
+            TextPointer end = MainRichTextBox.Document.ContentEnd;
+
+            int lineCount = 1;
+
+            // Ищем первый видимый символ (чтобы не дублировать логику на пустом доке)
+            TextPointer current = start.GetLineStartPosition(0);
+
+            if (current != null)
+            {
+                sb.AppendLine(lineCount.ToString());
+
+                // Циклически переходим к следующей ВИЗУАЛЬНОЙ строке
+                while (true)
+                {
+                    // GetLineStartPosition(1) переводит указатель на 1 визуальную строку вперед
+                    TextPointer next = current.GetLineStartPosition(1);
+
+                    if (next == null) break; // Визуальных строк больше нет
+
+                    // Проверяем, не ушли ли мы за пределы документа
+                    if (next.CompareTo(end) >= 0) break;
+
+                    // Проверяем, действительно ли указатель сдвинулся (чтобы не уйти в бесконечный цикл)
+                    if (next.CompareTo(current) <= 0) break;
+
+                    lineCount++;
+                    sb.AppendLine(lineCount.ToString());
+                    current = next;
+                }
+            }
+            else
+            {
+                sb.AppendLine("1");
+            }
 
             LineNumbersBox.Text = sb.ToString();
+        }
+        private void SetupScrollSynchronization()
+        {
+            // Находим внутренний ScrollViewer у RichTextBox
+            var mainScroll = FindVisualChild<ScrollViewer>(MainRichTextBox);
+
+            if (mainScroll != null && LineNumbersScrollViewer != null)
+            {
+                // Подписываемся на изменение прокрутки основного текстового поля
+                mainScroll.ScrollChanged += (s, e) =>
+                {
+                    // Передаем вертикальное смещение панели с цифрами
+                    LineNumbersScrollViewer.ScrollToVerticalOffset(e.VerticalOffset);
+                };
+            }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
