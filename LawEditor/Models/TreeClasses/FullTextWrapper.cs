@@ -521,71 +521,145 @@ namespace LawEditor.Models.TreeClasses
                 );
 
             // ── Special Elements of Sections ──
-            List<Models.ChangableData.Section> SectionsWithImage = chapter.Sections
-                .Where(s => s.Image != null)
+            List<(int Position, Models.ChangableData.Section section)> SectionsWithImage = chapter.Sections
+                .Select((s, pos) => (Position: pos, section: s))
+                .Where(x => x.section.Image != null)
                 .ToList();
-            List<Models.ChangableData.Section> SectionsWithTable = chapter.Sections
-                .Where(s => s.Table != null)
+            List<(int Position, Models.ChangableData.Section section)> SectionsWithTable = chapter.Sections
+                .Select((s, pos) => (Position: pos, section: s))
+                .Where(x => x.section.Table != null)
                 .ToList();
 
             // ── Special Elements of Articles ──
-            List<(int IdofSection, Article article)> ArticlesWithEndnoteId = chapter.Sections
-                .SelectMany(s => s.Articles, (s, a) => (IdofSection: s.Id, article: a))
+            List<(int SectionPosition, int Position, Article article)> ArticlesWithEndnoteId = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, pos) => (SectionPosition: x.sPos, Position: pos, article: a)))
                 .Where(x => !string.IsNullOrEmpty(x.article.EndnoteId))
                 .ToList();
-            List<(int IdofSection, Article article)> ArticlesWithImage = chapter.Sections
-                .SelectMany(s => s.Articles, (s, a) => (IdofSection: s.Id, article: a))
+            List<(int SectionPosition, int Position, Article article)> ArticlesWithImage = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, pos) => (SectionPosition: x.sPos, Position: pos, article: a)))
                 .Where(x => x.article.Image != null)
                 .ToList();
-            List<(int IdofSection, Article article)> ArticlesWithTable = chapter.Sections
-                .SelectMany(s => s.Articles, (s, a) => (IdofSection: s.Id, article: a))
+            List<(int SectionPosition, int Position, Article article)> ArticlesWithTable = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, pos) => (SectionPosition: x.sPos, Position: pos, article: a)))
                 .Where(x => x.article.Table != null)
                 .ToList();
 
             // ── Special Elements of Clauses ──
-            List<(int IdofSection, decimal IdofArticle, Clause clause)> ClausesWithEndnoteId = chapter.Sections
-                .SelectMany(s => s.Articles, (s, a) => (s, a))
-                .SelectMany(x => x.a.Clauses, (x, c) => (IdofSection: x.s.Id, IdofArticle: x.a.Id, clause: c))
+            List<(int SectionPosition, int ArticlePosition, string ArticleTitle, int Position, Clause clause)> ClausesWithEndnoteId = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, aPos) => (x.sPos, a, aPos)))
+                .SelectMany(x => x.a.Clauses.Select((c, pos) => (
+                    SectionPosition: x.sPos,
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.a.Title,
+                    Position: pos,
+                    clause: c)))
                 .Where(x => !string.IsNullOrEmpty(x.clause.EndnoteId))
                 .ToList();
-            List<(int IdofSection, decimal IdofArticle, Clause clause)> ClausesWithImage = chapter.Sections
-                .SelectMany(s => s.Articles, (s, a) => (s, a))
-                .SelectMany(x => x.a.Clauses, (x, c) => (IdofSection: x.s.Id, IdofArticle: x.a.Id, clause: c))
+            List<(int SectionPosition, int ArticlePosition, string ArticleTitle, int Position, Clause clause)> ClausesWithImage = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, aPos) => (x.sPos, a, aPos)))
+                .SelectMany(x => x.a.Clauses.Select((c, pos) => (
+                    SectionPosition: x.sPos,
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.a.Title,
+                    Position: pos,
+                    clause: c)))
                 .Where(x => x.clause.Image != null)
                 .ToList();
-            List<(int IdofSection, decimal IdofArticle, Clause clause)> ClausesWithTable = chapter.Sections
-                .SelectMany(s => s.Articles, (s, a) => (s, a))
-                .SelectMany(x => x.a.Clauses, (x, c) => (IdofSection: x.s.Id, IdofArticle: x.a.Id, clause: c))
+            List<(int SectionPosition, int ArticlePosition, string ArticleTitle, int Position, Clause clause)> ClausesWithTable = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, aPos) => (x.sPos, a, aPos)))
+                .SelectMany(x => x.a.Clauses.Select((c, pos) => (
+                    SectionPosition: x.sPos,
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.a.Title,
+                    Position: pos,
+                    clause: c)))
                 .Where(x => x.clause.Table != null)
                 .ToList();
-            List<(int IdofSection, decimal IdofArticle, Clause clause)> ClausesWithLink = chapter.Sections
-                .SelectMany(s => s.Articles, (s, a) => (s, a))
-                .SelectMany(x => x.a.Clauses, (x, c) => (IdofSection: x.s.Id, IdofArticle: x.a.Id, clause: c))
+            List<(int SectionPosition, int ArticlePosition, string ArticleTitle, int Position, Clause clause)> ClausesWithLink = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, aPos) => (x.sPos, a, aPos)))
+                .SelectMany(x => x.a.Clauses.Select((c, pos) => (
+                    SectionPosition: x.sPos,
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.a.Title,
+                    Position: pos,
+                    clause: c)))
                 .Where(x => !string.IsNullOrEmpty(x.clause.LinkText))
                 .ToList();
 
             // ── Special Elements of SubClauses ──
-            List<(int IdofSection, decimal IdofArticle, int IdofClause, SubClause sub)> SubClausesWithEndnoteId = chapter.Sections
-                .SelectMany(s => s.Articles, (s, a) => (s, a))
-                .SelectMany(x => x.a.Clauses, (x, c) => (x.s, x.a, c))
-                .SelectMany(x => x.c.SubClauses, (x, sub) => (IdofSection: x.s.Id, IdofArticle: x.a.Id, IdofClause: x.c.Number, sub: sub))
+            List<(int SectionPosition, int ArticlePosition, string ArticleTitle, int ClausePosition, string ClauseText, int Position, SubClause sub)> SubClausesWithEndnoteId = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, aPos) => (x.sPos, a, aPos)))
+                .SelectMany(x => x.a.Clauses.Select((c, cPos) => (x.sPos, x.aPos, x.a.Title, c, cPos)))
+                .SelectMany(x => x.c.SubClauses.Select((sub, pos) => (
+                    SectionPosition: x.sPos,
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.Item3,
+                    ClausePosition: x.cPos,
+                    ClauseText: x.c.Text,
+                    Position: pos,
+                    sub: sub)))
                 .Where(x => !string.IsNullOrEmpty(x.sub.EndnoteId))
                 .ToList();
-            List<(int IdofSection, decimal IdofArticle, int IdofClause, SubClause sub)> SubClausesWithImage = chapter.Sections
-                .SelectMany(s => s.Articles, (s, a) => (s, a))
-                .SelectMany(x => x.a.Clauses, (x, c) => (x.s, x.a, c))
-                .SelectMany(x => x.c.SubClauses, (x, sub) => (IdofSection: x.s.Id, IdofArticle: x.a.Id, IdofClause: x.c.Number, sub: sub))
+            List<(int SectionPosition, int ArticlePosition, string ArticleTitle, int ClausePosition, string ClauseText, int Position, SubClause sub)> SubClausesWithImage = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, aPos) => (x.sPos, a, aPos)))
+                .SelectMany(x => x.a.Clauses.Select((c, cPos) => (x.sPos, x.aPos, x.a.Title, c, cPos)))
+                .SelectMany(x => x.c.SubClauses.Select((sub, pos) => (
+                    SectionPosition: x.sPos,
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.Item3,
+                    ClausePosition: x.cPos,
+                    ClauseText: x.c.Text,
+                    Position: pos,
+                    sub: sub)))
                 .Where(x => x.sub.Image != null)
                 .ToList();
-            List<(int IdofSection, decimal IdofArticle, int IdofClause, SubClause sub)> SubClausesWithTable = chapter.Sections
-                .SelectMany(s => s.Articles, (s, a) => (s, a))
-                .SelectMany(x => x.a.Clauses, (x, c) => (x.s, x.a, c))
-                .SelectMany(x => x.c.SubClauses, (x, sub) => (IdofSection: x.s.Id, IdofArticle: x.a.Id, IdofClause: x.c.Number, sub: sub))
+            List<(int SectionPosition, int ArticlePosition, string ArticleTitle, int ClausePosition, string ClauseText, int Position, SubClause sub)> SubClausesWithTable = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, aPos) => (x.sPos, a, aPos)))
+                .SelectMany(x => x.a.Clauses.Select((c, cPos) => (x.sPos, x.aPos, x.a.Title, c, cPos)))
+                .SelectMany(x => x.c.SubClauses.Select((sub, pos) => (
+                    SectionPosition: x.sPos,
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.Item3,
+                    ClausePosition: x.cPos,
+                    ClauseText: x.c.Text,
+                    Position: pos,
+                    sub: sub)))
                 .Where(x => x.sub.Table != null)
                 .ToList();
 
-            chapter.Sections.Clear();
+            // Старое количество элементов в каждой категории
 
+            var oldArticleCounts = chapter.Sections
+                .Select((s, sPos) => (sPos, count: s.Articles.Count))
+                .ToDictionary(x => x.sPos, x => x.count);
+
+            var oldClauseCounts = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, aPos) => (x.sPos, aPos, count: a.Clauses.Count)))
+                .ToDictionary(x => (x.sPos, x.aPos), x => x.count);
+
+            var oldSubClauseCounts = chapter.Sections
+                .Select((s, sPos) => (s, sPos))
+                .SelectMany(x => x.s.Articles.Select((a, aPos) => (x.sPos, a, aPos)))
+                .SelectMany(x => x.a.Clauses.Select((c, cPos) => (x.sPos, x.aPos, cPos, count: c.SubClauses.Count)))
+                .ToDictionary(x => (x.sPos, x.aPos, x.cPos), x => x.count);
+
+
+
+            chapter.Sections.Clear();
+            // Chapter переменные
+            bool changeAsked = false;
+            MessageBoxResult changeResult = MessageBoxResult.No;
             // Section переменные
             int IdcounterofSections = 0;
             var SectionsResult = MessageBoxResult.No;
@@ -594,8 +668,6 @@ namespace LawEditor.Models.TreeClasses
             int PositionOfChangedSectionElement = 0;
             Models.ChangableData.Section currentSection = null;
 
-            Image SectionImageToRestore = null;
-            Table SectionTableToRestore = null;
 
             // Article переменные
             List<decimal> idsOfArticles = new List<decimal>();
@@ -609,9 +681,7 @@ namespace LawEditor.Models.TreeClasses
             int positionOfChangedArticleElement = 0;
             Article currentArticle = null;
 
-            string ArticleEndnoteToRestore = null;
-            Image ArticleImageToRestore = null;
-            Table ArticleTableToRestore = null;
+            
 
             // Clause переменные
             List<int> idsOfClauses = new List<int>();
@@ -624,11 +694,7 @@ namespace LawEditor.Models.TreeClasses
             int positionOfChangedClauseElement = 0;
             Clause currentClause = null;
 
-            string ClauseEndnoteToRestore = null;
-            Image ClauseImageToRestore = null;
-            Table ClauseTableToRestore = null;
-            string ClauseLinkTextToRestore = null;
-            string ClauseUrlToRestore = null;
+           
 
             // SubClause переменные
             List<int> idsOfSubClauses = new List<int>();
@@ -641,9 +707,7 @@ namespace LawEditor.Models.TreeClasses
             int positionOfChangedSubClauseElement = 0;
             SubClause currentSubClause = null;
 
-            string SubClauseEndnoteToRestore = null;
-            Image SubClauseImageToRestore = null;
-            Table SubClauseTableToRestore = null;
+           
 
             void ApplySubClauseChanges()
             {
@@ -696,13 +760,7 @@ namespace LawEditor.Models.TreeClasses
 
                 int nextPos = positionOfChangedArticleElement + 1;
 
-                bool nextIsFractional =
-                    nextPos < articlesTargetSection.Articles.Count &&
-                    articlesTargetSection.Articles[nextPos].Id !=
-                    Math.Floor(articlesTargetSection.Articles[nextPos].Id);
-
-                if (!nextIsFractional)
-                    articlesFinalResult = MessageBoxResult.No;
+               
 
                 if (articlesFinalResult != MessageBoxResult.Yes)
                     return;
@@ -748,9 +806,7 @@ namespace LawEditor.Models.TreeClasses
                 positionOfChangedSubClauseElement = 0;
                 currentSubClause = null;
 
-                SubClauseEndnoteToRestore = null;
-                SubClauseImageToRestore = null;
-                SubClauseTableToRestore = null;
+               
             }
 
             void ResetClauseCounters(int secId, decimal artId)
@@ -768,11 +824,7 @@ namespace LawEditor.Models.TreeClasses
                 currentClause = null;
                 currentSubClause = null;
 
-                ClauseEndnoteToRestore = null;
-                ClauseImageToRestore = null;
-                ClauseTableToRestore = null;
-                ClauseLinkTextToRestore = null;
-                ClauseUrlToRestore = null;
+               
             }
 
             void ResetArticleCounters(int secId)
@@ -790,9 +842,6 @@ namespace LawEditor.Models.TreeClasses
                 currentClause = null;
                 currentSubClause = null;
 
-                ArticleEndnoteToRestore = null;
-                ArticleImageToRestore = null;
-                ArticleTableToRestore = null;
             }
 
             for (int i = 1; i < lines.Length; i++)
@@ -816,11 +865,16 @@ namespace LawEditor.Models.TreeClasses
                                IdesofSections[IdcounterofSections] != secId))
                     {
                         sectionsAsked = true;
-                        SectionsResult = MessageBox.Show(
-                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                            "Təsdiqləmə",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Question);
+                        if (!changeAsked)
+                        {
+                            changeAsked = true;
+                            changeResult = MessageBox.Show(
+                                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                "Təsdiqləmə",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Question);
+                        }
+                        SectionsResult = changeResult;
 
                         if (SectionsResult == MessageBoxResult.Yes)
                         {
@@ -828,32 +882,11 @@ namespace LawEditor.Models.TreeClasses
                             PositionOfChangedSectionElement = IdcounterofSections;
                         }
                     }
-
-                    // ── Реставрация Section ──
-                    foreach (var s in SectionsWithImage)
-                    {
-                        if (s.Id == secId || s.Title == sectionMatch.Groups[2].Value.ToUpper())
-                        {
-                            SectionImageToRestore = s.Image;
-                            break;
-                        }
-                    }
-                    foreach (var s in SectionsWithTable)
-                    {
-                        if (s.Id == secId || s.Title == sectionMatch.Groups[2].Value.ToUpper())
-                        {
-                            SectionTableToRestore = s.Table;
-                            break;
-                        }
-                    }
+               
 
                     currentSection = chapter.AddSection(sectionMatch.Groups[2].Value);
                     currentSection.Id = secId;
-                    currentSection.Image = SectionImageToRestore;
-                    currentSection.Table = SectionTableToRestore;
-
-                    SectionImageToRestore = null;
-                    SectionTableToRestore = null;
+                  
 
                     IdcounterofSections++;
 
@@ -869,31 +902,10 @@ namespace LawEditor.Models.TreeClasses
                     var rest = Regex.Match(line, @"^\{\}\s+(.*)$").Groups[1].Value;
                     int restoredSecId = IdesofSections[IdcounterofSections];
 
-                    // ── Реставрация Section (unnumbered) ──
-                    foreach (var s in SectionsWithImage)
-                    {
-                        if (s.Id == restoredSecId || s.Title == rest.ToUpper())
-                        {
-                            SectionImageToRestore = s.Image;
-                            break;
-                        }
-                    }
-                    foreach (var s in SectionsWithTable)
-                    {
-                        if (s.Id == restoredSecId || s.Title == rest.ToUpper())
-                        {
-                            SectionTableToRestore = s.Table;
-                            break;
-                        }
-                    }
-
+                   
                     currentSection = chapter.AddSection(rest);
                     currentSection.Id = restoredSecId;
-                    currentSection.Image = SectionImageToRestore;
-                    currentSection.Table = SectionTableToRestore;
-
-                    SectionImageToRestore = null;
-                    SectionTableToRestore = null;
+                    
 
                     sectionsAsked = true;
                     IdcounterofSections++;
@@ -960,11 +972,19 @@ namespace LawEditor.Models.TreeClasses
                                 {
                                     articlesAsked = true;
 
-                                    var articlesResult = MessageBox.Show(
-                                        "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                                        "Təsdiqləmə",
-                                        MessageBoxButton.YesNo,
-                                        MessageBoxImage.Question);
+                                    var articlesResult = MessageBoxResult.No;
+
+
+                                        if (!changeAsked)
+                                    {
+                                        changeAsked = true;
+                                        changeResult = MessageBox.Show(
+                                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                            "Təsdiqləmə",
+                                            MessageBoxButton.YesNo,
+                                            MessageBoxImage.Question);
+                                    }
+                                        articlesResult = changeResult;
 
                                     if (articlesResult == MessageBoxResult.Yes)
                                     {
@@ -981,11 +1001,19 @@ namespace LawEditor.Models.TreeClasses
                             {
                                 articlesAsked = true;
 
-                                var articlesResult = MessageBox.Show(
-                                    "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                                    "Təsdiqləmə",
-                                    MessageBoxButton.YesNo,
-                                    MessageBoxImage.Question);
+                                var articlesResult = MessageBoxResult.No;
+
+
+                                   if (!changeAsked)
+                                {
+                                    changeAsked = true;
+                                    changeResult = MessageBox.Show(
+                                        "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                        "Təsdiqləmə",
+                                        MessageBoxButton.YesNo,
+                                        MessageBoxImage.Question);
+                                }
+                                articlesResult = changeResult;
 
                                 if (articlesResult == MessageBoxResult.Yes)
                                 {
@@ -1006,47 +1034,18 @@ namespace LawEditor.Models.TreeClasses
                     }
 
                     // ── Реставрация Article ──
-                    foreach (var x in ArticlesWithEndnoteId)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            (x.article.Id == artId || x.article.Title == articleMatch.Groups[2].Value))
-                        {
-                            ArticleEndnoteToRestore = x.article.EndnoteId;
-                            break;
-                        }
-                    }
-                    foreach (var x in ArticlesWithImage)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            (x.article.Id == artId || x.article.Title == articleMatch.Groups[2].Value))
-                        {
-                            ArticleImageToRestore = x.article.Image;
-                            break;
-                        }
-                    }
-                    foreach (var x in ArticlesWithTable)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            (x.article.Id == artId || x.article.Title == articleMatch.Groups[2].Value))
-                        {
-                            ArticleTableToRestore = x.article.Table;
-                            break;
-                        }
-                    }
+                    string articleTitle = articleMatch.Groups[2].Value;
+                    
 
                     currentArticle = new Article
                     {
                         Id = artId,
-                        Title = articleMatch.Groups[2].Value,
-                        EndnoteId = ArticleEndnoteToRestore,
-                        Image = ArticleImageToRestore,
-                        Table = ArticleTableToRestore
+                        Title = articleTitle,
+                        
                     };
                     currentSection.Articles.Add(currentArticle);
 
-                    ArticleEndnoteToRestore = null;
-                    ArticleImageToRestore = null;
-                    ArticleTableToRestore = null;
+                    
 
                     idCounterOfArticles++;
 
@@ -1064,48 +1063,17 @@ namespace LawEditor.Models.TreeClasses
                     var rest = Regex.Match(line, @"^\[\]\s+(.*)$").Groups[1].Value;
                     decimal restoredArtId = idsOfArticles[idCounterOfArticles];
 
-                    // ── Реставрация Article (unnumbered) ──
-                    foreach (var x in ArticlesWithEndnoteId)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            (x.article.Id == restoredArtId || x.article.Title == rest))
-                        {
-                            ArticleEndnoteToRestore = x.article.EndnoteId;
-                            break;
-                        }
-                    }
-                    foreach (var x in ArticlesWithImage)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            (x.article.Id == restoredArtId || x.article.Title == rest))
-                        {
-                            ArticleImageToRestore = x.article.Image;
-                            break;
-                        }
-                    }
-                    foreach (var x in ArticlesWithTable)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            (x.article.Id == restoredArtId || x.article.Title == rest))
-                        {
-                            ArticleTableToRestore = x.article.Table;
-                            break;
-                        }
-                    }
+                    
 
                     currentArticle = new Article
                     {
                         Id = restoredArtId,
                         Title = rest,
-                        EndnoteId = ArticleEndnoteToRestore,
-                        Image = ArticleImageToRestore,
-                        Table = ArticleTableToRestore
+                        
                     };
                     currentSection.Articles.Add(currentArticle);
 
-                    ArticleEndnoteToRestore = null;
-                    ArticleImageToRestore = null;
-                    ArticleTableToRestore = null;
+                    
 
                     articlesAsked = true;
                     idCounterOfArticles++;
@@ -1128,11 +1096,19 @@ namespace LawEditor.Models.TreeClasses
                            idsOfClauses[idCounterOfClauses] != newClauseNumber))
                     {
                         clausesAsked = true;
-                        var clausesResult = MessageBox.Show(
-                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                            "Təsdiqləmə",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Question);
+                        var clausesResult = MessageBoxResult.No;
+
+
+                           if (!changeAsked)
+                        {
+                            changeAsked = true;
+                            changeResult = MessageBox.Show(
+                                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                "Təsdiqləmə",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Question);
+                        }
+                        clausesResult = changeResult;
 
                         if (clausesResult == MessageBoxResult.Yes)
                         {
@@ -1145,61 +1121,12 @@ namespace LawEditor.Models.TreeClasses
                     }
 
                     // ── Реставрация Clause ──
-                    foreach (var x in ClausesWithEndnoteId)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            x.IdofArticle == currentArticle.Id &&
-                            (x.clause.Number == newClauseNumber || x.clause.Text == clauseMatch.Groups[2].Value))
-                        {
-                            ClauseEndnoteToRestore = x.clause.EndnoteId;
-                            break;
-                        }
-                    }
-                    foreach (var x in ClausesWithImage)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            x.IdofArticle == currentArticle.Id &&
-                            (x.clause.Number == newClauseNumber || x.clause.Text == clauseMatch.Groups[2].Value))
-                        {
-                            ClauseImageToRestore = x.clause.Image;
-                            break;
-                        }
-                    }
-                    foreach (var x in ClausesWithTable)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            x.IdofArticle == currentArticle.Id &&
-                            (x.clause.Number == newClauseNumber || x.clause.Text == clauseMatch.Groups[2].Value))
-                        {
-                            ClauseTableToRestore = x.clause.Table;
-                            break;
-                        }
-                    }
-                    foreach (var x in ClausesWithLink)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            x.IdofArticle == currentArticle.Id &&
-                            (x.clause.Number == newClauseNumber || x.clause.Text == clauseMatch.Groups[2].Value))
-                        {
-                            ClauseLinkTextToRestore = x.clause.LinkText;
-                            ClauseUrlToRestore = x.clause.Url;
-                            break;
-                        }
-                    }
+                    string clauseText = clauseMatch.Groups[2].Value;
+                   
 
-                    currentClause = currentArticle.AddClause(clauseMatch.Groups[2].Value);
+                    currentClause = currentArticle.AddClause(clauseText);
                     currentClause.Number = newClauseNumber;
-                    currentClause.EndnoteId = ClauseEndnoteToRestore;
-                    currentClause.Image = ClauseImageToRestore;
-                    currentClause.Table = ClauseTableToRestore;
-                    currentClause.LinkText = ClauseLinkTextToRestore;
-                    currentClause.Url = ClauseUrlToRestore;
-
-                    ClauseEndnoteToRestore = null;
-                    ClauseImageToRestore = null;
-                    ClauseTableToRestore = null;
-                    ClauseLinkTextToRestore = null;
-                    ClauseUrlToRestore = null;
+                    
 
                     currentSubClause = null;
                     idCounterOfClauses++;
@@ -1218,63 +1145,11 @@ namespace LawEditor.Models.TreeClasses
                         var rest = Regex.Match(line, @"^\.\s+(.*)$").Groups[1].Value;
                         int restoredClauseNum = idsOfClauses[idCounterOfClauses];
 
-                        // ── Реставрация Clause (unnumbered) ──
-                        foreach (var x in ClausesWithEndnoteId)
-                        {
-                            if (x.IdofSection == currentSection.Id &&
-                                x.IdofArticle == currentArticle.Id &&
-                                (x.clause.Number == restoredClauseNum || x.clause.Text == rest))
-                            {
-                                ClauseEndnoteToRestore = x.clause.EndnoteId;
-                                break;
-                            }
-                        }
-                        foreach (var x in ClausesWithImage)
-                        {
-                            if (x.IdofSection == currentSection.Id &&
-                                x.IdofArticle == currentArticle.Id &&
-                                (x.clause.Number == restoredClauseNum || x.clause.Text == rest))
-                            {
-                                ClauseImageToRestore = x.clause.Image;
-                                break;
-                            }
-                        }
-                        foreach (var x in ClausesWithTable)
-                        {
-                            if (x.IdofSection == currentSection.Id &&
-                                x.IdofArticle == currentArticle.Id &&
-                                (x.clause.Number == restoredClauseNum || x.clause.Text == rest))
-                            {
-                                ClauseTableToRestore = x.clause.Table;
-                                break;
-                            }
-                        }
-                        foreach (var x in ClausesWithLink)
-                        {
-                            if (x.IdofSection == currentSection.Id &&
-                                x.IdofArticle == currentArticle.Id &&
-                                (x.clause.Number == restoredClauseNum || x.clause.Text == rest))
-                            {
-                                ClauseLinkTextToRestore = x.clause.LinkText;
-                                ClauseUrlToRestore = x.clause.Url;
-                                break;
-                            }
-                        }
+                        
 
                         currentClause = currentArticle.AddClause(rest);
                         currentClause.Number = restoredClauseNum;
-                        currentClause.EndnoteId = ClauseEndnoteToRestore;
-                        currentClause.Image = ClauseImageToRestore;
-                        currentClause.Table = ClauseTableToRestore;
-                        currentClause.LinkText = ClauseLinkTextToRestore;
-                        currentClause.Url = ClauseUrlToRestore;
-
-                        ClauseEndnoteToRestore = null;
-                        ClauseImageToRestore = null;
-                        ClauseTableToRestore = null;
-                        ClauseLinkTextToRestore = null;
-                        ClauseUrlToRestore = null;
-
+                      
                         clausesAsked = true;
                         currentSubClause = null;
                         idCounterOfClauses++;
@@ -1296,11 +1171,20 @@ namespace LawEditor.Models.TreeClasses
                           idsOfSubClauses[idCounterOfSubClauses] != newSubNumber))
                     {
                         subClausesAsked = true;
-                        var subClausesResult = MessageBox.Show(
-                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                            "Təsdiqləmə",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Question);
+                        var subClausesResult = MessageBoxResult.No;
+
+
+
+                           if (!changeAsked)
+                        {
+                            changeAsked = true;
+                            changeResult = MessageBox.Show(
+                                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                "Təsdiqləmə",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Question);
+                        }
+                        subClausesResult = changeResult;
 
                         if (subClausesResult == MessageBoxResult.Yes)
                         {
@@ -1313,50 +1197,12 @@ namespace LawEditor.Models.TreeClasses
                     }
 
                     // ── Реставрация SubClause ──
-                    foreach (var x in SubClausesWithEndnoteId)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            x.IdofArticle == currentArticle.Id &&
-                            x.IdofClause == currentClause.Number &&
-                            (x.sub.Number == newSubNumber || x.sub.Text == subMatch.Groups[2].Value))
-                        {
-                            SubClauseEndnoteToRestore = x.sub.EndnoteId;
-                            break;
-                        }
-                    }
-                    foreach (var x in SubClausesWithImage)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            x.IdofArticle == currentArticle.Id &&
-                            x.IdofClause == currentClause.Number &&
-                            (x.sub.Number == newSubNumber || x.sub.Text == subMatch.Groups[2].Value))
-                        {
-                            SubClauseImageToRestore = x.sub.Image;
-                            break;
-                        }
-                    }
-                    foreach (var x in SubClausesWithTable)
-                    {
-                        if (x.IdofSection == currentSection.Id &&
-                            x.IdofArticle == currentArticle.Id &&
-                            x.IdofClause == currentClause.Number &&
-                            (x.sub.Number == newSubNumber || x.sub.Text == subMatch.Groups[2].Value))
-                        {
-                            SubClauseTableToRestore = x.sub.Table;
-                            break;
-                        }
-                    }
+                    string subText = subMatch.Groups[2].Value;
+                   
 
-                    currentSubClause = currentClause.AddSubClause(subMatch.Groups[2].Value);
+                    currentSubClause = currentClause.AddSubClause(subText);
                     currentSubClause.Number = newSubNumber;
-                    currentSubClause.EndnoteId = SubClauseEndnoteToRestore;
-                    currentSubClause.Image = SubClauseImageToRestore;
-                    currentSubClause.Table = SubClauseTableToRestore;
-
-                    SubClauseEndnoteToRestore = null;
-                    SubClauseImageToRestore = null;
-                    SubClauseTableToRestore = null;
-
+                   
                     idCounterOfSubClauses++;
                     continue;
                 }
@@ -1389,6 +1235,217 @@ namespace LawEditor.Models.TreeClasses
 
             ApplyArticleChanges();
 
+            // ── Реставрация после парсинга ──
+
+            // Section
+            bool sectionCountIncreased = chapter.Sections.Count > IdesofSections.Count;
+            foreach (var entry in SectionsWithImage)
+            {
+                var newSection = chapter.Sections.FirstOrDefault(s => s.Title.ToUpper() == entry.section.Title);
+                if (newSection == null && !sectionCountIncreased)
+                    newSection = chapter.Sections.ElementAtOrDefault(entry.Position);
+                if (newSection != null)
+                    newSection.Image = entry.section.Image;
+            }
+            foreach (var entry in SectionsWithTable)
+            {
+                var newSection = chapter.Sections.FirstOrDefault(s => s.Title.ToUpper() == entry.section.Title);
+                if (newSection == null && !sectionCountIncreased)
+                    newSection = chapter.Sections.ElementAtOrDefault(entry.Position);
+                if (newSection != null)
+                    newSection.Table = entry.section.Table;
+            }
+
+            // Article
+            foreach (var entry in ArticlesWithEndnoteId)
+            {
+                var ownerSection = chapter.Sections.ElementAtOrDefault(entry.SectionPosition);
+                if (ownerSection == null) continue;
+                bool articleCountIncreased = ownerSection.Articles.Count >
+                    (oldArticleCounts.TryGetValue(entry.SectionPosition, out var oldArtCount) ? oldArtCount : 0);
+                var newArticle = ownerSection.Articles.FirstOrDefault(a => a.Title == entry.article.Title);
+                if (newArticle == null && !articleCountIncreased)
+                    newArticle = ownerSection.Articles.ElementAtOrDefault(entry.Position);
+                if (newArticle != null)
+                    newArticle.EndnoteId = entry.article.EndnoteId;
+            }
+            foreach (var entry in ArticlesWithImage)
+            {
+                var ownerSection = chapter.Sections.ElementAtOrDefault(entry.SectionPosition);
+                if (ownerSection == null) continue;
+                bool articleCountIncreased = ownerSection.Articles.Count >
+                    (oldArticleCounts.TryGetValue(entry.SectionPosition, out var oldArtCount) ? oldArtCount : 0);
+                var newArticle = ownerSection.Articles.FirstOrDefault(a => a.Title == entry.article.Title);
+                if (newArticle == null && !articleCountIncreased)
+                    newArticle = ownerSection.Articles.ElementAtOrDefault(entry.Position);
+                if (newArticle != null)
+                    newArticle.Image = entry.article.Image;
+            }
+            foreach (var entry in ArticlesWithTable)
+            {
+                var ownerSection = chapter.Sections.ElementAtOrDefault(entry.SectionPosition);
+                if (ownerSection == null) continue;
+                bool articleCountIncreased = ownerSection.Articles.Count >
+                    (oldArticleCounts.TryGetValue(entry.SectionPosition, out var oldArtCount) ? oldArtCount : 0);
+                var newArticle = ownerSection.Articles.FirstOrDefault(a => a.Title == entry.article.Title);
+                if (newArticle == null && !articleCountIncreased)
+                    newArticle = ownerSection.Articles.ElementAtOrDefault(entry.Position);
+                if (newArticle != null)
+                    newArticle.Table = entry.article.Table;
+            }
+
+            // Clause
+            foreach (var entry in ClausesWithEndnoteId)
+            {
+                var ownerSection = chapter.Sections.ElementAtOrDefault(entry.SectionPosition);
+                if (ownerSection == null) continue;
+                bool articleCountIncreased = ownerSection.Articles.Count >
+                    (oldArticleCounts.TryGetValue(entry.SectionPosition, out var oldArtCount) ? oldArtCount : 0);
+                var ownerArticle = ownerSection.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = ownerSection.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue((entry.SectionPosition, entry.ArticlePosition), out var oldClCount) ? oldClCount : 0);
+                var newClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = ownerArticle.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                    newClause.EndnoteId = entry.clause.EndnoteId;
+            }
+            foreach (var entry in ClausesWithImage)
+            {
+                var ownerSection = chapter.Sections.ElementAtOrDefault(entry.SectionPosition);
+                if (ownerSection == null) continue;
+                bool articleCountIncreased = ownerSection.Articles.Count >
+                    (oldArticleCounts.TryGetValue(entry.SectionPosition, out var oldArtCount) ? oldArtCount : 0);
+                var ownerArticle = ownerSection.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = ownerSection.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue((entry.SectionPosition, entry.ArticlePosition), out var oldClCount) ? oldClCount : 0);
+                var newClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = ownerArticle.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                    newClause.Image = entry.clause.Image;
+            }
+            foreach (var entry in ClausesWithTable)
+            {
+                var ownerSection = chapter.Sections.ElementAtOrDefault(entry.SectionPosition);
+                if (ownerSection == null) continue;
+                bool articleCountIncreased = ownerSection.Articles.Count >
+                    (oldArticleCounts.TryGetValue(entry.SectionPosition, out var oldArtCount) ? oldArtCount : 0);
+                var ownerArticle = ownerSection.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = ownerSection.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue((entry.SectionPosition, entry.ArticlePosition), out var oldClCount) ? oldClCount : 0);
+                var newClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = ownerArticle.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                    newClause.Table = entry.clause.Table;
+            }
+            foreach (var entry in ClausesWithLink)
+            {
+                var ownerSection = chapter.Sections.ElementAtOrDefault(entry.SectionPosition);
+                if (ownerSection == null) continue;
+                bool articleCountIncreased = ownerSection.Articles.Count >
+                    (oldArticleCounts.TryGetValue(entry.SectionPosition, out var oldArtCount) ? oldArtCount : 0);
+                var ownerArticle = ownerSection.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = ownerSection.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue((entry.SectionPosition, entry.ArticlePosition), out var oldClCount) ? oldClCount : 0);
+                var newClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = ownerArticle.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                {
+                    newClause.LinkText = entry.clause.LinkText;
+                    newClause.Url = entry.clause.Url;
+                }
+            }
+
+            // SubClause
+            foreach (var entry in SubClausesWithEndnoteId)
+            {
+                var ownerSection = chapter.Sections.ElementAtOrDefault(entry.SectionPosition);
+                if (ownerSection == null) continue;
+                bool articleCountIncreased = ownerSection.Articles.Count >
+                    (oldArticleCounts.TryGetValue(entry.SectionPosition, out var oldArtCount) ? oldArtCount : 0);
+                var ownerArticle = ownerSection.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = ownerSection.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue((entry.SectionPosition, entry.ArticlePosition), out var oldClCount) ? oldClCount : 0);
+                var ownerClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.ClauseText);
+                if (ownerClause == null && !clauseCountIncreased)
+                    ownerClause = ownerArticle.Clauses.ElementAtOrDefault(entry.ClausePosition);
+                if (ownerClause == null) continue;
+                bool subCountIncreased = ownerClause.SubClauses.Count >
+                    (oldSubClauseCounts.TryGetValue((entry.SectionPosition, entry.ArticlePosition, entry.ClausePosition), out var oldSubCount) ? oldSubCount : 0);
+                var newSub = ownerClause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = ownerClause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.EndnoteId = entry.sub.EndnoteId;
+            }
+            foreach (var entry in SubClausesWithImage)
+            {
+                var ownerSection = chapter.Sections.ElementAtOrDefault(entry.SectionPosition);
+                if (ownerSection == null) continue;
+                bool articleCountIncreased = ownerSection.Articles.Count >
+                    (oldArticleCounts.TryGetValue(entry.SectionPosition, out var oldArtCount) ? oldArtCount : 0);
+                var ownerArticle = ownerSection.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = ownerSection.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue((entry.SectionPosition, entry.ArticlePosition), out var oldClCount) ? oldClCount : 0);
+                var ownerClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.ClauseText);
+                if (ownerClause == null && !clauseCountIncreased)
+                    ownerClause = ownerArticle.Clauses.ElementAtOrDefault(entry.ClausePosition);
+                if (ownerClause == null) continue;
+                bool subCountIncreased = ownerClause.SubClauses.Count >
+                    (oldSubClauseCounts.TryGetValue((entry.SectionPosition, entry.ArticlePosition, entry.ClausePosition), out var oldSubCount) ? oldSubCount : 0);
+                var newSub = ownerClause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = ownerClause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.Image = entry.sub.Image;
+            }
+            foreach (var entry in SubClausesWithTable)
+            {
+                var ownerSection = chapter.Sections.ElementAtOrDefault(entry.SectionPosition);
+                if (ownerSection == null) continue;
+                bool articleCountIncreased = ownerSection.Articles.Count >
+                    (oldArticleCounts.TryGetValue(entry.SectionPosition, out var oldArtCount) ? oldArtCount : 0);
+                var ownerArticle = ownerSection.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = ownerSection.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue((entry.SectionPosition, entry.ArticlePosition), out var oldClCount) ? oldClCount : 0);
+                var ownerClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.ClauseText);
+                if (ownerClause == null && !clauseCountIncreased)
+                    ownerClause = ownerArticle.Clauses.ElementAtOrDefault(entry.ClausePosition);
+                if (ownerClause == null) continue;
+                bool subCountIncreased = ownerClause.SubClauses.Count >
+                    (oldSubClauseCounts.TryGetValue((entry.SectionPosition, entry.ArticlePosition, entry.ClausePosition), out var oldSubCount) ? oldSubCount : 0);
+                var newSub = ownerClause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = ownerClause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.Table = entry.sub.Table;
+            }
+
+            // ── Final Section ID Update ──
             if (SectionsResult == MessageBoxResult.Yes)
             {
                 var currentList = chapter.Sections.ToList();
@@ -1447,52 +1504,110 @@ namespace LawEditor.Models.TreeClasses
                 );
 
             // ── Special Elements of Articles ──
-            List<Article> ArticlesWithEndnoteId = section.Articles
-                .Where(a => !string.IsNullOrEmpty(a.EndnoteId))
+            List<(int Position, Article article)> ArticlesWithEndnoteId = section.Articles
+                .Select((a, pos) => (Position: pos, article: a))
+                .Where(x => !string.IsNullOrEmpty(x.article.EndnoteId))
                 .ToList();
-            List<Article> ArticlesWithImage = section.Articles
-                .Where(a => a.Image != null)
+            List<(int Position, Article article)> ArticlesWithImage = section.Articles
+                .Select((a, pos) => (Position: pos, article: a))
+                .Where(x => x.article.Image != null)
                 .ToList();
-            List<Article> ArticlesWithTable = section.Articles
-                .Where(a => a.Table != null)
+            List<(int Position, Article article)> ArticlesWithTable = section.Articles
+                .Select((a, pos) => (Position: pos, article: a))
+                .Where(x => x.article.Table != null)
                 .ToList();
 
             // ── Special Elements of Clauses ──
-            List<(decimal IdofArticle, Clause clause)> ClausesWithEndnoteId = section.Articles
-                .SelectMany(a => a.Clauses, (a, c) => (IdofArticle: a.Id, clause: c))
+            List<(int ArticlePosition, string ArticleTitle, int Position, Clause clause)> ClausesWithEndnoteId = section.Articles
+                .Select((a, aPos) => (a, aPos))
+                .SelectMany(x => x.a.Clauses.Select((c, pos) => (
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.a.Title,
+                    Position: pos,
+                    clause: c)))
                 .Where(x => !string.IsNullOrEmpty(x.clause.EndnoteId))
                 .ToList();
-            List<(decimal IdofArticle, Clause clause)> ClausesWithImage = section.Articles
-                .SelectMany(a => a.Clauses, (a, c) => (IdofArticle: a.Id, clause: c))
+            List<(int ArticlePosition, string ArticleTitle, int Position, Clause clause)> ClausesWithImage = section.Articles
+                .Select((a, aPos) => (a, aPos))
+                .SelectMany(x => x.a.Clauses.Select((c, pos) => (
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.a.Title,
+                    Position: pos,
+                    clause: c)))
                 .Where(x => x.clause.Image != null)
                 .ToList();
-            List<(decimal IdofArticle, Clause clause)> ClausesWithTable = section.Articles
-                .SelectMany(a => a.Clauses, (a, c) => (IdofArticle: a.Id, clause: c))
+            List<(int ArticlePosition, string ArticleTitle, int Position, Clause clause)> ClausesWithTable = section.Articles
+                .Select((a, aPos) => (a, aPos))
+                .SelectMany(x => x.a.Clauses.Select((c, pos) => (
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.a.Title,
+                    Position: pos,
+                    clause: c)))
                 .Where(x => x.clause.Table != null)
                 .ToList();
-            List<(decimal IdofArticle, Clause clause)> ClausesWithLink = section.Articles
-                .SelectMany(a => a.Clauses, (a, c) => (IdofArticle: a.Id, clause: c))
+            List<(int ArticlePosition, string ArticleTitle, int Position, Clause clause)> ClausesWithLink = section.Articles
+                .Select((a, aPos) => (a, aPos))
+                .SelectMany(x => x.a.Clauses.Select((c, pos) => (
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.a.Title,
+                    Position: pos,
+                    clause: c)))
                 .Where(x => !string.IsNullOrEmpty(x.clause.LinkText))
                 .ToList();
 
             // ── Special Elements of SubClauses ──
-            List<(decimal IdofArticle, int IdofClause, SubClause sub)> SubClausesWithEndnoteId = section.Articles
-                .SelectMany(a => a.Clauses, (a, c) => (a, c))
-                .SelectMany(x => x.c.SubClauses, (x, s) => (IdofArticle: x.a.Id, IdofClause: x.c.Number, sub: s))
+            List<(int ArticlePosition, string ArticleTitle, int ClausePosition, string ClauseText, int Position, SubClause sub)> SubClausesWithEndnoteId = section.Articles
+                .Select((a, aPos) => (a, aPos))
+                .SelectMany(x => x.a.Clauses.Select((c, cPos) => (x.aPos, x.a.Title, c, cPos)))
+                .SelectMany(x => x.c.SubClauses.Select((sub, pos) => (
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.Item2,
+                    ClausePosition: x.cPos,
+                    ClauseText: x.c.Text,
+                    Position: pos,
+                    sub: sub)))
                 .Where(x => !string.IsNullOrEmpty(x.sub.EndnoteId))
                 .ToList();
-            List<(decimal IdofArticle, int IdofClause, SubClause sub)> SubClausesWithImage = section.Articles
-                .SelectMany(a => a.Clauses, (a, c) => (a, c))
-                .SelectMany(x => x.c.SubClauses, (x, s) => (IdofArticle: x.a.Id, IdofClause: x.c.Number, sub: s))
+            List<(int ArticlePosition, string ArticleTitle, int ClausePosition, string ClauseText, int Position, SubClause sub)> SubClausesWithImage = section.Articles
+                .Select((a, aPos) => (a, aPos))
+                .SelectMany(x => x.a.Clauses.Select((c, cPos) => (x.aPos, x.a.Title, c, cPos)))
+                .SelectMany(x => x.c.SubClauses.Select((sub, pos) => (
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.Item2,
+                    ClausePosition: x.cPos,
+                    ClauseText: x.c.Text,
+                    Position: pos,
+                    sub: sub)))
                 .Where(x => x.sub.Image != null)
                 .ToList();
-            List<(decimal IdofArticle, int IdofClause, SubClause sub)> SubClausesWithTable = section.Articles
-                .SelectMany(a => a.Clauses, (a, c) => (a, c))
-                .SelectMany(x => x.c.SubClauses, (x, s) => (IdofArticle: x.a.Id, IdofClause: x.c.Number, sub: s))
+            List<(int ArticlePosition, string ArticleTitle, int ClausePosition, string ClauseText, int Position, SubClause sub)> SubClausesWithTable = section.Articles
+                .Select((a, aPos) => (a, aPos))
+                .SelectMany(x => x.a.Clauses.Select((c, cPos) => (x.aPos, x.a.Title, c, cPos)))
+                .SelectMany(x => x.c.SubClauses.Select((sub, pos) => (
+                    ArticlePosition: x.aPos,
+                    ArticleTitle: x.Item2,
+                    ClausePosition: x.cPos,
+                    ClauseText: x.c.Text,
+                    Position: pos,
+                    sub: sub)))
                 .Where(x => x.sub.Table != null)
                 .ToList();
 
+            // Шетчики старых элементов
+
+            int oldArticleCount = section.Articles.Count;
+            var oldClauseCounts = section.Articles
+                .Select((a, aPos) => (aPos, count: a.Clauses.Count))
+                .ToDictionary(x => x.aPos, x => x.count);
+            var oldSubClauseCounts = section.Articles
+                .Select((a, aPos) => (a, aPos))
+                .SelectMany(x => x.a.Clauses.Select((c, cPos) => (x.aPos, cPos, count: c.SubClauses.Count)))
+                .ToDictionary(x => (x.aPos, x.cPos), x => x.count);
+
             section.Articles.Clear();
+            // Section переменные
+            bool changeAsked = false;
+            MessageBoxResult changeResult = MessageBoxResult.No;
 
             // Article переменные
             int IdcounterofArticles = 0;
@@ -1503,9 +1618,7 @@ namespace LawEditor.Models.TreeClasses
             int PositionOfChangedArticleElement = 0;
             Article currentArticle = null;
 
-            string ArticleEndnoteToRestore = null;
-            Image ArticleImageToRestore = null;
-            Table ArticleTableToRestore = null;
+           
 
             // Clause переменные
             List<int> idsOfClauses = new List<int>();
@@ -1518,12 +1631,7 @@ namespace LawEditor.Models.TreeClasses
             int positionOfChangedClauseElement = 0;
             Clause currentClause = null;
 
-            string ClauseEndnoteToRestore = null;
-            Image ClauseImageToRestore = null;
-            Table ClauseTableToRestore = null;
-            string ClauseLinkTextToRestore = null;
-            string ClauseUrlToRestore = null;
-
+           
             // SubClause переменные
             List<int> idsOfSubClauses = new List<int>();
             List<int> idsOfSubClausesSnapshot = new List<int>();
@@ -1535,9 +1643,7 @@ namespace LawEditor.Models.TreeClasses
             int positionOfChangedSubClauseElement = 0;
             SubClause currentSubClause = null;
 
-            string SubClauseEndnoteToRestore = null;
-            Image SubClauseImageToRestore = null;
-            Table SubClauseTableToRestore = null;
+           
 
             void ApplySubClauseChanges()
             {
@@ -1595,9 +1701,7 @@ namespace LawEditor.Models.TreeClasses
                 positionOfChangedSubClauseElement = 0;
                 currentSubClause = null;
 
-                SubClauseEndnoteToRestore = null;
-                SubClauseImageToRestore = null;
-                SubClauseTableToRestore = null;
+               
             }
 
             void ResetClauseCounters(decimal artId)
@@ -1613,11 +1717,7 @@ namespace LawEditor.Models.TreeClasses
                 currentClause = null;
                 currentSubClause = null;
 
-                ClauseEndnoteToRestore = null;
-                ClauseImageToRestore = null;
-                ClauseTableToRestore = null;
-                ClauseLinkTextToRestore = null;
-                ClauseUrlToRestore = null;
+               
             }
 
             for (int i = 1; i < lines.Length; i++)
@@ -1670,11 +1770,18 @@ namespace LawEditor.Models.TreeClasses
                             if (oldArtId != artId)
                             {
                                 articlesAsked = true;
-                                ArticlesResult = MessageBox.Show(
-                                    "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                                    "Təsdiqləmə",
-                                    MessageBoxButton.YesNo,
-                                    MessageBoxImage.Question);
+
+                                if (!changeAsked)
+                                {
+                                    changeAsked = true;
+                                    changeResult = MessageBox.Show(
+                                        "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                        "Təsdiqləmə",
+                                        MessageBoxButton.YesNo,
+                                        MessageBoxImage.Question);
+                                }
+
+                                ArticlesResult = changeResult;  // используешь уже полученный ответ
 
                                 if (ArticlesResult == MessageBoxResult.Yes)
                                 {
@@ -1687,11 +1794,17 @@ namespace LawEditor.Models.TreeClasses
                         else
                         {
                             articlesAsked = true;
-                            ArticlesResult = MessageBox.Show(
-                                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                                "Təsdiqləmə",
-                                MessageBoxButton.YesNo,
-                                MessageBoxImage.Question);
+
+                            if (!changeAsked)
+                            {
+                                changeAsked = true;
+                                changeResult = MessageBox.Show(
+                                    "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                    "Təsdiqləmə",
+                                    MessageBoxButton.YesNo,
+                                    MessageBoxImage.Question);
+                            }
+                            ArticlesResult = changeResult;
 
                             if (ArticlesResult == MessageBoxResult.Yes)
                             {
@@ -1705,45 +1818,17 @@ namespace LawEditor.Models.TreeClasses
                     }
                 skipArticleIdCheck:;
 
-                    // ── Реставрация Article ──
-                    foreach (var a in ArticlesWithEndnoteId)
-                    {
-                        if (a.Id == artId || a.Title == articleMatch.Groups[2].Value)
-                        {
-                            ArticleEndnoteToRestore = a.EndnoteId;
-                            break;
-                        }
-                    }
-                    foreach (var a in ArticlesWithImage)
-                    {
-                        if (a.Id == artId || a.Title == articleMatch.Groups[2].Value)
-                        {
-                            ArticleImageToRestore = a.Image;
-                            break;
-                        }
-                    }
-                    foreach (var a in ArticlesWithTable)
-                    {
-                        if (a.Id == artId || a.Title == articleMatch.Groups[2].Value)
-                        {
-                            ArticleTableToRestore = a.Table;
-                            break;
-                        }
-                    }
+                    
 
                     currentArticle = new Article
                     {
                         Id = artId,
                         Title = articleMatch.Groups[2].Value,
-                        EndnoteId = ArticleEndnoteToRestore,
-                        Image = ArticleImageToRestore,
-                        Table = ArticleTableToRestore
+                        
                     };
                     section.Articles.Add(currentArticle);
 
-                    ArticleEndnoteToRestore = null;
-                    ArticleImageToRestore = null;
-                    ArticleTableToRestore = null;
+                   
 
                     IdcounterofArticles++;
 
@@ -1759,46 +1844,17 @@ namespace LawEditor.Models.TreeClasses
                     var rest = Regex.Match(line, @"^\[\]\s+(.*)$").Groups[1].Value;
                     decimal restoredId = IdesofArticles[IdcounterofArticles];
 
-                    // ── Реставрация Article (unnumbered) ──
-                    foreach (var a in ArticlesWithEndnoteId)
-                    {
-                        if (a.Id == restoredId || a.Title == rest)
-                        {
-                            ArticleEndnoteToRestore = a.EndnoteId;
-                            break;
-                        }
-                    }
-                    foreach (var a in ArticlesWithImage)
-                    {
-                        if (a.Id == restoredId || a.Title == rest)
-                        {
-                            ArticleImageToRestore = a.Image;
-                            break;
-                        }
-                    }
-                    foreach (var a in ArticlesWithTable)
-                    {
-                        if (a.Id == restoredId || a.Title == rest)
-                        {
-                            ArticleTableToRestore = a.Table;
-                            break;
-                        }
-                    }
+                   
 
                     currentArticle = new Article
                     {
                         Id = restoredId,
                         Title = rest,
-                        EndnoteId = ArticleEndnoteToRestore,
-                        Image = ArticleImageToRestore,
-                        Table = ArticleTableToRestore
+                        
                     };
                     section.Articles.Add(currentArticle);
 
-                    ArticleEndnoteToRestore = null;
-                    ArticleImageToRestore = null;
-                    ArticleTableToRestore = null;
-
+                    
                     articlesAsked = true;
                     IdcounterofArticles++;
 
@@ -1820,11 +1876,20 @@ namespace LawEditor.Models.TreeClasses
                          idsOfClauses[idCounterOfClauses] != newClauseNumber))
                     {
                         clausesAsked = true;
-                        var clausesResult = MessageBox.Show(
-                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                            "Təsdiqləmə",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Question);
+                        var clausesResult = MessageBoxResult.No;
+
+
+                        if (!changeAsked)
+                        {
+                            changeAsked = true;
+                            changeResult = MessageBox.Show(
+                                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                "Təsdiqləmə",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Question);
+                        }
+
+                        clausesResult = changeResult; 
 
                         if (clausesResult == MessageBoxResult.Yes)
                         {
@@ -1836,58 +1901,11 @@ namespace LawEditor.Models.TreeClasses
                         }
                     }
 
-                    // ── Реставрация Clause ──
-                    foreach (var x in ClausesWithEndnoteId)
-                    {
-                        if (x.IdofArticle == currentArticle.Id &&
-                            (x.clause.Number == newClauseNumber || x.clause.Text == clauseMatch.Groups[2].Value))
-                        {
-                            ClauseEndnoteToRestore = x.clause.EndnoteId;
-                            break;
-                        }
-                    }
-                    foreach (var x in ClausesWithImage)
-                    {
-                        if (x.IdofArticle == currentArticle.Id &&
-                            (x.clause.Number == newClauseNumber || x.clause.Text == clauseMatch.Groups[2].Value))
-                        {
-                            ClauseImageToRestore = x.clause.Image;
-                            break;
-                        }
-                    }
-                    foreach (var x in ClausesWithTable)
-                    {
-                        if (x.IdofArticle == currentArticle.Id &&
-                            (x.clause.Number == newClauseNumber || x.clause.Text == clauseMatch.Groups[2].Value))
-                        {
-                            ClauseTableToRestore = x.clause.Table;
-                            break;
-                        }
-                    }
-                    foreach (var x in ClausesWithLink)
-                    {
-                        if (x.IdofArticle == currentArticle.Id &&
-                            (x.clause.Number == newClauseNumber || x.clause.Text == clauseMatch.Groups[2].Value))
-                        {
-                            ClauseLinkTextToRestore = x.clause.LinkText;
-                            ClauseUrlToRestore = x.clause.Url;
-                            break;
-                        }
-                    }
+                    
 
                     currentClause = currentArticle.AddClause(clauseMatch.Groups[2].Value);
                     currentClause.Number = newClauseNumber;
-                    currentClause.EndnoteId = ClauseEndnoteToRestore;
-                    currentClause.Image = ClauseImageToRestore;
-                    currentClause.Table = ClauseTableToRestore;
-                    currentClause.LinkText = ClauseLinkTextToRestore;
-                    currentClause.Url = ClauseUrlToRestore;
-
-                    ClauseEndnoteToRestore = null;
-                    ClauseImageToRestore = null;
-                    ClauseTableToRestore = null;
-                    ClauseLinkTextToRestore = null;
-                    ClauseUrlToRestore = null;
+                  
 
                     idCounterOfClauses++;
 
@@ -1905,59 +1923,11 @@ namespace LawEditor.Models.TreeClasses
                         var rest = Regex.Match(line, @"^\.\s+(.*)$").Groups[1].Value;
                         int restoredClauseNum = idsOfClauses[idCounterOfClauses];
 
-                        // ── Реставрация Clause (unnumbered) ──
-                        foreach (var x in ClausesWithEndnoteId)
-                        {
-                            if (x.IdofArticle == currentArticle.Id &&
-                                (x.clause.Number == restoredClauseNum || x.clause.Text == rest))
-                            {
-                                ClauseEndnoteToRestore = x.clause.EndnoteId;
-                                break;
-                            }
-                        }
-                        foreach (var x in ClausesWithImage)
-                        {
-                            if (x.IdofArticle == currentArticle.Id &&
-                                (x.clause.Number == restoredClauseNum || x.clause.Text == rest))
-                            {
-                                ClauseImageToRestore = x.clause.Image;
-                                break;
-                            }
-                        }
-                        foreach (var x in ClausesWithTable)
-                        {
-                            if (x.IdofArticle == currentArticle.Id &&
-                                (x.clause.Number == restoredClauseNum || x.clause.Text == rest))
-                            {
-                                ClauseTableToRestore = x.clause.Table;
-                                break;
-                            }
-                        }
-                        foreach (var x in ClausesWithLink)
-                        {
-                            if (x.IdofArticle == currentArticle.Id &&
-                                (x.clause.Number == restoredClauseNum || x.clause.Text == rest))
-                            {
-                                ClauseLinkTextToRestore = x.clause.LinkText;
-                                ClauseUrlToRestore = x.clause.Url;
-                                break;
-                            }
-                        }
+                        
 
                         currentClause = currentArticle.AddClause(rest);
                         currentClause.Number = restoredClauseNum;
-                        currentClause.EndnoteId = ClauseEndnoteToRestore;
-                        currentClause.Image = ClauseImageToRestore;
-                        currentClause.Table = ClauseTableToRestore;
-                        currentClause.LinkText = ClauseLinkTextToRestore;
-                        currentClause.Url = ClauseUrlToRestore;
-
-                        ClauseEndnoteToRestore = null;
-                        ClauseImageToRestore = null;
-                        ClauseTableToRestore = null;
-                        ClauseLinkTextToRestore = null;
-                        ClauseUrlToRestore = null;
-
+                        
                         clausesAsked = true;
                         idCounterOfClauses++;
 
@@ -1978,11 +1948,22 @@ namespace LawEditor.Models.TreeClasses
                          idsOfSubClauses[idCounterOfSubClauses] != newSubNumber))
                     {
                         subClausesAsked = true;
-                        var subClausesResult = MessageBox.Show(
-                            "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
-                            "Təsdiqləmə",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Question);
+
+                        var subClausesResult = MessageBoxResult.No;
+
+
+
+                           if (!changeAsked)
+                        {
+                            changeAsked = true;
+                            changeResult = MessageBox.Show(
+                                "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
+                                "Təsdiqləmə",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Question);
+                        }
+
+                        subClausesResult = changeResult;
 
                         if (subClausesResult == MessageBoxResult.Yes)
                         {
@@ -1994,47 +1975,10 @@ namespace LawEditor.Models.TreeClasses
                         }
                     }
 
-                    // ── Реставрация SubClause ──
-                    foreach (var x in SubClausesWithEndnoteId)
-                    {
-                        if (x.IdofArticle == currentArticle.Id &&
-                            x.IdofClause == currentClause.Number &&
-                            (x.sub.Number == newSubNumber || x.sub.Text == subMatch.Groups[2].Value))
-                        {
-                            SubClauseEndnoteToRestore = x.sub.EndnoteId;
-                            break;
-                        }
-                    }
-                    foreach (var x in SubClausesWithImage)
-                    {
-                        if (x.IdofArticle == currentArticle.Id &&
-                            x.IdofClause == currentClause.Number &&
-                            (x.sub.Number == newSubNumber || x.sub.Text == subMatch.Groups[2].Value))
-                        {
-                            SubClauseImageToRestore = x.sub.Image;
-                            break;
-                        }
-                    }
-                    foreach (var x in SubClausesWithTable)
-                    {
-                        if (x.IdofArticle == currentArticle.Id &&
-                            x.IdofClause == currentClause.Number &&
-                            (x.sub.Number == newSubNumber || x.sub.Text == subMatch.Groups[2].Value))
-                        {
-                            SubClauseTableToRestore = x.sub.Table;
-                            break;
-                        }
-                    }
-
+                   
                     currentSubClause = currentClause.AddSubClause(subMatch.Groups[2].Value);
                     currentSubClause.Number = newSubNumber;
-                    currentSubClause.EndnoteId = SubClauseEndnoteToRestore;
-                    currentSubClause.Image = SubClauseImageToRestore;
-                    currentSubClause.Table = SubClauseTableToRestore;
-
-                    SubClauseEndnoteToRestore = null;
-                    SubClauseImageToRestore = null;
-                    SubClauseTableToRestore = null;
+                  
 
                     idCounterOfSubClauses++;
                     continue;
@@ -2066,16 +2010,158 @@ namespace LawEditor.Models.TreeClasses
 
             // Применяем Clause изменения для последней Article
             ApplyClauseChanges();
+            // Restore Special Elements 
 
-            if (ArticlesResult == MessageBoxResult.Yes)
+            // Article
+            bool articleCountIncreased = section.Articles.Count > oldArticleCount;
+            foreach (var entry in ArticlesWithEndnoteId)
             {
-                int nextPos = PositionOfChangedArticleElement + 1;
-                bool nextIsFractional = nextPos < section.Articles.Count &&
-                                        section.Articles[nextPos].Id != Math.Floor(section.Articles[nextPos].Id);
-
-                if (!nextIsFractional)
-                    ArticlesResult = MessageBoxResult.No;
+                var newArticle = section.Articles.FirstOrDefault(a => a.Title == entry.article.Title);
+                if (newArticle == null && !articleCountIncreased)
+                    newArticle = section.Articles.ElementAtOrDefault(entry.Position);
+                if (newArticle != null)
+                    newArticle.EndnoteId = entry.article.EndnoteId;
             }
+            foreach (var entry in ArticlesWithImage)
+            {
+                var newArticle = section.Articles.FirstOrDefault(a => a.Title == entry.article.Title);
+                if (newArticle == null && !articleCountIncreased)
+                    newArticle = section.Articles.ElementAtOrDefault(entry.Position);
+                if (newArticle != null)
+                    newArticle.Image = entry.article.Image;
+            }
+            foreach (var entry in ArticlesWithTable)
+            {
+                var newArticle = section.Articles.FirstOrDefault(a => a.Title == entry.article.Title);
+                if (newArticle == null && !articleCountIncreased)
+                    newArticle = section.Articles.ElementAtOrDefault(entry.Position);
+                if (newArticle != null)
+                    newArticle.Table = entry.article.Table;
+            }
+
+            // Clause
+            foreach (var entry in ClausesWithEndnoteId)
+            {
+                var ownerArticle = section.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = section.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue(entry.ArticlePosition, out var oldClCount) ? oldClCount : 0);
+                var newClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = ownerArticle.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                    newClause.EndnoteId = entry.clause.EndnoteId;
+            }
+            foreach (var entry in ClausesWithImage)
+            {
+                var ownerArticle = section.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = section.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue(entry.ArticlePosition, out var oldClCount) ? oldClCount : 0);
+                var newClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = ownerArticle.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                    newClause.Image = entry.clause.Image;
+            }
+            foreach (var entry in ClausesWithTable)
+            {
+                var ownerArticle = section.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = section.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue(entry.ArticlePosition, out var oldClCount) ? oldClCount : 0);
+                var newClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = ownerArticle.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                    newClause.Table = entry.clause.Table;
+            }
+            foreach (var entry in ClausesWithLink)
+            {
+                var ownerArticle = section.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = section.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue(entry.ArticlePosition, out var oldClCount) ? oldClCount : 0);
+                var newClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = ownerArticle.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                {
+                    newClause.LinkText = entry.clause.LinkText;
+                    newClause.Url = entry.clause.Url;
+                }
+            }
+
+            // SubClause
+            foreach (var entry in SubClausesWithEndnoteId)
+            {
+                var ownerArticle = section.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = section.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue(entry.ArticlePosition, out var oldClCount) ? oldClCount : 0);
+                var ownerClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.ClauseText);
+                if (ownerClause == null && !clauseCountIncreased)
+                    ownerClause = ownerArticle.Clauses.ElementAtOrDefault(entry.ClausePosition);
+                if (ownerClause == null) continue;
+                bool subCountIncreased = ownerClause.SubClauses.Count >
+                    (oldSubClauseCounts.TryGetValue((entry.ArticlePosition, entry.ClausePosition), out var oldSubCount) ? oldSubCount : 0);
+                var newSub = ownerClause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = ownerClause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.EndnoteId = entry.sub.EndnoteId;
+            }
+            foreach (var entry in SubClausesWithImage)
+            {
+                var ownerArticle = section.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = section.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue(entry.ArticlePosition, out var oldClCount) ? oldClCount : 0);
+                var ownerClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.ClauseText);
+                if (ownerClause == null && !clauseCountIncreased)
+                    ownerClause = ownerArticle.Clauses.ElementAtOrDefault(entry.ClausePosition);
+                if (ownerClause == null) continue;
+                bool subCountIncreased = ownerClause.SubClauses.Count >
+                    (oldSubClauseCounts.TryGetValue((entry.ArticlePosition, entry.ClausePosition), out var oldSubCount) ? oldSubCount : 0);
+                var newSub = ownerClause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = ownerClause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.Image = entry.sub.Image;
+            }
+            foreach (var entry in SubClausesWithTable)
+            {
+                var ownerArticle = section.Articles.FirstOrDefault(a => a.Title == entry.ArticleTitle);
+                if (ownerArticle == null && !articleCountIncreased)
+                    ownerArticle = section.Articles.ElementAtOrDefault(entry.ArticlePosition);
+                if (ownerArticle == null) continue;
+                bool clauseCountIncreased = ownerArticle.Clauses.Count >
+                    (oldClauseCounts.TryGetValue(entry.ArticlePosition, out var oldClCount) ? oldClCount : 0);
+                var ownerClause = ownerArticle.Clauses.FirstOrDefault(c => c.Text == entry.ClauseText);
+                if (ownerClause == null && !clauseCountIncreased)
+                    ownerClause = ownerArticle.Clauses.ElementAtOrDefault(entry.ClausePosition);
+                if (ownerClause == null) continue;
+                bool subCountIncreased = ownerClause.SubClauses.Count >
+                    (oldSubClauseCounts.TryGetValue((entry.ArticlePosition, entry.ClausePosition), out var oldSubCount) ? oldSubCount : 0);
+                var newSub = ownerClause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = ownerClause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.Table = entry.sub.Table;
+            }
+            // Finally, handle the case where the article ID has changed and the user has agreed to update all subsequent IDs
 
             if (ArticlesResult == MessageBoxResult.Yes)
             {
@@ -2101,6 +2187,7 @@ namespace LawEditor.Models.TreeClasses
 
                 CanRefresh = true;
             }
+
         }
 
         private static void ParseArticle(Article article, string text)
@@ -2143,38 +2230,60 @@ namespace LawEditor.Models.TreeClasses
 
 
 
-            //Speshial Elements of SubClauses
-            List<(int IdofClause, SubClause sub)> SubclausesWithEndnoteId = article.Clauses
-                .SelectMany(c => c.SubClauses, (c, s) => (IdofClause: c.Number, sub: s))
-                .Where(x => !string.IsNullOrEmpty(x.sub.EndnoteId))
+            // Special Elements of Clauses
+            List<(int Position, Clause clause)> ClausesWithEndnoteId = article.Clauses
+                .Select((c, pos) => (Position: pos, clause: c))
+                .Where(x => !string.IsNullOrEmpty(x.clause.EndnoteId))
+                .ToList();
+            List<(int Position, Clause clause)> ClausesWithImage = article.Clauses
+                .Select((c, pos) => (Position: pos, clause: c))
+                .Where(x => x.clause.Image != null)
+                .ToList();
+            List<(int Position, Clause clause)> ClausesWithTable = article.Clauses
+                .Select((c, pos) => (Position: pos, clause: c))
+                .Where(x => x.clause.Table != null)
+                .ToList();
+            List<(int Position, Clause clause)> ClausesWithLink = article.Clauses
+                .Select((c, pos) => (Position: pos, clause: c))
+                .Where(x => !string.IsNullOrEmpty(x.clause.LinkText))
                 .ToList();
 
-            List < (int IdofClause, SubClause sub) > SubclausesWithImage = article.Clauses
-                .SelectMany(c => c.SubClauses, (c, s) => (IdofClause: c.Number, sub: s))
+            // Special Elements of SubClauses
+            List<(int ClausePosition, string ClauseText, int Position, SubClause sub)> SubClausesWithEndnoteId = article.Clauses
+                .Select((c, cPos) => (c, cPos))
+                .SelectMany(x => x.c.SubClauses.Select((sub, pos) => (
+                    ClausePosition: x.cPos,
+                    ClauseText: x.c.Text,
+                    Position: pos,
+                    sub: sub)))
+                .Where(x => !string.IsNullOrEmpty(x.sub.EndnoteId))
+                .ToList();
+            List<(int ClausePosition, string ClauseText, int Position, SubClause sub)> SubClausesWithImage = article.Clauses
+                .Select((c, cPos) => (c, cPos))
+                .SelectMany(x => x.c.SubClauses.Select((sub, pos) => (
+                    ClausePosition: x.cPos,
+                    ClauseText: x.c.Text,
+                    Position: pos,
+                    sub: sub)))
                 .Where(x => x.sub.Image != null)
                 .ToList();
-            List<(int IdofClause, SubClause sub)> SubclausesWithTable = article.Clauses
-                .SelectMany(c => c.SubClauses, (c, s) => (IdofClause: c.Number, sub: s))
+            List<(int ClausePosition, string ClauseText, int Position, SubClause sub)> SubClausesWithTable = article.Clauses
+                .Select((c, cPos) => (c, cPos))
+                .SelectMany(x => x.c.SubClauses.Select((sub, pos) => (
+                    ClausePosition: x.cPos,
+                    ClauseText: x.c.Text,
+                    Position: pos,
+                    sub: sub)))
                 .Where(x => x.sub.Table != null)
                 .ToList();
 
+            // Шетчики специальных элементов
+            int oldClauseCount = article.Clauses.Count;
+            var oldSubClauseCountsForRestore = article.Clauses
+                .Select((c, cPos) => (cPos, count: c.SubClauses.Count))
+                .ToDictionary(x => x.cPos, x => x.count);
 
-
-
-
-            // Speshial Elements of Clauses
-            List<Clause> ClausesWithEndnoteId = article.Clauses
-                .Where(c => !string.IsNullOrEmpty(c.EndnoteId))
-                .ToList();
-            List<Clause> ClausesWithImage = article.Clauses
-                .Where(c => c.Image != null)
-                .ToList();
-            List<Clause> ClausesWithTable = article.Clauses
-                .Where(c => c.Table != null)
-                .ToList(); 
-            List<Clause> ClausesWithLink = article.Clauses
-                .Where(c => !string.IsNullOrEmpty(c.LinkText))
-                .ToList();
+            // Очистка текущих данных перед парсингом
 
             article.Clauses.Clear();
 
@@ -2187,11 +2296,7 @@ namespace LawEditor.Models.TreeClasses
             Clause currentClause = null;
             Clause subClausesTargetClause = null;
            
-            Table ClauseTabletoRestore = null;
-            Image ClauseImagetoRestore = null;
-            string ClauseEndnotetoRestore = null;
-            string ClauseLinkTexttoRestore = null;
-            string ClauseUrltoRestore = null;
+           
 
 
             // SubClause переменные
@@ -2205,9 +2310,7 @@ namespace LawEditor.Models.TreeClasses
             int positionOfChangedSubClauseElement = 0;
             SubClause currentSubClause = null;
 
-            Table subClauseTableToRestore = null;
-            Image subClauseImagetoRestore = null;
-            string subClauseEndnotetoRestore = null;
+           
 
             void ApplySubClauseChanges()
             {
@@ -2259,6 +2362,8 @@ namespace LawEditor.Models.TreeClasses
                          IdesofClauses[IdcounterofClauses] != newNumber))
                     {
                         clausesAsked = true;
+
+
                         ClausesResult = MessageBox.Show(
                             "Dəyişdirilmiş elementdən aşağıdakı bütün rəqəmsal ID-ləri yeniləmək istəyirsiniz?",
                             "Təsdiqləmə",
@@ -2273,59 +2378,18 @@ namespace LawEditor.Models.TreeClasses
                     }
 
 
-                    foreach (var clause in ClausesWithEndnoteId)
-                    {
-                        if (clause.Number == newNumber || clause.Text == clauseMatch.Groups[2].Value)
-                        {
-                            ClauseEndnotetoRestore = clause.EndnoteId;
-                            break;
-                        }
-                    }
-                    foreach (var clause in ClausesWithImage)
-                    {
-                        if (clause.Number == newNumber || clause.Text == clauseMatch.Groups[2].Value)
-                        {
-                            ClauseImagetoRestore = clause.Image;
-                            break;
-                        }
-                    }
-                    foreach (var clause in ClausesWithTable)
-                    {
-                        if (clause.Number == newNumber || clause.Text == clauseMatch.Groups[2].Value)
-                        {
-                            ClauseTabletoRestore = clause.Table;
-                            break;
-                        }
-                    }
-                    foreach (var clause in ClausesWithLink)
-                    {
-                        if (clause.Number == newNumber || clause.Text == clauseMatch.Groups[2].Value)
-                        {
-                            ClauseLinkTexttoRestore = clause.LinkText;
-                            ClauseUrltoRestore = clause.Url;
-                            break;
-                        }
-                    }
+                   
 
                     currentClause = new Clause
                     {
                         Number = newNumber,
                         Text = clauseMatch.Groups[2].Value,
-                        EndnoteId = ClauseEndnotetoRestore,
-                        Image = ClauseImagetoRestore,
-                        Table = ClauseTabletoRestore,
-                        LinkText = ClauseLinkTexttoRestore,
-                        Url = ClauseUrltoRestore
+                        
                     };
 
                     article.Clauses.Add(currentClause);
 
 
-                    ClauseEndnotetoRestore = null;
-                    ClauseImagetoRestore = null;
-                    ClauseTabletoRestore = null;
-                    ClauseLinkTexttoRestore = null;
-                    ClauseUrltoRestore = null; 
 
 
                     IdcounterofClauses++;
@@ -2351,58 +2415,18 @@ namespace LawEditor.Models.TreeClasses
                     if (IdcounterofClauses < IdesofClauses.Count)
                     {
                         var rest = Regex.Match(line, @"^\.\s+(.*)$").Groups[1].Value;
-                        foreach (var clause in ClausesWithEndnoteId)
-                        {
-                            if (clause.Number == IdesofClauses[IdcounterofClauses] || clause.Text == rest)
-                            {
-                                ClauseEndnotetoRestore = clause.EndnoteId;
-                                break;
-                            }
-                        }
-                        foreach (var clause in ClausesWithImage)
-                        {
-                            if (clause.Number == IdesofClauses[IdcounterofClauses] || clause.Text == rest)
-                            {
-                                ClauseImagetoRestore = clause.Image;
-                                break;
-                            }
-                        }
-                        foreach (var clause in ClausesWithTable)
-                        {
-                            if (clause.Number == IdesofClauses[IdcounterofClauses] || clause.Text == rest)
-                            {
-                                ClauseTabletoRestore = clause.Table;
-                                break;
-                            }
-                        }
-                        foreach (var clause in ClausesWithLink)
-                        {
-                            if (clause.Number == IdesofClauses[IdcounterofClauses] || clause.Text == rest)
-                            {
-                                ClauseLinkTexttoRestore = clause.LinkText;
-                                ClauseUrltoRestore = clause.Url;
-                                break;
-                            }
-                        }
+                       
 
                         currentClause = new Clause
                         {
                             Number = IdesofClauses[IdcounterofClauses],
                             Text = rest,
-                            EndnoteId = ClauseEndnotetoRestore,
-                            Table = ClauseTabletoRestore,
-                            Image = ClauseImagetoRestore,
-                            LinkText = ClauseLinkTexttoRestore,
-                            Url = ClauseUrltoRestore,
+                           
 
                         };
                         article.Clauses.Add(currentClause);
 
-                        ClauseEndnotetoRestore = null;
-                        ClauseImagetoRestore = null;
-                        ClauseTabletoRestore = null;
-                        ClauseLinkTexttoRestore = null;
-                        ClauseUrltoRestore = null;
+                        
 
                         clausesAsked = true;
                         IdcounterofClauses++;
@@ -2446,47 +2470,17 @@ namespace LawEditor.Models.TreeClasses
                             idsOfSubClausesSnapshot = new List<int>(idsOfSubClauses);
                         }
                     }
-                    foreach (var sub in SubclausesWithEndnoteId)
-                    {
-                        if (sub.IdofClause == currentClause.Number &&
-                            (sub.sub.Number == newSubNumber || sub.sub.Text == subMatch.Groups[2].Value))
-                        {
-                            subClauseEndnotetoRestore = sub.sub.EndnoteId;
-                            break;
-                        }
-                    }
-                    foreach (var sub in SubclausesWithImage)
-                    {
-                        if (sub.IdofClause == currentClause.Number &&
-                            (sub.sub.Number == newSubNumber || sub.sub.Text == subMatch.Groups[2].Value))
-                        {
-                            subClauseImagetoRestore = sub.sub.Image;
-                            break;
-                        }
-                    }
-                    foreach (var sub in SubclausesWithTable)
-                    {
-                        if (sub.IdofClause == currentClause.Number &&
-                            (sub.sub.Number == newSubNumber || sub.sub.Text == subMatch.Groups[2].Value))
-                        {
-                            subClauseTableToRestore = sub.sub.Table;
-                            break;
-                        }
-                    }   
+                   
 
                     currentSubClause = new SubClause
                     {
                         Number = newSubNumber,
                         Text = subMatch.Groups[2].Value,
-                        EndnoteId=subClauseEndnotetoRestore,
-                        Image = subClauseImagetoRestore,
-                        Table = subClauseTableToRestore
+                       
                     };
                     currentClause.SubClauses.Add(currentSubClause);
 
-                    subClauseEndnotetoRestore = null;
-                    subClauseImagetoRestore = null;
-                    subClauseTableToRestore = null;
+                    
 
                     idCounterOfSubClauses++;
                     continue;
@@ -2535,6 +2529,89 @@ namespace LawEditor.Models.TreeClasses
 
             // Применяем SubClause изменения для последнего Clause
             ApplySubClauseChanges();
+            // Restore Special Elements
+
+            // Clause
+            bool clauseCountIncreased = article.Clauses.Count > oldClauseCount;
+            foreach (var entry in ClausesWithEndnoteId)
+            {
+                var newClause = article.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = article.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                    newClause.EndnoteId = entry.clause.EndnoteId;
+            }
+            foreach (var entry in ClausesWithImage)
+            {
+                var newClause = article.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = article.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                    newClause.Image = entry.clause.Image;
+            }
+            foreach (var entry in ClausesWithTable)
+            {
+                var newClause = article.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = article.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                    newClause.Table = entry.clause.Table;
+            }
+            foreach (var entry in ClausesWithLink)
+            {
+                var newClause = article.Clauses.FirstOrDefault(c => c.Text == entry.clause.Text);
+                if (newClause == null && !clauseCountIncreased)
+                    newClause = article.Clauses.ElementAtOrDefault(entry.Position);
+                if (newClause != null)
+                {
+                    newClause.LinkText = entry.clause.LinkText;
+                    newClause.Url = entry.clause.Url;
+                }
+            }
+
+            // SubClause
+            foreach (var entry in SubClausesWithEndnoteId)
+            {
+                var ownerClause = article.Clauses.FirstOrDefault(c => c.Text == entry.ClauseText);
+                if (ownerClause == null && !clauseCountIncreased)
+                    ownerClause = article.Clauses.ElementAtOrDefault(entry.ClausePosition);
+                if (ownerClause == null) continue;
+                bool subCountIncreased = ownerClause.SubClauses.Count >
+                    (oldSubClauseCountsForRestore.TryGetValue(entry.ClausePosition, out var oldSubCount) ? oldSubCount : 0);
+                var newSub = ownerClause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = ownerClause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.EndnoteId = entry.sub.EndnoteId;
+            }
+            foreach (var entry in SubClausesWithImage)
+            {
+                var ownerClause = article.Clauses.FirstOrDefault(c => c.Text == entry.ClauseText);
+                if (ownerClause == null && !clauseCountIncreased)
+                    ownerClause = article.Clauses.ElementAtOrDefault(entry.ClausePosition);
+                if (ownerClause == null) continue;
+                bool subCountIncreased = ownerClause.SubClauses.Count >
+                    (oldSubClauseCountsForRestore.TryGetValue(entry.ClausePosition, out var oldSubCount) ? oldSubCount : 0);
+                var newSub = ownerClause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = ownerClause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.Image = entry.sub.Image;
+            }
+            foreach (var entry in SubClausesWithTable)
+            {
+                var ownerClause = article.Clauses.FirstOrDefault(c => c.Text == entry.ClauseText);
+                if (ownerClause == null && !clauseCountIncreased)
+                    ownerClause = article.Clauses.ElementAtOrDefault(entry.ClausePosition);
+                if (ownerClause == null) continue;
+                bool subCountIncreased = ownerClause.SubClauses.Count >
+                    (oldSubClauseCountsForRestore.TryGetValue(entry.ClausePosition, out var oldSubCount) ? oldSubCount : 0);
+                var newSub = ownerClause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = ownerClause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.Table = entry.sub.Table;
+            }
         }
 
         private static void ParseClause(Clause clause, string text)
@@ -2562,18 +2639,30 @@ namespace LawEditor.Models.TreeClasses
            
             // About SubClauses: 
             List<int> IdesofSubclauses = clause.SubClauses.Select(sc => sc.Number).ToList();
-            List<SubClause> SubclausesWithTables = clause.SubClauses.Where(sc => sc.Table != null).ToList();
-            List<SubClause> SubclausesWithImages = clause.SubClauses.Where(sc => sc.Image != null).ToList();
-            List<SubClause> SubClausesWithEndnoteIds = clause.SubClauses.Where(sc => sc.EndnoteId != null).ToList();
+
+            List<(int Position, SubClause sub)> SubClausesWithEndnoteId = clause.SubClauses
+     .Select((sub, pos) => (Position: pos, sub: sub))
+     .Where(x => !string.IsNullOrEmpty(x.sub.EndnoteId))
+     .ToList();
+            List<(int Position, SubClause sub)> SubClausesWithImage = clause.SubClauses
+                .Select((sub, pos) => (Position: pos, sub: sub))
+                .Where(x => x.sub.Image != null)
+                .ToList();
+            List<(int Position, SubClause sub)> SubClausesWithTable = clause.SubClauses
+                .Select((sub, pos) => (Position: pos, sub: sub))
+                .Where(x => x.sub.Table != null)
+                .ToList();
 
             int IdcounterofSubclauses = 0;
             var SubclausesResult = MessageBoxResult.No;
             bool subclausesAsked = false;
             int IdofChangedSubclauseElement = 0;
             int PositionOfChangedSubclauseElement = 0;
-            Table tableToRestore = null;
-            Image imageToRestore = null;
-            string endnoteIdToRestore = null;
+
+            // Шетчики специальных элементов SubClause
+            int oldSubClauseCount = clause.SubClauses.Count;
+            // Очистка текущих данных перед парсингом
+
             clause.SubClauses.Clear();
             clause.EndnoteId = null;
 
@@ -2615,42 +2704,15 @@ namespace LawEditor.Models.TreeClasses
                     }
 
 
-                    foreach (var sub in SubclausesWithTables)
-                    {
-                        if (sub.Number == newNumber || sub.Text == subMatch.Groups[2].Value)
-                        {
-                            tableToRestore = sub.Table;
-                            break;
-                        }
-                    }
-                    foreach (var sub in SubclausesWithImages)
-                    {
-                        if (sub.Number == newNumber || sub.Text == subMatch.Groups[2].Value)
-                        {
-                            imageToRestore = sub.Image;
-                            break;
-                        }
-                    }
-                    foreach (var sub in SubClausesWithEndnoteIds)
-                    {
-                        if (sub.Number == newNumber || sub.Text == subMatch.Groups[2].Value)
-                        {
-                            endnoteIdToRestore = sub.EndnoteId;
-                            break;
-                        }
-                    }
+                   
 
                         clause.SubClauses.Add(new SubClause
                     {
                         Number = newNumber,
                         Text = subMatch.Groups[2].Value,
-                        Table = tableToRestore,
-                        Image = imageToRestore,
-                        EndnoteId = endnoteIdToRestore
+                        
                     });
-                    endnoteIdToRestore = null;
-                    imageToRestore = null;
-                    tableToRestore = null;
+                    
 
                     IdcounterofSubclauses++;
                     continue;
@@ -2679,6 +2741,33 @@ namespace LawEditor.Models.TreeClasses
                     var last = clause.SubClauses.Last();
                     last.Text = last.Text + "\n" + line;
                 }
+            }
+            // Restore Special Elements of SubClauses
+            bool subCountIncreased = clause.SubClauses.Count > oldSubClauseCount;
+
+            foreach (var entry in SubClausesWithEndnoteId)
+            {
+                var newSub = clause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = clause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.EndnoteId = entry.sub.EndnoteId;
+            }
+            foreach (var entry in SubClausesWithImage)
+            {
+                var newSub = clause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = clause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.Image = entry.sub.Image;
+            }
+            foreach (var entry in SubClausesWithTable)
+            {
+                var newSub = clause.SubClauses.FirstOrDefault(s => s.Text == entry.sub.Text);
+                if (newSub == null && !subCountIncreased)
+                    newSub = clause.SubClauses.ElementAtOrDefault(entry.Position);
+                if (newSub != null)
+                    newSub.Table = entry.sub.Table;
             }
 
             // Обработка изменения ID

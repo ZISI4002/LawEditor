@@ -204,9 +204,11 @@ namespace LawEditor.Commands.LawEditorWindowCommands
 
 
                 // Altbənd əlavə etməklə bağlı əmrlər
-                case "İçəridə altbənd əlavə et":
+                case "İçәridә altbәnd әlavә et" :
+
                     anchor.Clause.AddSubClause("Yeni Altbənd");
                     break;
+
                 case "Yuxarıda altbənd əlavə et":
                     anchor.Clause.AddSubClause("Yeni Altbənd", anchor.SubClause.Number - 1);
                     break;

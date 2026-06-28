@@ -251,10 +251,31 @@ namespace LawEditor.Views
                 AddImageBlock(doc, image);
             }
 
-            MainRichTextBox.Document = doc;
-            UpdateLineNumbers();
 
-            _isUpdatingRichText = false;
+
+
+
+
+
+            Dispatcher.BeginInvoke(() =>
+            {
+                _isUpdatingRichText = true;          // на всякий случай
+                var empty = new FlowDocument();
+                MainRichTextBox.Document = empty;
+                MainRichTextBox.Document = doc;
+                UpdateLineNumbers();
+                _isUpdatingRichText = false;         // только здесь
+            }, System.Windows.Threading.DispatcherPriority.Background);
+
+
+
+
+
+
+
+
+
+
         }
 
         private void AddImageBlock(FlowDocument doc, Models.SpecialElements.Image image)
