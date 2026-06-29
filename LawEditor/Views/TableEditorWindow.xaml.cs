@@ -1,23 +1,11 @@
 ﻿using LawEditor.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace LawEditor.Views
 {
-    /// <summary>
-    /// Логика взаимодействия для TableEditorWindow.xaml
-    /// </summary>
     public partial class TableEditorWindow : Window
     {
         private readonly TableEditorViewModel _vm;
@@ -28,12 +16,11 @@ namespace LawEditor.Views
             _vm = new TableEditorViewModel(this, table, parentViewModel);
             DataContext = _vm;
         }
+
         public TableEditorWindow()
         {
             InitializeComponent();
         }
-
-
 
         private void DataGrid_Loaded(object sender, RoutedEventArgs e)
         {
@@ -41,7 +28,12 @@ namespace LawEditor.Views
             if (DataContext is TableEditorViewModel vm)
             {
                 GenerateColumns(grid, vm);
-                vm.Headers.CollectionChanged += (s, args) => GenerateColumns(grid, vm);
+                vm.Headers.CollectionChanged += (s, args) =>
+                {
+                    // Перестраиваем только если изменилось количество колонок
+                    if (args.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
+                        GenerateColumns(grid, vm);
+                };
             }
         }
 
@@ -53,9 +45,31 @@ namespace LawEditor.Views
             {
                 int colIndex = i;
 
+                var headerTemplate = new DataTemplate();
+                var tbxFactory = new FrameworkElementFactory(typeof(TextBox));
+
+                tbxFactory.SetBinding(TextBox.TextProperty,
+                    new Binding($"Headers[{colIndex}]")
+                    {
+                        Source = vm,
+                        Mode = BindingMode.TwoWay,
+                        UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                    });
+
+                tbxFactory.SetValue(TextBox.BackgroundProperty, Brushes.Transparent);
+                tbxFactory.SetValue(TextBox.ForegroundProperty,
+                    (Brush)new BrushConverter().ConvertFrom("#38BDF8"));
+                tbxFactory.SetValue(TextBox.BorderThicknessProperty, new Thickness(0, 0, 0, 1));
+                tbxFactory.SetValue(TextBox.BorderBrushProperty, Brushes.SteelBlue);
+                tbxFactory.SetValue(TextBox.FontWeightProperty, FontWeights.Bold);
+                tbxFactory.SetValue(TextBox.FontSizeProperty, 13.0);
+                tbxFactory.SetValue(TextBox.PaddingProperty, new Thickness(4, 2, 4, 2));
+
+                headerTemplate.VisualTree = tbxFactory;
+
                 var column = new DataGridTextColumn
                 {
-                    Header = vm.Headers[i],
+                    HeaderTemplate = headerTemplate,
                     Binding = new Binding($"[{colIndex}]")
                     {
                         Mode = BindingMode.TwoWay,
@@ -67,10 +81,10 @@ namespace LawEditor.Views
                 grid.Columns.Add(column);
             }
         }
+
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
-        }   
-
+        }
     }
 }
